@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { packages } from '../../src/registry/packages.js'
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
@@ -16,6 +17,14 @@ async function verifyUser(supabase, token) {
   return (error || !user) ? null : user
 }
 
+async function parseJsonBody(req) {
+  const chunks = []
+  for await (const chunk of req) chunks.push(chunk)
+  const raw = Buffer.concat(chunks).toString()
+  if (!raw) return {}
+  try { return JSON.parse(raw) } catch { return {} }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
@@ -27,15 +36,16 @@ export default async function handler(req, res) {
   if (!user) return res.status(401).json({ error: 'Invalid token' })
 
   const subpath = Array.isArray(req.query.path) ? req.query.path[0] : req.query.path
+  const body = await parseJsonBody(req)
 
   // POST /api/tokens/generate  (admin only)
   if (subpath === 'generate') {
     if (user.email !== process.env.ADMIN_EMAIL) return res.status(403).json({ error: 'Forbidden' })
-    const { quantity = 1, packageId, value } = req.body || {}
-    if (!packageId || !value || !quantity || quantity < 1 || quantity > 500) {
+    const { quantity = 1, packageId, value } = body
+    if (!packageId || !value || quantity < 1 || quantity > 500) {
       return res.status(400).json({ error: 'Invalid parameters' })
     }
-    const rows = Array.from({ length: quantity }, () => ({
+    const rows = Array.from({ length: Number(quantity) }, () => ({
       code: generateCode(),
       package_id: packageId,
       value: Number(value),
@@ -48,7 +58,7 @@ export default async function handler(req, res) {
 
   // POST /api/tokens/redeem
   if (subpath === 'redeem') {
-    const { code } = req.body || {}
+    const { code } = body
     if (!code) return res.status(400).json({ error: 'Missing voucher code' })
 
     const normalizedCode = code.trim().toUpperCase()
@@ -69,7 +79,6 @@ export default async function handler(req, res) {
 
     const currentBalance = userRecord?.token_balance ?? 0
     const newBalance = currentBalance + voucher.value
-    const { packages } = await import('../../src/registry/packages.js')
     const voucherPkg = packages.find(p => p.id === voucher.package_id)
     const currentPkg = packages.find(p => p.id === userRecord?.package_id)
     const currentTier = packages.indexOf(currentPkg)

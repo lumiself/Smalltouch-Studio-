@@ -4,6 +4,14 @@ function adminClient() {
   return createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 }
 
+async function parseJsonBody(req) {
+  const chunks = []
+  for await (const chunk of req) chunks.push(chunk)
+  const raw = Buffer.concat(chunks).toString()
+  if (!raw) return {}
+  try { return JSON.parse(raw) } catch { return {} }
+}
+
 async function verifyAdmin(req, supabase) {
   const token = req.headers.authorization?.slice(7)
   if (!token) return null
@@ -48,7 +56,7 @@ export default async function handler(req, res) {
   // POST /api/admin/update-package
   if (subpath === 'update-package') {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-    const { userId, packageId } = req.body || {}
+    const { userId, packageId } = await parseJsonBody(req)
     if (!userId || !packageId) return res.status(400).json({ error: 'Missing userId or packageId' })
     const { error: updateError } = await supabase
       .from('users')
@@ -67,7 +75,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const { preset_key, panel, name, icon, description, categories, token_cost, payload, before_image_url, after_image_url, status, sort_order } = req.body || {}
+      const { preset_key, panel, name, icon, description, categories, token_cost, payload, before_image_url, after_image_url, status, sort_order } = await parseJsonBody(req)
       if (!preset_key || !name || !payload) {
         return res.status(400).json({ error: 'Missing required fields: preset_key, name, payload' })
       }
@@ -94,7 +102,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PATCH') {
-      const { id, ...updates } = req.body || {}
+      const { id, ...updates } = await parseJsonBody(req)
       if (!id) return res.status(400).json({ error: 'Missing id' })
       delete updates.preset_key
       updates.updated_at = new Date().toISOString()
