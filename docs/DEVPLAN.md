@@ -91,6 +91,7 @@ Presets are tagged with one or more categories. A filter bar above the cards let
 | Editorial | Matte, Sharp |
 | E-commerce | E-commerce |
 | Product | E-commerce |
+| Color | Color — Exposure, Color — Exposure + WB, Color — Full |
 
 Default system presets:
 
@@ -102,6 +103,9 @@ Default system presets:
 | Matte | Portrait, Editorial | Heal + Mattifier + Portrait Volumes + Skin Tone | Editorial |
 | Sharp | Portrait, Editorial | Heal + Dodge Burn + Portrait Volumes + Eye Brilliance | Commercial headshots |
 | E-commerce | E-commerce, Product | Dust + Clean Backdrop + Fabric | Product photography |
+| Color — Exposure | Color | Color Correction (Exposure only) | Exposure-only fix |
+| Color — Exposure + WB | Color | Color Correction (Exposure & WB) | Exposure + white balance |
+| Color — Full | Color | Color Correction (Full) | Complete AI color grade |
 
 #### Preset Card Interaction
 
@@ -110,6 +114,12 @@ Default system presets:
 - Selecting a card (second click / dedicated select button) marks it as active
 - Active card shows a highlighted border; "Enhance Now" button becomes available
 - If no image is loaded in the library, the Enhance Now button prompts the user to upload first
+
+#### Token Billing
+
+- **Token is deducted immediately** when the user confirms an action (Enhance Now / Start Editing)
+- **Token is refunded automatically** if the Retouch4me job fails (API error, timeout, or `state: "failed"` response)
+- Refund is applied before the error message is shown — the user never loses a token on a failed job
 
 #### Admin Preset Editor
 
@@ -176,15 +186,14 @@ If the user selects a different intensity mode after layers have already been fe
 | Eye Brilliance | 0.2 | 0.5 | 0.85 | — | 0 |
 | White Teeth | 0.1 | 0.25 | 0.65 | 0.08 / 0.25 / 0.55 | 0 |
 | Mattifier | 0.2 | 0.5 | 0.9 | — | 0 |
-| Skin Mask | 0.2 | 0.6 | 1.0 | — | 0 |
 | Skin Tone | 0.2 | 0.5 | 1.0 | 0.2 / 0.5 / 1.0 | 0 |
 | Fabric | 0.1 | 0.39 | 0.75 | — | 0 |
 | Dust | 0.2 | 0.5 | 1.0 | — | 3 |
 | Clean Backdrop | 0.2 | 0.5 | 1.0 | — | 0 |
-| Face Lifting | 0.2 | 0.5 | 1.0 | — | — |
 | Glasses Anti Glare | 0.2 | 0.5 | 1.0 | — | — |
 
-> Face Detection has no Alpha — it is always included automatically when Face Lifting or Glasses Anti Glare is enabled.
+> Face Detection has no Alpha — it is always included automatically when Glasses Anti Glare is enabled.
+> Skin Mask and Face Lifting are not available in Advanced Edit (see decisions log below).
 
 #### How the Slider Maps to the Final Preset Value
 
@@ -210,11 +219,12 @@ Each available plugin has a row with:
 After layers are returned, the opacity sliders replace the plugin controls as the main adjustment tool.
 
 **Supported Plugins in Advanced Edit:**
-- Heal, Dodge Burn, Portrait Volumes, Skin Tone, Skin Mask
+- Heal, Dodge Burn, Portrait Volumes, Skin Tone
 - Eye Vessels, Eye Brilliance, White Teeth, Mattifier
-- Face Lifting, Face Detection, Glasses Anti Glare
+- Glasses Anti Glare
 - Clean Backdrop, Dust, Fabric
-- Color Correction (Exposure only / Exposure + WB / Full)
+
+> **Not in Advanced Edit:** Skin Mask (AI mask, not a visual layer — removed, see decisions log), Face Lifting (removed, see decisions log), Face Detection (auto-included when Glasses Anti Glare is enabled), Color Correction (available as One Click Enhance preset cards instead).
 
 #### Layer Opacity Sliders
 
@@ -247,6 +257,19 @@ When the user is happy with the look:
 5. User can drag additional images into the batch queue and run bulk processing
 
 Bulk processing uses flat output (no layers) so it is faster and costs 1 token per image.
+
+---
+
+### Decisions Log
+
+| Decision | Choice | Reason |
+|---|---|---|
+| Token deduction timing | Deducted upfront, refunded on failure | Prevents abuse while protecting users from losing tokens on API errors |
+| Image library persistence | Session-only | Keeps Supabase `inputs` bucket lean; users re-upload each session |
+| Advanced Edit token cost | 2 tokens | Layers are a tool for the editing session, not a deliverable — flat cost applies |
+| Color Correction placement | One Click Enhance preset cards (Exposure / Exposure+WB / Full) | Doesn't fit the checkbox+intensity model; cleaner as three ready-made presets |
+| Face Lifting | Removed from Advanced Edit | Complex sub-parameters don't map cleanly to the intensity model |
+| Skin Mask | Removed entirely | AI-generated mask; CSS blend mode compositing cannot use it as a clip mask in the live preview; Retouch4me plugins already apply skin-targeting internally |
 
 ---
 
@@ -520,19 +543,11 @@ export const actions = [
     handler: quickEnhanceHandler,
   },
   {
-    id: "advanced_flat",
+    id: "advanced_edit",
     panel: "retouch",
-    name: "Advanced Retouch",
+    name: "Advanced Edit",
     tokenCost: 2,
-    outputType: "flat",
-    handler: advancedRetouchHandler,
-  },
-  {
-    id: "advanced_layered",
-    panel: "retouch",
-    name: "Advanced Retouch (Layered)",
-    tokenCost: 3,
-    outputType: "layered",
+    outputType: "layered",   // layers returned for live preview; final download is flat
     handler: advancedRetouchHandler,
   },
   {
@@ -753,7 +768,7 @@ supabase/storage/
 
 **Rules:**
 - Every panel reads from `inputs/{user_id}/` and writes to `outputs/{user_id}/`
-- Files in `inputs` are kept for the session then cleaned up
+- Files in `inputs` are **session-only** — cleaned up when the user's session ends or they leave the panel
 - Files in `outputs` are kept for **7 days** then auto-deleted via Supabase storage policy
 - Retouch4me results (24hr expiry) are fetched and saved to Supabase `outputs` immediately after completion
 - Replicate results follow the same pattern — fetched and saved to Supabase immediately
@@ -1010,7 +1025,7 @@ export const packages = [
     actions: [
       "quick_enhance",
       "batch_retouch",
-      "advanced_flat",
+      "advanced_edit",
       "bg_remove",
       "bg_replace_solid",
       "bg_blur",
@@ -1032,8 +1047,7 @@ export const packages = [
     actions: [
       "quick_enhance",
       "batch_retouch",
-      "advanced_flat",
-      "advanced_layered",
+      "advanced_edit",
       "bg_remove",
       "bg_replace_solid",
       "bg_blur",
@@ -1094,8 +1108,7 @@ export const packages = [
 | **Tokens** | 10 | 50 | 100 | 300 | 1000 |
 | **Retouch Panel** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Quick Enhance | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Advanced Flat | ❌ | ✅ | ✅ | ✅ | ✅ |
-| Advanced Layered | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Advanced Edit | ❌ | ✅ | ✅ | ✅ | ✅ |
 | Batch Processing | 5 max | 20 max | 50 max | 200 max | Unlimited |
 | **Background Panel** | ❌ | ✅ | ✅ | ✅ | ✅ |
 | BG Remove & Blur | ❌ | ✅ | ✅ | ✅ | ✅ |
@@ -1113,10 +1126,9 @@ Each action deducts tokens from the user's balance. Costs are defined in `action
 
 | Operation | Tokens |
 |---|---|
-| Quick Enhance | 1 token |
-| Advanced Retouch — flat output | 2 tokens |
-| Advanced Retouch — layered output | 3 tokens |
-| Batch Retouch (per image) | 1 token |
+| One Click Enhance | 1 token |
+| Advanced Edit (returns layers for live preview, flat on download) | 2 tokens |
+| Batch Retouch (per image, flat output) | 1 token |
 
 **Background Panel**
 
