@@ -19,7 +19,7 @@ export default function Navbar() {
 
       <div className="flex items-center gap-4">
         {isAdmin && (
-          <Link to="/admin" className={`hidden md:flex text-xs items-center gap-1 transition-colors ${location.pathname === '/admin' ? 'text-[#a855f7]' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}>
+          <Link to="/admin" className={`hidden md:flex text-xs items-center gap-1 transition-colors ${location.pathname.startsWith('/admin') ? 'text-[#a855f7]' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}>
             <ShieldCheck size={14} />
             <span>Admin</span>
           </Link>

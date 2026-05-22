@@ -104,11 +104,43 @@ export default function RetouchPage() {
 
   async function handleDownload() {
     const job = jobs.find(j => j.id === activeJobId)
-    if (!job?.result?.url) return
-    const a = document.createElement('a')
-    a.href = job.result.url
-    a.download = `retouched_${activeJobId?.slice(0, 8)}.jpg`
-    a.click()
+    if (!job) return
+
+    if (job.type === 'advanced_edit' && advancedLayers?.length) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+        const res = await fetch('/api/composite', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            jobId: activeJobId,
+            layers: advancedLayers.map(l => ({ name: l.name, opacity: l.opacity, blendMode: l.blendMode })),
+          }),
+        })
+        if (!res.ok) throw new Error('Composite failed')
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `retouched_${activeJobId?.slice(0, 8)}.jpg`
+        a.click()
+        URL.revokeObjectURL(url)
+      } catch (err) {
+        toast.error(err.message || 'Download failed')
+      }
+      return
+    }
+
+    if (job.result?.url) {
+      const a = document.createElement('a')
+      a.href = job.result.url
+      a.download = `retouched_${activeJobId?.slice(0, 8)}.jpg`
+      a.click()
+    }
   }
 
   const handleStartBatch = useCallback(async () => {

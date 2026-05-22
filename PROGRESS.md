@@ -60,7 +60,7 @@
 | Single image download | ✅ Done | Signed URL from Supabase outputs bucket |
 | Token deduction on confirm | ✅ Done | `deductTokens()` before API call |
 | Token refund on failure | ✅ Done | Auto-refund in catch block of `runQuickEnhance` |
-| Admin preset editor (`/admin/presets`) | ❌ Pending | Admin panel not yet built |
+| Admin preset editor (`/admin/presets`) | ✅ Done | `PresetsEditorPage.jsx` + `api/admin/presets.js` — full CRUD, `system_presets` table, DB fallback in `QuickEnhance` |
 
 ---
 
@@ -76,7 +76,7 @@
 | CSS blend mode live compositing | ✅ Done | `mix-blend-mode` per layer in `AdvancedEdit.jsx` |
 | Layer opacity sliders | ✅ Done | `LayerControls.jsx` — per-layer range inputs |
 | Save as Preset | ✅ Done | Saves to Supabase `presets` table with `layer_opacities` |
-| Sharp server-side compositing | ❌ Pending | Final download uses signed URL; Sharp compositing not wired |
+| Sharp server-side compositing | ✅ Done | `api/composite.js` — Sharp layers over original, streamed JPEG; `handleDownload` updated in `RetouchPage.jsx` |
 | Changing intensity resets layers | ✅ Done | Handled in `AdvancedEdit.jsx` — sliders only visible after layers returned |
 
 ---

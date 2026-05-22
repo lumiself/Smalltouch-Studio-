@@ -1,14 +1,41 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Play, X } from 'lucide-react'
-import { systemPresets, CATEGORIES, getPresetsByCategory } from '../../registry/presets'
+import { systemPresets, CATEGORIES } from '../../registry/presets'
+import { supabase } from '../../lib/supabase'
 import TokenCostBadge from '../shared/TokenCostBadge'
 import BeforeAfterSlider from '../shared/BeforeAfterSlider'
+
+function dbToPreset(row) {
+  return {
+    id: row.id,
+    panel: row.panel,
+    name: row.name,
+    icon: row.icon,
+    description: row.description,
+    categories: row.categories ?? [],
+    tokenCost: row.token_cost,
+    payload: row.payload,
+    beforeImageUrl: row.before_image_url,
+    afterImageUrl: row.after_image_url,
+  }
+}
 
 export default function QuickEnhance({ selectedImage, onEnhance, disabled, balance, selectedPreset, onPresetSelect }) {
   const [activeCategory, setActiveCategory] = useState('All')
   const [previewPreset, setPreviewPreset] = useState(null)
+  const [dbPresets, setDbPresets] = useState(null)
 
-  const visiblePresets = getPresetsByCategory(activeCategory)
+  useEffect(() => {
+    supabase.from('system_presets').select('*').eq('status', 'active').order('sort_order').then(({ data }) => {
+      if (data?.length) setDbPresets(data.map(dbToPreset))
+    })
+  }, [])
+
+  const allPresets = dbPresets ?? systemPresets
+
+  const visiblePresets = activeCategory === 'All'
+    ? allPresets
+    : allPresets.filter(p => p.categories.includes(activeCategory))
 
   function handleCardClick(preset) {
     if (previewPreset?.id === preset.id) {
@@ -53,8 +80,8 @@ export default function QuickEnhance({ selectedImage, onEnhance, disabled, balan
       {previewPreset && (
         <div className="bg-[#242424] rounded-xl p-3 border border-[#a855f7]/40 space-y-3">
           <BeforeAfterSlider
-            beforeSrc={selectedImage?.preview}
-            afterSrc={null}
+            beforeSrc={previewPreset.beforeImageUrl || selectedImage?.preview}
+            afterSrc={previewPreset.afterImageUrl || null}
             className="w-full h-44"
           />
           <div className="flex items-start justify-between">

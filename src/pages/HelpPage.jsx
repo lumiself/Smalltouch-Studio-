@@ -407,6 +407,63 @@ Only the admin account can access /admin. Other users who attempt to visit the p
     `,
   },
   {
+    id: 'admin-presets',
+    title: 'Admin — Preset Editor',
+    content: `
+**What it does**
+
+The Preset Editor lets you manage the preset library shown to users in the One Click Enhance panel. You can create new presets, edit existing ones, hide presets without deleting them, and control the order they appear in.
+
+**How to access it**
+
+Visit /admin/presets or click the Presets link at the top of the Admin dashboard. Only the admin account can access this page.
+
+**How to create a preset**
+1. Click **New Preset** in the top-right corner
+2. Fill in the required fields:
+   - **Key** — a short unique identifier (e.g. \`natural\`, \`glam\`). Cannot be changed after creation.
+   - **Name** — the display name shown to users
+   - **Icon** — an emoji that represents the preset
+   - **Description** — one-line description shown in the preview panel
+3. Select one or more categories from Portrait, Beauty, Editorial, E-commerce, Color
+4. Set the token cost (default: 1)
+5. Enter the Payload JSON — this is the Retouch4me API call configuration
+6. Optionally add before/after image URLs for the preview slider
+7. Click **Save**
+
+**Payload format**
+
+The payload is sent directly to the Retouch4me API. Example structure:
+\`\`\`json
+{
+  "mode": "professional",
+  "tasks": [
+    { "Plugin": "Heal", "Scale": 0, "Alpha1": 0.8 },
+    { "Plugin": "Skin Tone", "Scale": 0, "Alpha1": 1.0, "Alpha2": 1.0 }
+  ]
+}
+\`\`\`
+
+Refer to the Retouch4me documentation for available plugins and parameter values.
+
+**Before/after images**
+
+These are demo images shown in the preset preview when a user clicks a preset card. Upload sample images to Supabase storage, get their public URL, and paste it into the Before/After URL fields.
+
+**Hiding presets**
+
+Use the eye icon on each row to toggle a preset between active and hidden. Hidden presets are not shown to users but are preserved in the database for later re-activation.
+
+**Fallback behavior**
+
+If no presets exist in the database, the platform automatically falls back to the built-in system presets defined in the codebase. Once you create at least one preset in the database, the database version replaces the built-in list entirely.
+
+**Sort order**
+
+Lower numbers appear first. Set sort_order to control the display sequence. Presets with the same sort_order are shown in creation order.
+    `,
+  },
+  {
     id: 'file-requirements',
     title: 'File Requirements',
     content: `
