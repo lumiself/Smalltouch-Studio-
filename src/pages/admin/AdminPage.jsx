@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Download, RefreshCw, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Download, RefreshCw, CheckCircle, XCircle, Loader2, ExternalLink } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { packages } from '../../registry/packages'
 import { SkeletonAdminRow } from '../../components/shared/Skeleton'
@@ -35,6 +36,13 @@ export default function AdminPage() {
             {t}
           </button>
         ))}
+        <Link
+          to="/admin/presets"
+          className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-[#a3a3a3] hover:text-[#f5f5f5] transition-colors border-b-2 border-transparent"
+        >
+          Presets
+          <ExternalLink size={11} className="opacity-50" />
+        </Link>
       </div>
 
       {tab === 'Generate' && <GenerateTab />}

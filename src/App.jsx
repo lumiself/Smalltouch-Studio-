@@ -13,6 +13,7 @@ import TokensPage from './pages/TokensPage'
 import HelpPage from './pages/HelpPage'
 import HistoryPage from './pages/HistoryPage'
 import AdminPage from './pages/admin/AdminPage'
+import PresetsEditorPage from './pages/admin/PresetsEditorPage'
 import AdminRoute from './components/layout/AdminRoute'
 
 function AppLayout({ children }) {
@@ -71,6 +72,13 @@ export default function App() {
               <ProtectedRoute>
                 <AdminRoute>
                   <AppLayout><AdminPage /></AppLayout>
+                </AdminRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/presets" element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <AppLayout><PresetsEditorPage /></AppLayout>
                 </AdminRoute>
               </ProtectedRoute>
             } />

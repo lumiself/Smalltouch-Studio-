@@ -171,3 +171,31 @@ $$ language plpgsql security definer;
 --   (storage.foldername(name))[1] = auth.uid()::text
 
 -- Storage RLS policies for outputs bucket: same pattern as inputs.
+
+-- ─────────────────────────────────────
+-- ADMIN PRESET EDITOR (run after initial setup)
+-- ─────────────────────────────────────
+
+create table if not exists public.system_presets (
+  id uuid primary key default gen_random_uuid(),
+  preset_key text unique not null,
+  panel text not null default 'retouch',
+  name text not null,
+  icon text not null default '✨',
+  description text not null default '',
+  categories text[] not null default '{}',
+  token_cost integer not null default 1,
+  payload jsonb not null default '{}',
+  before_image_url text,
+  after_image_url text,
+  status text not null default 'active' check (status in ('active', 'hidden')),
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.system_presets enable row level security;
+
+-- Authenticated users can read active presets; admin API uses service role for all access
+create policy "system_presets_read_active" on public.system_presets
+  for select using (status = 'active' and auth.uid() is not null);
