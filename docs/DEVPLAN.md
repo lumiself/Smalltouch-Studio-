@@ -139,26 +139,72 @@ For photographers who need full control. Lives below the One Click Enhance secti
 User selects image from library
     → Image loads in "Original" panel
         → User enables plugins via checkboxes
+        → User picks intensity mode: Subtle / Normal / Extreme
         → User clicks [Start Editing]
-            → App sends image + initial Alpha values to Retouch4me
+            → App sends image + intensity-mode Alpha values to Retouch4me
             → Retouch4me returns layered ZIP (one PNG per plugin)
-                → Edited image rendered via CSS blend modes
-                    → User moves opacity sliders per layer
+                → Layers stacked via CSS blend modes at 100% opacity
+                    → User moves opacity sliders per layer (range: 0 → 100% of that layer)
                     → Edited image updates in real-time (no re-fetch)
                         → User clicks [Save as Preset]
-                            → Temporary preset created from current slider state
+                            → Preset stores final Alpha per plugin:
+                              final_alpha = slider_fraction × mode_alpha
                                 → User can apply that preset to bulk edit remaining images
 ```
+
+#### Intensity Mode
+
+Before hitting Start Editing, the user picks one of three intensity levels. This sets the Alpha values that are sent to the API. The layers come back rendered at those values — they are the ceiling for the opacity sliders.
+
+| Mode | Description | Alpha range used |
+|---|---|---|
+| Subtle | Light touch, preserves natural texture | ~0.2 of the plugin's max |
+| Normal | Balanced commercial result | ~0.5–0.6 of the plugin's max |
+| Extreme | Strong, polished look | ~0.9–1.0 of the plugin's max |
+
+**Alpha values per plugin per mode:**
+
+| Plugin | Subtle α1 | Normal α1 | Extreme α1 | α2 (Subtle/Normal/Extreme) | Scale |
+|---|---|---|---|---|---|
+| Heal | 0.2 | 0.6 | 1.0 | — | 0 |
+| Dodge Burn | 0.2 | 0.6 | 1.0 | 0.05 / 0.15 / 0.35 | 2 |
+| Portrait Volumes | 0.1 | 0.3 | 0.9 | — | 0 |
+| Eye Vessels | 0.2 | 0.5 | 1.0 | — | 0 |
+| Eye Brilliance | 0.2 | 0.5 | 0.85 | — | 0 |
+| White Teeth | 0.1 | 0.25 | 0.65 | 0.08 / 0.25 / 0.55 | 0 |
+| Mattifier | 0.2 | 0.5 | 0.9 | — | 0 |
+| Skin Mask | 0.2 | 0.6 | 1.0 | — | 0 |
+| Skin Tone | 0.2 | 0.5 | 1.0 | 0.2 / 0.5 / 1.0 | 0 |
+| Fabric | 0.1 | 0.39 | 0.75 | — | 0 |
+| Dust | 0.2 | 0.5 | 1.0 | — | 3 |
+| Clean Backdrop | 0.2 | 0.5 | 1.0 | — | 0 |
+| Face Lifting | 0.2 | 0.5 | 1.0 | — | — |
+| Glasses Anti Glare | 0.2 | 0.5 | 1.0 | — | — |
+
+> Face Detection has no Alpha — it is always included automatically when Face Lifting or Glasses Anti Glare is enabled.
+
+#### How the Slider Maps to the Final Preset Value
+
+The opacity slider for each layer goes from **0% to 100%**. 100% means the layer is shown at the full strength it was rendered at (the mode value). The final Alpha stored in the preset is:
+
+```
+final_alpha = slider_fraction × mode_alpha_value
+
+Examples (Heal, Normal mode, mode_alpha = 0.6):
+  Slider at 100%  →  final_alpha = 1.0 × 0.6 = 0.6
+  Slider at 50%   →  final_alpha = 0.5 × 0.6 = 0.3
+  Slider at 0%    →  final_alpha = 0            (layer hidden)
+```
+
+This means the user can never accidentally exceed the ceiling of their chosen intensity mode.
 
 #### Plugin Controls
 
 Each available plugin has a row with:
 - **Checkbox** — enables/disables the plugin (checked plugins are included in the API call)
-- **Alpha1 slider** — maps to the plugin's primary strength parameter
-- **Alpha2 slider** — shown only for plugins that use it (Dodge Burn, White Teeth, Skin Tone)
-- **Scale selector** — dropdown for plugins where scale matters (Dodge Burn: 0/2, Dust: 0/1/2/3)
+- No manual Alpha input at this stage — the intensity mode handles values before the API call
 
-Initial values when a plugin is first enabled are the balanced preset defaults (same as Example 1 in the API docs).
+After layers are returned, the opacity sliders replace the plugin controls as the main adjustment tool.
 
 **Supported Plugins in Advanced Edit:**
 - Heal, Dodge Burn, Portrait Volumes, Skin Tone, Skin Mask
@@ -1436,12 +1482,15 @@ The center column is a single scrollable column with two stacked sections.
 │  │   [photo]  │  [photo]   │     │
 │  └────────────┴────────────┘     │
 │                                  │
-│  ✅ Heal       α1 [━━●──]        │
-│  ✅ Dodge Burn α1 [━━━●] α2[━●] │
-│  ✅ Skin Tone  α1 [━●───] α2[●] │
+│  ✅ Heal                         │
+│  ✅ Dodge Burn                   │
+│  ✅ Skin Tone                    │
 │  ☐  Eye Vessels                  │
 │  ☐  Face Lifting                 │
 │  ☐  White Teeth                  │
+│                                  │
+│  Intensity:                      │
+│  ○ Subtle   ● Normal   ○ Extreme │
 │                                  │
 │  Cost: 2 tokens                  │
 │  [▶ Start Editing]               │
