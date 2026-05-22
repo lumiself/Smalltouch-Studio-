@@ -3,6 +3,7 @@ import { Download, CheckCircle, XCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { getOutputUrl } from '../lib/storage'
 import { useAuth } from '../hooks/useAuth'
+import { SkeletonJobRow } from '../components/shared/Skeleton'
 
 export default function HistoryPage() {
   const { user } = useAuth()
@@ -41,8 +42,8 @@ export default function HistoryPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="w-6 h-6 border-2 border-[#a855f7] border-t-transparent rounded-full animate-spin" />
+        <div className="space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonJobRow key={i} />)}
         </div>
       ) : jobs.length === 0 ? (
         <p className="text-[#a3a3a3] text-sm text-center py-12">No jobs yet. Start retouching to see results here.</p>

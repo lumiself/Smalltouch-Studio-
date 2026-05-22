@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useTokens } from '../hooks/useTokens'
 import { useBackground } from '../hooks/useBackground'
+import { useToast } from '../contexts/ToastContext'
 import { canUseAction } from '../lib/access'
 import { uploadInput } from '../lib/storage'
 import BackgroundTools from '../components/background/BackgroundTools'
@@ -13,8 +14,10 @@ export default function BackgroundPage() {
   const { user, profile } = useAuth()
   const { balance, deductTokens, refundTokens } = useTokens()
   const { pollBgStatus } = useBackground()
+  const toast = useToast()
   const navigate = useNavigate()
   const downloadRef = useRef(null)
+  const [mobileTab, setMobileTab] = useState('tools')
 
   const [file, setFile] = useState(null)
   const [originalUrl, setOriginalUrl] = useState(null)
@@ -54,10 +57,10 @@ export default function BackgroundPage() {
       setInputPath(path)
       setStep('uploaded')
     } catch (err) {
-      console.error('Upload failed:', err)
+      toast.error('Upload failed: ' + (err.message || 'Unknown error'))
       setStep('idle')
     }
-  }, [user])
+  }, [user, toast])
 
   const handleRemoveBg = useCallback(async () => {
     if (!inputPath || !user) return
@@ -93,16 +96,17 @@ export default function BackgroundPage() {
       const output = await pollBgStatus(data.predictionId, jobId, null)
       setSubjectUrl(output)
       setStep('removed')
+      setMobileTab('canvas')
     } catch (err) {
       if (deducted) {
         try { await refundTokens(user.id, 1) } catch {}
       }
       setStep('uploaded')
-      console.error('Remove BG failed:', err)
+      toast.error('Background removal failed: ' + (err.message || 'Unknown error'))
     } finally {
       setRemoving(false)
     }
-  }, [inputPath, user, profile, deductTokens, refundTokens, pollBgStatus, navigate])
+  }, [inputPath, user, profile, deductTokens, refundTokens, pollBgStatus, navigate, toast])
 
   const handleAiGenerate = useCallback(async () => {
     if (!aiPrompt.trim() || !user) return
@@ -141,11 +145,11 @@ export default function BackgroundPage() {
       if (deducted) {
         try { await refundTokens(user.id, 2) } catch {}
       }
-      console.error('AI generate failed:', err)
+      toast.error('AI generation failed: ' + (err.message || 'Unknown error'))
     } finally {
       setAiGenerating(false)
     }
-  }, [aiPrompt, user, profile, deductTokens, refundTokens, pollBgStatus, navigate])
+  }, [aiPrompt, user, profile, deductTokens, refundTokens, pollBgStatus, navigate, toast])
 
   const handleApply = useCallback(async (type) => {
     if (!subjectUrl || !user) return
@@ -176,9 +180,9 @@ export default function BackgroundPage() {
       if (deducted) {
         try { await refundTokens(user.id, config.tokens) } catch {}
       }
-      console.error('Apply failed:', err)
+      toast.error('Apply failed: ' + (err.message || 'Unknown error'))
     }
-  }, [subjectUrl, user, profile, deductTokens, refundTokens, navigate])
+  }, [subjectUrl, user, profile, deductTokens, refundTokens, navigate, toast])
 
   const handleExpand = useCallback(async () => {
     if (!subjectUrl || !user || !expandPrompt.trim()) return
@@ -214,15 +218,16 @@ export default function BackgroundPage() {
 
       const output = await pollBgStatus(data.predictionId, jobId, null)
       setExpandResult(output)
+      setMobileTab('canvas')
     } catch (err) {
       if (deducted) {
         try { await refundTokens(user.id, 2) } catch {}
       }
-      console.error('Expand failed:', err)
+      toast.error('Expand failed: ' + (err.message || 'Unknown error'))
     } finally {
       setExpanding(false)
     }
-  }, [subjectUrl, user, profile, expandPadding, expandPrompt, deductTokens, refundTokens, pollBgStatus, navigate])
+  }, [subjectUrl, user, profile, expandPadding, expandPrompt, deductTokens, refundTokens, pollBgStatus, navigate, toast])
 
   const handleDownload = useCallback(() => {
     if (downloadRef.current) {
@@ -230,65 +235,65 @@ export default function BackgroundPage() {
     }
   }, [])
 
+  const bgToolsProps = {
+    file, originalUrl, step, removing, subjectUrl,
+    activeTool, onToolChange: setActiveTool,
+    bgType, onBgTypeChange: setBgType,
+    bgColor, onBgColorChange: setBgColor,
+    gradientStart, onGradientStartChange: setGradientStart,
+    gradientEnd, onGradientEndChange: setGradientEnd,
+    gradientAngle, onGradientAngleChange: setGradientAngle,
+    aiPrompt, onAiPromptChange: setAiPrompt,
+    aiGenerating, onAiGenerate: handleAiGenerate, aiBgUrl,
+    blurAmount, onBlurAmountChange: setBlurAmount,
+    expandPrompt, onExpandPromptChange: setExpandPrompt,
+    expandPadding, onExpandPaddingChange: setExpandPadding,
+    expanding, onExpand: handleExpand,
+    stockBgUrl, onStockBgSelect: setStockBgUrl,
+    onUpload: handleUpload, onRemoveBg: handleRemoveBg,
+    onApply: handleApply, onDownload: handleDownload,
+    balance,
+  }
+
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="w-[280px] flex-shrink-0 border-r border-[#2a2a2a] overflow-y-auto">
-        <BackgroundTools
-          file={file}
-          originalUrl={originalUrl}
-          step={step}
-          removing={removing}
-          subjectUrl={subjectUrl}
-          activeTool={activeTool}
-          onToolChange={setActiveTool}
-          bgType={bgType}
-          onBgTypeChange={setBgType}
-          bgColor={bgColor}
-          onBgColorChange={setBgColor}
-          gradientStart={gradientStart}
-          onGradientStartChange={setGradientStart}
-          gradientEnd={gradientEnd}
-          onGradientEndChange={setGradientEnd}
-          gradientAngle={gradientAngle}
-          onGradientAngleChange={setGradientAngle}
-          aiPrompt={aiPrompt}
-          onAiPromptChange={setAiPrompt}
-          aiGenerating={aiGenerating}
-          onAiGenerate={handleAiGenerate}
-          aiBgUrl={aiBgUrl}
-          blurAmount={blurAmount}
-          onBlurAmountChange={setBlurAmount}
-          expandPrompt={expandPrompt}
-          onExpandPromptChange={setExpandPrompt}
-          expandPadding={expandPadding}
-          onExpandPaddingChange={setExpandPadding}
-          expanding={expanding}
-          onExpand={handleExpand}
-          stockBgUrl={stockBgUrl}
-          onStockBgSelect={setStockBgUrl}
-          onUpload={handleUpload}
-          onRemoveBg={handleRemoveBg}
-          onApply={handleApply}
-          onDownload={handleDownload}
-          balance={balance}
-        />
+    <div className="flex flex-col flex-1 overflow-hidden min-h-0">
+      {/* Mobile tab switcher */}
+      <div className="md:hidden flex border-b border-[#2a2a2a] shrink-0 bg-[#1a1a1a]">
+        {[{ id: 'tools', label: 'Tools' }, { id: 'canvas', label: 'Canvas' }].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setMobileTab(tab.id)}
+            className={`flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
+              mobileTab === tab.id
+                ? 'text-[#a855f7] border-[#a855f7]'
+                : 'text-[#555] border-transparent hover:text-[#a3a3a3]'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      <div className="flex-1 overflow-hidden">
-        <CanvasPreview
-          originalUrl={originalUrl}
-          subjectUrl={subjectUrl}
-          bgType={bgType}
-          bgColor={bgColor}
-          gradientStart={gradientStart}
-          gradientEnd={gradientEnd}
-          gradientAngle={gradientAngle}
-          blurAmount={blurAmount}
-          aiBgUrl={aiBgUrl}
-          stockBgUrl={stockBgUrl}
-          expandResult={expandResult}
-          onDownloadReady={(fn) => { downloadRef.current = fn }}
-        />
+      <div className="flex flex-1 overflow-hidden min-h-0">
+        <div className={`${mobileTab === 'tools' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[280px] shrink-0 border-r border-[#2a2a2a] overflow-y-auto`}>
+          <BackgroundTools {...bgToolsProps} />
+        </div>
+        <div className={`${mobileTab === 'canvas' ? 'flex' : 'hidden'} md:flex flex-col flex-1 overflow-hidden`}>
+          <CanvasPreview
+            originalUrl={originalUrl}
+            subjectUrl={subjectUrl}
+            bgType={bgType}
+            bgColor={bgColor}
+            gradientStart={gradientStart}
+            gradientEnd={gradientEnd}
+            gradientAngle={gradientAngle}
+            blurAmount={blurAmount}
+            aiBgUrl={aiBgUrl}
+            stockBgUrl={stockBgUrl}
+            expandResult={expandResult}
+            onDownloadReady={(fn) => { downloadRef.current = fn }}
+          />
+        </div>
       </div>
     </div>
   )
