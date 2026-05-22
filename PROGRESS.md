@@ -11,7 +11,7 @@
 | Phase 1 | Foundation | ✅ Complete |
 | Phase 2 | Retouching Panel — One Click Enhance | ✅ Complete |
 | Phase 3 | Advanced Edit with layer controls | ✅ Complete |
-| Phase 4 | Batch Processing | 🔶 Partial |
+| Phase 4 | Batch Processing | ✅ Complete |
 | Phase 5 | Background Panel | ❌ Not started |
 | Phase 6 | Token System, Packages & Admin | 🔶 Partial |
 | Phase 7 | Polish & Launch | ❌ Not started |
@@ -81,16 +81,17 @@
 
 ---
 
-## Phase 4 — Batch Processing 🔶 Partial
+## Phase 4 — Batch Processing ✅ Complete
 
 | Item | Status | Notes |
 |------|--------|-------|
 | Batch queue UI | ✅ Done | `LibraryPanel.jsx` — queue section with remove buttons |
 | Multi-file upload | ✅ Done | Already supports multiple files |
-| Batch job execution | ❌ Pending | `onStartBatch` handler not wired up in `RetouchPage.jsx` |
-| Concurrent polling per image | ❌ Pending | Not implemented |
-| Per-image progress tracking | ❌ Pending | Not implemented |
-| ZIP download of all results | ❌ Pending | "Download All" triggers sequential downloads (not a ZIP) |
+| Add to batch from library | ✅ Done | Hover "+" button on each library image |
+| Batch job execution | ✅ Done | `handleStartBatch` in `RetouchPage.jsx` — uses active Quick Enhance preset |
+| Concurrent polling per image | ✅ Done | `Promise.allSettled` runs all items concurrently; each polls independently |
+| Per-image progress tracking | ✅ Done | `batchStatuses` map passed to `LibraryPanel` — shows pending/processing/done/failed icons |
+| ZIP download of all results | ✅ Done | `handleDownloadAll` uses JSZip to bundle all completed results |
 
 ---
 
@@ -181,11 +182,10 @@ Deploy with `vercel deploy`. All serverless functions in `/api/` deploy automati
 
 ## Next Tasks (Priority Order)
 
-1. **Batch processing** — wire up `onStartBatch` in `RetouchPage.jsx`, concurrent polling, ZIP download
-2. **Mobile layout** — tab-based view for library / tools / results on < 768px
-3. **Admin dashboard** — voucher generation, CSV export, user management at `/admin`
-4. **Google OAuth** — add button to login/signup pages, configure in Supabase
-5. **Sharp compositing** — server-side flat JPEG download for Advanced Edit results
-6. **Background Panel** — Replicate API integration, Phase 5
-7. **Locked action UI** — visual lock badges on Premium-gated buttons
-8. **Error handling** — toast notifications, retry logic
+1. **Mobile layout** — tab-based view for library / tools / results on < 768px
+2. **Admin dashboard** — voucher generation, CSV export, user management at `/admin`
+3. **Google OAuth** — add button to login/signup pages, configure in Supabase
+4. **Sharp compositing** — server-side flat JPEG download for Advanced Edit results
+5. **Background Panel** — Replicate API integration, Phase 5
+6. **Locked action UI** — visual lock badges on Premium-gated buttons
+7. **Error handling** — toast notifications, retry logic

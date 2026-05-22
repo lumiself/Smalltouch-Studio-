@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import JSZip from 'jszip'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useTokens } from '../hooks/useTokens'
@@ -18,8 +19,10 @@ export default function RetouchPage() {
 
   const [images, setImages] = useState([])
   const [selectedImage, setSelectedImage] = useState(null)
+  const [activePreset, setActivePreset] = useState(null)
   const [batchQueue, setBatchQueue] = useState([])
   const [batchRunning, setBatchRunning] = useState(false)
+  const [batchStatuses, setBatchStatuses] = useState({})
   const [advancedLayers, setAdvancedLayers] = useState(null)
   const [advancedProcessing, setAdvancedProcessing] = useState(false)
   const [activeJobId, setActiveJobId] = useState(null)
@@ -95,15 +98,58 @@ export default function RetouchPage() {
     a.click()
   }
 
+  const handleStartBatch = useCallback(async () => {
+    if (!activePreset || batchQueue.length === 0 || batchRunning) return
+    if (!canUseAction(profile, 'batch_retouch')) { navigate('/tokens'); return }
+
+    setBatchRunning(true)
+    setBatchStatuses(Object.fromEntries(batchQueue.map(img => [img.id, 'pending'])))
+
+    const runItem = async (img) => {
+      setBatchStatuses(prev => ({ ...prev, [img.id]: 'processing' }))
+      let deducted = false
+      try {
+        await deductTokens(user.id, activePreset.tokenCost, crypto.randomUUID(), 'batch_retouch')
+        deducted = true
+        await runQuickEnhance({ userId: user.id, file: img.file, preset: activePreset })
+        setBatchStatuses(prev => ({ ...prev, [img.id]: 'completed' }))
+      } catch (err) {
+        if (deducted) {
+          try { await refundTokens(user.id, activePreset.tokenCost) } catch {}
+        }
+        setBatchStatuses(prev => ({ ...prev, [img.id]: 'failed' }))
+        console.error('Batch item failed:', img.name, err)
+      }
+    }
+
+    await Promise.allSettled(batchQueue.map(runItem))
+    setBatchRunning(false)
+  }, [activePreset, batchQueue, batchRunning, profile, user, deductTokens, refundTokens, runQuickEnhance, navigate])
+
   async function handleDownloadAll() {
     const completed = jobs.filter(j => j.status === 'completed' && j.result?.url)
-    for (const job of completed) {
-      const a = document.createElement('a')
-      a.href = job.result.url
-      a.download = `retouched_${job.id.slice(0, 8)}.jpg`
-      a.click()
-      await new Promise(r => setTimeout(r, 200))
-    }
+    if (!completed.length) return
+
+    const zip = new JSZip()
+    await Promise.all(completed.map(async (job, i) => {
+      try {
+        const res = await fetch(job.result.url)
+        const blob = await res.blob()
+        const ext = blob.type.includes('png') ? 'png' : 'jpg'
+        const label = job.presetName
+          ? `${job.presetName.replace(/\s+/g, '_')}_${i + 1}.${ext}`
+          : `retouched_${i + 1}.${ext}`
+        zip.file(label, blob)
+      } catch {}
+    }))
+
+    const content = await zip.generateAsync({ type: 'blob' })
+    const url = URL.createObjectURL(content)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'smalltouch_results.zip'
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -114,16 +160,20 @@ export default function RetouchPage() {
         onSelect={setSelectedImage}
         onUpload={handleUpload}
         batchQueue={batchQueue}
-        onAddToBatch={img => setBatchQueue(prev => [...prev, img])}
+        onAddToBatch={img => setBatchQueue(prev => prev.find(i => i.id === img.id) ? prev : [...prev, img])}
         onRemoveFromBatch={id => setBatchQueue(prev => prev.filter(i => i.id !== id))}
-        onStartBatch={() => {}}
+        onStartBatch={handleStartBatch}
         batchRunning={batchRunning}
+        batchStatuses={batchStatuses}
+        activePreset={activePreset}
       />
 
       <main className="flex-1 overflow-y-auto p-4 space-y-6">
         <QuickEnhance
           selectedImage={selectedImage}
           onEnhance={handleQuickEnhance}
+          selectedPreset={activePreset}
+          onPresetSelect={setActivePreset}
           disabled={advancedProcessing}
           balance={balance}
         />
