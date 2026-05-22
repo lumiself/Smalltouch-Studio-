@@ -12,7 +12,7 @@
 | Phase 2 | Retouching Panel — One Click Enhance | ✅ Complete |
 | Phase 3 | Advanced Edit with layer controls | ✅ Complete |
 | Phase 4 | Batch Processing | ✅ Complete |
-| Phase 5 | Background Panel | ❌ Not started |
+| Phase 5 | Background Panel | ✅ Complete |
 | Phase 6 | Token System, Packages & Admin | 🔶 Partial |
 | Phase 7 | Polish & Launch | ❌ Not started |
 | Phase 8 | Future Panels | ❌ Not started |
@@ -95,16 +95,21 @@
 
 ---
 
-## Phase 5 — Background Panel ❌ Not Started
+## Phase 5 — Background Panel ✅ Complete
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Background removal (Replicate) | ❌ Pending | |
-| Solid/gradient background replace | ❌ Pending | |
-| AI background generation | ❌ Pending | |
-| Stock background library | ❌ Pending | |
-| Canvas compositing preview | ❌ Pending | |
-| Export pipeline | ❌ Pending | |
+| Background removal (Replicate rembg) | ✅ Done | `api/background/remove.js` — Supabase signed URL → rembg |
+| Solid/gradient background replace | ✅ Done | `CanvasPreview.jsx` renders in real time |
+| AI background generation (SDXL) | ✅ Done | `api/background/generate.js` |
+| Smart Expand (inpainting) | ✅ Done | `api/background/expand.js` — client builds mask, sends to inpainting model |
+| Stock background library | ✅ Done | `BackgroundTools.jsx` loads from Supabase `backgrounds` bucket |
+| Canvas compositing preview | ✅ Done | `CanvasPreview.jsx` — HTML Canvas, all bg types |
+| Export pipeline | ✅ Done | `canvas.toBlob()` → PNG download |
+| API schema docs | ✅ Done | `docs/api/replicate-api.md`, `docs/api/background-endpoints.md` |
+| In-app help entries | ✅ Done | `HelpPage.jsx` — 5 bg sections added |
+| Route registered | ✅ Done | `/background` route in `App.jsx` |
+| Panel status active | ✅ Done | `panels.js` status changed to active |
 
 ---
 
@@ -155,6 +160,11 @@ Per CLAUDE.md rules, every implemented feature must have a help entry. All imple
 | Plugin reference | ✅ | "Plugin Reference" |
 | Tokens and Packages | ✅ | "Tokens and Packages" |
 | File requirements | ✅ | "File Requirements" |
+| Background Studio overview | ✅ | "Background Studio — Overview" |
+| Background Removal | ✅ | "Remove Background" |
+| Background Replace | ✅ | "Replace Background" |
+| Background Blur | ✅ | "Blur Background" |
+| Smart Expand | ✅ | "Smart Expand" |
 
 ---
 

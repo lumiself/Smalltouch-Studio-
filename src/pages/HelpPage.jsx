@@ -229,6 +229,154 @@ A warning appears in the top bar when your balance drops below 5 tokens.
     `,
   },
   {
+    id: 'background-overview',
+    title: 'Background Studio — Overview',
+    content: `
+**What it does**
+
+Background Studio lets you remove, replace, blur, and expand the background of any photo using AI. All processing is powered by Replicate AI models.
+
+There are three tools:
+- **Replace BG** — swap the background with a solid color, gradient, AI-generated image, or a stock photo
+- **Blur BG** — apply a smooth blur to the original background
+- **Smart Expand** — extend the canvas outward and fill the new space with AI-generated content
+
+**How to get started**
+1. Upload an image using the Upload Image button in the left panel
+2. Click **Remove Background** to isolate your subject (1 token)
+3. Choose a tool (Replace / Blur / Expand) and configure it
+4. Click Apply or Generate to apply the change
+5. Download the result as a PNG
+
+**Token costs**
+- Background Removal: 1 token
+- Replace Background (solid, gradient, stock): 1 token per apply
+- AI Background Generation: 2 tokens
+- Blur Background: 1 token
+- Smart Expand: 2 tokens
+    `,
+  },
+  {
+    id: 'background-remove',
+    title: 'Remove Background',
+    content: `
+**What it does**
+
+Removes the background from your image and isolates the subject as a transparent PNG. This is the first step for all background operations.
+
+**How to use it**
+1. Upload a JPEG or PNG image
+2. Wait for the upload to complete
+3. Click **Remove Background · 1 token**
+4. Wait 10–30 seconds while the AI processes the image
+5. When complete, a green checkmark confirms the background is removed
+
+**Token cost**
+
+1 token. Deducted when you click the button. Refunded automatically if the job fails.
+
+**Expected output**
+
+A PNG with a transparent background. The subject is kept as-is. You can then use any of the three tools to add a new background.
+
+**Tips**
+- Works best on images with a clearly defined subject (people, products, objects)
+- Complex scenes with similar colors between subject and background may not isolate perfectly
+- Hair and fine details are handled well by the rembg model
+    `,
+  },
+  {
+    id: 'background-replace',
+    title: 'Replace Background',
+    content: `
+**What it does**
+
+Composites your isolated subject onto a new background. Four background types are available: solid color, gradient, AI-generated, or a stock photo from the library.
+
+**How to use it**
+1. Complete background removal first
+2. Select the Replace BG tool tab
+3. Choose a background type:
+   - **Transparent** — shows a checkered pattern (useful for PNG exports)
+   - **Solid Color** — pick any color with the color picker
+   - **Gradient** — pick two colors and set the angle
+   - **AI Generate** — type a prompt and click Generate (2 tokens)
+   - **Stock Library** — click any thumbnail from the library
+4. Click **Apply · 1 token** to render the result (except AI Generate which renders on its own)
+5. Download the final PNG
+
+**Token cost**
+- Solid / Gradient / Transparent / Stock: 1 token per Apply
+- AI Generate: 2 tokens per generation (separate from Apply)
+
+**Tips**
+- The preview updates live on the canvas when you change colors and sliders
+- AI-generated backgrounds work best with descriptive prompts: "soft bokeh studio background, light gray"
+- Stock backgrounds are loaded from your studio's backgrounds bucket in Supabase
+    `,
+  },
+  {
+    id: 'background-blur',
+    title: 'Blur Background',
+    content: `
+**What it does**
+
+Applies a Gaussian blur to the original background, then composites your isolated subject on top. Creates a depth-of-field effect.
+
+**How to use it**
+1. Complete background removal first
+2. Select the Blur BG tool tab
+3. Adjust the blur amount slider (1–20px, default 8)
+4. Click **Apply Blur · 1 token**
+5. Download the result
+
+**Token cost**
+
+1 token. Deducted when you click Apply Blur. Refunded automatically if the job fails.
+
+**Expected output**
+
+Your subject sharp in the foreground with the original background blurred behind it.
+
+**Tips**
+- Higher blur values (15–20) give a strong bokeh effect
+- Lower values (2–5) give a subtle depth separation
+- The canvas updates immediately — you can see the result without downloading
+    `,
+  },
+  {
+    id: 'background-expand',
+    title: 'Smart Expand',
+    content: `
+**What it does**
+
+Extends the canvas in all directions by a set number of pixels, then fills the expanded area with AI-generated content that matches your prompt. Uses Replicate stable-diffusion-inpainting.
+
+**How to use it**
+1. Complete background removal first
+2. Select the Smart Expand tool tab
+3. Set the Padding amount (50–400px, how far to extend each edge)
+4. Enter a prompt for what to fill in the expanded area (e.g. "seamless studio background")
+5. Click **Expand Canvas · 2 tokens**
+6. Wait 20–60 seconds for processing
+7. Download the result
+
+**Token cost**
+
+2 tokens. Deducted when you click Expand Canvas. Refunded automatically if the job fails.
+
+**Expected output**
+
+A wider/taller image with your subject in the center and AI-generated content filling the borders.
+
+**Tips**
+- Expansion works best on images with clear, well-defined subjects
+- Use descriptive prompts that match the existing scene: "clean white studio floor and wall"
+- Higher padding values give more room for the AI to fill but take longer
+- The image is scaled to fit within 512×512 before sending to the AI to stay within processing limits
+    `,
+  },
+  {
     id: 'file-requirements',
     title: 'File Requirements',
     content: `
