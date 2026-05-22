@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import DashboardPage from './pages/DashboardPage'
 import RetouchPage from './pages/RetouchPage'
+import BackgroundPage from './pages/BackgroundPage'
 import TokensPage from './pages/TokensPage'
 import HelpPage from './pages/HelpPage'
 import HistoryPage from './pages/HistoryPage'
@@ -38,6 +39,11 @@ export default function App() {
           <Route path="/retouch" element={
             <ProtectedRoute>
               <AppLayout><RetouchPage /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/background" element={
+            <ProtectedRoute>
+              <AppLayout><BackgroundPage /></AppLayout>
             </ProtectedRoute>
           } />
           <Route path="/tokens" element={

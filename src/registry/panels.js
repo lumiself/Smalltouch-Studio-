@@ -11,7 +11,7 @@ export const panels = [
     id: "background",
     name: "Background Studio",
     icon: "🖼",
-    status: "coming_soon",
+    status: "active",
     route: "/background",
     description: "Remove, replace and enhance backgrounds",
   },
