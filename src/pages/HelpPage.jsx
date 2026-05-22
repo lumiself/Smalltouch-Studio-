@@ -377,6 +377,36 @@ A wider/taller image with your subject in the center and AI-generated content fi
     `,
   },
   {
+    id: 'admin-dashboard',
+    title: 'Admin Dashboard',
+    content: `
+**What it does**
+
+The admin dashboard at **/admin** lets you generate and manage token voucher codes, view all user accounts, and manually adjust package tiers. It is only accessible to the configured admin account.
+
+**Generate tab — creating voucher codes**
+
+1. Select the package tier for the batch of codes (Starter, Basic, Standard, Pro, or Studio)
+2. Enter the quantity of codes to generate (up to 500 at a time)
+3. Click **Generate** — codes are created instantly in the database
+4. Download the generated codes as a CSV file for printing
+
+Each code follows the format: SMTCH-XXXX-XXXX
+
+**Codes tab — tracking redemptions**
+
+Shows all voucher codes in the system, newest first. Filter between All, Unused, and Used. Each row shows the code, package tier, token value, and redemption status. Use the CSV export to download the full list.
+
+**Users tab — managing accounts**
+
+Shows every registered user with their email address, current token balance, and active package. Use the package dropdown in each row to manually upgrade or change a user's package tier — the change takes effect immediately.
+
+**Access**
+
+Only the admin account can access /admin. Other users who attempt to visit the page are redirected to the dashboard automatically.
+    `,
+  },
+  {
     id: 'file-requirements',
     title: 'File Requirements',
     content: `

@@ -13,7 +13,7 @@
 | Phase 3 | Advanced Edit with layer controls | ✅ Complete |
 | Phase 4 | Batch Processing | ✅ Complete |
 | Phase 5 | Background Panel | ✅ Complete |
-| Phase 6 | Token System, Packages & Admin | 🔶 Partial |
+| Phase 6 | Token System, Packages & Admin | ✅ Complete |
 | Phase 7 | Polish & Launch | ❌ Not started |
 | Phase 8 | Future Panels | ❌ Not started |
 
@@ -113,7 +113,7 @@
 
 ---
 
-## Phase 6 — Token System 🔶 Partial
+## Phase 6 — Token System ✅ Complete
 
 | Item | Status | Notes |
 |------|--------|-------|
@@ -125,11 +125,15 @@
 | Low balance warning | ✅ Done | Navbar pill turns red at 0 tokens |
 | Per-operation token deduction | ✅ Done | Quick Enhance and Advanced Edit wired |
 | Token refund on failure | ✅ Done | Wired in `runQuickEnhance` |
-| Token voucher generation (admin) | ❌ Pending | Admin dashboard not built |
-| Admin dashboard `/admin` | ❌ Pending | |
-| CSV export of codes | ❌ Pending | |
-| Manual package assignment (admin) | ❌ Pending | |
-| Locked action button states | 🔶 Partial | Navigation to Tokens page on locked action; no visual lock on buttons |
+| Token voucher generation (admin) | ✅ Done | `api/tokens/generate.js` — generates up to 500 codes per batch |
+| Admin dashboard `/admin` | ✅ Done | `AdminPage.jsx` — Generate / Codes / Users tabs |
+| CSV export of codes | ✅ Done | Client-side CSV download in Generate and Codes tabs |
+| Manual package assignment (admin) | ✅ Done | Users tab — inline package dropdown per user |
+| Locked action button states | ✅ Done | Advanced Edit shows lock card; AI Generate and Expand show lock icons in BackgroundTools |
+| Admin route protection | ✅ Done | `AdminRoute.jsx` — redirects non-admins; VITE_ADMIN_EMAIL env var |
+| Codes list (admin) | ✅ Done | `api/admin/codes.js` + Codes tab with filter and CSV export |
+| Admin help entry | ✅ Done | `HelpPage.jsx` — Admin Dashboard section added |
+| API schema docs | ✅ Done | `docs/api/admin-endpoints.md` |
 
 ---
 
@@ -192,10 +196,9 @@ Deploy with `vercel deploy`. All serverless functions in `/api/` deploy automati
 
 ## Next Tasks (Priority Order)
 
-1. **Mobile layout** — tab-based view for library / tools / results on < 768px
-2. **Admin dashboard** — voucher generation, CSV export, user management at `/admin`
-3. **Google OAuth** — add button to login/signup pages, configure in Supabase
-4. **Sharp compositing** — server-side flat JPEG download for Advanced Edit results
-5. **Background Panel** — Replicate API integration, Phase 5
-6. **Locked action UI** — visual lock badges on Premium-gated buttons
-7. **Error handling** — toast notifications, retry logic
+1. **Mobile layout** — tab-based view for library / tools / results on < 768px (Phase 7)
+2. **Google OAuth** — add button to login/signup pages, configure in Supabase (Phase 7)
+3. **Sharp compositing** — server-side flat JPEG download for Advanced Edit results (Phase 3 pending item)
+4. **Onboarding flow** — welcome screen / guide for new users (Phase 7)
+5. **Admin preset editor** — `/admin/presets` for uploading before/after images and plugin configs (Phase 2 pending)
+6. **Error handling** — toast notifications, retry logic (Phase 7)

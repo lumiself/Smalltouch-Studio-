@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect } from 'react'
-import { Upload, Loader2, CheckCircle2, Download } from 'lucide-react'
+import { Upload, Loader2, CheckCircle2, Download, Lock } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks/useAuth'
+import { canUseAction, getRequiredPackageForAction } from '../../lib/access'
 
 export default function BackgroundTools({
   file,
@@ -41,6 +43,12 @@ export default function BackgroundTools({
   onDownload,
   balance,
 }) {
+  const { profile } = useAuth()
+  const canAiGenerate = canUseAction(profile, 'bg_ai_generate')
+  const canExpand = canUseAction(profile, 'bg_expand')
+  const aiGeneratePkg = getRequiredPackageForAction('bg_ai_generate')
+  const expandPkg = getRequiredPackageForAction('bg_expand')
+
   const fileInputRef = useRef(null)
   const [stockImages, setStockImages] = useState([])
 
@@ -133,19 +141,26 @@ export default function BackgroundTools({
           <div>
             <p className="text-[#a3a3a3] text-xs font-medium uppercase tracking-wider mb-2">Tool</p>
             <div className="flex gap-1">
-              {['replace', 'blur', 'expand'].map(tool => (
-                <button
-                  key={tool}
-                  onClick={() => onToolChange(tool)}
-                  className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors capitalize ${
-                    activeTool === tool
-                      ? 'bg-[#a855f7] text-white'
-                      : 'bg-[#242424] text-[#a3a3a3] hover:text-[#f5f5f5]'
-                  }`}
-                >
-                  {tool === 'expand' ? 'Expand' : tool === 'blur' ? 'Blur' : 'Replace'}
-                </button>
-              ))}
+              {['replace', 'blur', 'expand'].map(tool => {
+                const locked = tool === 'expand' && !canExpand
+                return (
+                  <button
+                    key={tool}
+                    onClick={() => !locked && onToolChange(tool)}
+                    title={locked ? `Requires ${expandPkg?.name ?? 'Standard'}` : undefined}
+                    className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
+                      locked
+                        ? 'bg-[#242424] text-[#555] cursor-not-allowed'
+                        : activeTool === tool
+                          ? 'bg-[#a855f7] text-white'
+                          : 'bg-[#242424] text-[#a3a3a3] hover:text-[#f5f5f5]'
+                    }`}
+                  >
+                    {locked && <Lock size={10} />}
+                    {tool === 'expand' ? 'Expand' : tool === 'blur' ? 'Blur' : 'Replace'}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
@@ -171,6 +186,8 @@ export default function BackgroundTools({
               onStockBgSelect={onStockBgSelect}
               onApply={onApply}
               balance={balance}
+              canAiGenerate={canAiGenerate}
+              aiGeneratePkg={aiGeneratePkg}
             />
           )}
 
@@ -221,12 +238,13 @@ function ReplaceBgControls({
   aiBgUrl,
   stockImages, stockBgUrl, onStockBgSelect,
   onApply, balance,
+  canAiGenerate, aiGeneratePkg,
 }) {
   const types = [
     { id: 'transparent', label: 'Transparent' },
     { id: 'solid', label: 'Solid Color' },
     { id: 'gradient', label: 'Gradient' },
-    { id: 'ai', label: 'AI Generate' },
+    { id: 'ai', label: 'AI Generate', locked: !canAiGenerate },
     { id: 'stock', label: 'Stock Library' },
   ]
 
@@ -236,16 +254,24 @@ function ReplaceBgControls({
         <p className="text-[#a3a3a3] text-xs font-medium uppercase tracking-wider mb-2">Background Type</p>
         <div className="space-y-1">
           {types.map(t => (
-            <label key={t.id} className="flex items-center gap-2 cursor-pointer group">
+            <label
+              key={t.id}
+              className={`flex items-center gap-2 group ${t.locked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+              title={t.locked ? `Requires ${aiGeneratePkg?.name ?? 'Standard'}` : undefined}
+            >
               <input
                 type="radio"
                 name="bgType"
                 value={t.id}
                 checked={bgType === t.id}
-                onChange={() => onBgTypeChange(t.id)}
+                onChange={() => !t.locked && onBgTypeChange(t.id)}
+                disabled={t.locked}
                 className="accent-[#a855f7]"
               />
-              <span className="text-sm text-[#a3a3a3] group-hover:text-[#f5f5f5] transition-colors">{t.label}</span>
+              <span className={`text-sm flex items-center gap-1.5 transition-colors ${t.locked ? 'text-[#555]' : 'text-[#a3a3a3] group-hover:text-[#f5f5f5]'}`}>
+                {t.label}
+                {t.locked && <Lock size={10} className="text-[#555]" />}
+              </span>
             </label>
           ))}
         </div>

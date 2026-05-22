@@ -10,6 +10,8 @@ import BackgroundPage from './pages/BackgroundPage'
 import TokensPage from './pages/TokensPage'
 import HelpPage from './pages/HelpPage'
 import HistoryPage from './pages/HistoryPage'
+import AdminPage from './pages/admin/AdminPage'
+import AdminRoute from './components/layout/AdminRoute'
 
 function AppLayout({ children }) {
   return (
@@ -59,6 +61,13 @@ export default function App() {
           <Route path="/history" element={
             <ProtectedRoute>
               <AppLayout><HistoryPage /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <AppLayout><AdminPage /></AppLayout>
+              </AdminRoute>
             </ProtectedRoute>
           } />
         </Routes>

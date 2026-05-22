@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Play, Save } from 'lucide-react'
+import { Play, Save, Lock } from 'lucide-react'
 import LayerControls from './LayerControls'
+import { useAuth } from '../../hooks/useAuth'
+import { canUseAction, getRequiredPackageForAction } from '../../lib/access'
 
 const AVAILABLE_PLUGINS = [
   { id: 'Heal', label: 'Heal', description: 'Blemish cleanup' },
@@ -24,6 +26,7 @@ const INTENSITY_MODES = [
 ]
 
 export default function AdvancedEdit({ selectedImage, onStartEditing, processing, layers, onLayerOpacityChange, onSavePreset, onDownload, balance, disabled }) {
+  const { profile } = useAuth()
   const [enabledPlugins, setEnabledPlugins] = useState(['Heal', 'Dodge Burn', 'Skin Tone'])
   const [intensity, setIntensity] = useState('normal')
   const [savingPreset, setSavingPreset] = useState(false)
@@ -31,6 +34,8 @@ export default function AdvancedEdit({ selectedImage, onStartEditing, processing
 
   const haslayers = layers && layers.length > 0
   const tokenCost = 2
+  const isLocked = !canUseAction(profile, 'advanced_edit')
+  const requiredPkg = getRequiredPackageForAction('advanced_edit')
 
   function togglePlugin(pluginId) {
     if (haslayers) return
@@ -55,6 +60,28 @@ export default function AdvancedEdit({ selectedImage, onStartEditing, processing
     onSavePreset({ name: presetName.trim(), plugins: enabledPlugins, layers, intensity })
     setSavingPreset(false)
     setPresetName('')
+  }
+
+  if (isLocked) {
+    return (
+      <div className="space-y-4">
+        <h2 className="font-display font-semibold text-[#f5f5f5] text-base">Advanced Edit</h2>
+        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-6 flex flex-col items-center gap-3 text-center">
+          <div className="w-10 h-10 rounded-full bg-[#242424] flex items-center justify-center">
+            <Lock size={18} className="text-[#a3a3a3]" />
+          </div>
+          <div>
+            <p className="text-[#f5f5f5] text-sm font-medium">Advanced Edit is locked</p>
+            <p className="text-[#a3a3a3] text-xs mt-1">
+              Requires {requiredPkg ? `${requiredPkg.icon} ${requiredPkg.name}` : 'a higher package'}
+            </p>
+          </div>
+          <a href="/tokens" className="text-xs text-[#a855f7] hover:text-[#7c3aed] transition-colors">
+            View packages →
+          </a>
+        </div>
+      </div>
+    )
   }
 
   return (
