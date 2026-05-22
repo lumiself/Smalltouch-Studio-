@@ -14,7 +14,7 @@
 | Phase 4 | Batch Processing | ✅ Complete |
 | Phase 5 | Background Panel | ✅ Complete |
 | Phase 6 | Token System, Packages & Admin | ✅ Complete |
-| Phase 7 | Polish & Launch | ❌ Not started |
+| Phase 7 | Polish & Launch | ✅ Complete |
 | Phase 8 | Future Panels | ❌ Not started |
 
 ---
@@ -137,15 +137,18 @@
 
 ---
 
-## Phase 7 — Polish & Launch ❌ Not Started
+## Phase 7 — Polish & Launch ✅ Complete
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Mobile responsive (tab layout) | ❌ Pending | Currently desktop-only |
-| Error handling refinement | 🔶 Partial | Basic error states exist |
-| Loading states and animations | 🔶 Partial | Spinners exist; no skeleton loaders |
-| Onboarding flow | ❌ Pending | |
-| Google OAuth login | ❌ Pending | |
+| Mobile responsive (tab layout) | ✅ Done | RetouchPage and BackgroundPage get 3-tab and 2-tab layouts on mobile |
+| Mobile bottom nav | ✅ Done | `BottomNav.jsx` — Home / Retouch / BG / History / Tokens with active route highlight |
+| Error handling refinement | ✅ Done | `ToastContext.jsx` — global toast system with success/error/info; all console.errors replaced |
+| Loading states and animations | ✅ Done | `Skeleton.jsx` — `SkeletonJobRow` and `SkeletonAdminRow` used in History and Admin pages |
+| Toast entry animation | ✅ Done | Slide-in animation in `index.css` for toast notifications |
+| Onboarding flow | ✅ Done | `OnboardingModal.jsx` — 3-step modal shown on first dashboard visit (localStorage gate) |
+| Google OAuth login | ✅ Done | `signInWithGoogle` in AuthProvider; Google button on Login and Signup pages |
+| Auth header bug fix | ✅ Done | `useTokens.js` — `redeemVoucher` now sends `Authorization: Bearer` header |
 | History page | ✅ Done | `HistoryPage.jsx` — jobs list with download |
 | Help page (in-app) | ✅ Done | `HelpPage.jsx` — full accordion covering all features |
 
@@ -196,9 +199,7 @@ Deploy with `vercel deploy`. All serverless functions in `/api/` deploy automati
 
 ## Next Tasks (Priority Order)
 
-1. **Mobile layout** — tab-based view for library / tools / results on < 768px (Phase 7)
-2. **Google OAuth** — add button to login/signup pages, configure in Supabase (Phase 7)
+1. **Google OAuth Supabase config** — enable Google provider in Supabase dashboard, add redirect URL
+2. **Admin preset editor** — `/admin/presets` for uploading before/after images and plugin configs (Phase 2 pending)
 3. **Sharp compositing** — server-side flat JPEG download for Advanced Edit results (Phase 3 pending item)
-4. **Onboarding flow** — welcome screen / guide for new users (Phase 7)
-5. **Admin preset editor** — `/admin/presets` for uploading before/after images and plugin configs (Phase 2 pending)
-6. **Error handling** — toast notifications, retry logic (Phase 7)
+4. **Phase 8** — Pose Generator, Outfit Changer, Color Grading, Headshot Generator panels

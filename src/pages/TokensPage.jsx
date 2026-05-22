@@ -1,30 +1,28 @@
 import { useState } from 'react'
-import { Coins, CheckCircle } from 'lucide-react'
+import { Coins } from 'lucide-react'
 import { packages } from '../registry/packages'
 import { useAuth } from '../hooks/useAuth'
 import { useTokens } from '../hooks/useTokens'
+import { useToast } from '../contexts/ToastContext'
 
 export default function TokensPage() {
   const { profile } = useAuth()
   const { balance, redeemVoucher } = useTokens()
+  const toast = useToast()
   const [code, setCode] = useState('')
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   const currentPkg = packages.find(p => p.id === profile?.package_id)
 
   async function handleRedeem(e) {
     e.preventDefault()
-    setError('')
-    setSuccess('')
     setLoading(true)
     try {
       const result = await redeemVoucher(code.trim().toUpperCase())
-      setSuccess(`Success! Added ${result.tokensAdded} tokens.`)
+      toast.success(`Added ${result.tokensAdded} tokens. New balance: ${result.newBalance}.`)
       setCode('')
     } catch (err) {
-      setError(err.message || 'Redemption failed')
+      toast.error(err.message || 'Redemption failed')
     } finally {
       setLoading(false)
     }
@@ -79,13 +77,6 @@ export default function TokensPage() {
           </button>
         </form>
 
-        {error && <p className="text-[#ef4444] text-sm">{error}</p>}
-        {success && (
-          <div className="flex items-center gap-2 text-[#22c55e] text-sm">
-            <CheckCircle size={16} />
-            {success}
-          </div>
-        )}
       </div>
 
       <div className="space-y-3">

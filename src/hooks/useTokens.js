@@ -26,9 +26,13 @@ export function useTokens() {
   }
 
   async function redeemVoucher(code) {
+    const { data: { session } } = await supabase.auth.getSession()
     const res = await fetch('/api/tokens/redeem', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token}`,
+      },
       body: JSON.stringify({ code }),
     })
     const data = await res.json()

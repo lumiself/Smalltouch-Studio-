@@ -5,16 +5,24 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useTokens } from '../hooks/useTokens'
 import { useRetouch } from '../hooks/useRetouch'
+import { useToast } from '../contexts/ToastContext'
 import { canUseAction } from '../lib/access'
 import LibraryPanel from '../components/retouch/LibraryPanel'
 import QuickEnhance from '../components/retouch/QuickEnhance'
 import AdvancedEdit from '../components/retouch/AdvancedEdit'
 import ResultsPanel from '../components/retouch/ResultsPanel'
 
+const MOBILE_TABS = [
+  { id: 'library', label: 'Library' },
+  { id: 'tools',   label: 'Tools'   },
+  { id: 'results', label: 'Results' },
+]
+
 export default function RetouchPage() {
   const { user, profile } = useAuth()
   const { balance, deductTokens, refundTokens } = useTokens()
-  const { jobs, runQuickEnhance, runAdvancedEdit, updateJob } = useRetouch()
+  const { jobs, runQuickEnhance, runAdvancedEdit } = useRetouch()
+  const toast = useToast()
   const navigate = useNavigate()
 
   const [images, setImages] = useState([])
@@ -26,6 +34,7 @@ export default function RetouchPage() {
   const [advancedLayers, setAdvancedLayers] = useState(null)
   const [advancedProcessing, setAdvancedProcessing] = useState(false)
   const [activeJobId, setActiveJobId] = useState(null)
+  const [mobileTab, setMobileTab] = useState('tools')
 
   function handleUpload(files) {
     const newImages = files.map(f => ({
@@ -36,6 +45,7 @@ export default function RetouchPage() {
     }))
     setImages(prev => [...prev, ...newImages])
     if (!selectedImage) setSelectedImage(newImages[0])
+    if (newImages.length) setMobileTab('tools')
   }
 
   const handleQuickEnhance = useCallback(async (preset) => {
@@ -47,10 +57,11 @@ export default function RetouchPage() {
     try {
       await deductTokens(user.id, preset.tokenCost, crypto.randomUUID(), 'quick_enhance')
       await runQuickEnhance({ userId: user.id, file: selectedImage.file, preset })
+      setMobileTab('results')
     } catch (err) {
-      console.error(err)
+      toast.error(err.message || 'Enhancement failed')
     }
-  }, [user, selectedImage, profile, deductTokens, runQuickEnhance, navigate])
+  }, [user, selectedImage, profile, deductTokens, runQuickEnhance, navigate, toast])
 
   const handleAdvancedEdit = useCallback(async ({ plugins, intensityMode }) => {
     if (!user || !selectedImage) return
@@ -66,11 +77,11 @@ export default function RetouchPage() {
       setAdvancedLayers(result.layers)
       setActiveJobId(result.jobId)
     } catch (err) {
-      console.error(err)
+      toast.error(err.message || 'Advanced edit failed')
     } finally {
       setAdvancedProcessing(false)
     }
-  }, [user, selectedImage, profile, deductTokens, runAdvancedEdit, navigate])
+  }, [user, selectedImage, profile, deductTokens, runAdvancedEdit, navigate, toast])
 
   function handleLayerOpacityChange(layerName, opacity) {
     setAdvancedLayers(prev => prev?.map(l => l.name === layerName ? { ...l, opacity } : l))
@@ -80,13 +91,15 @@ export default function RetouchPage() {
     if (!user) return
     const layerOpacities = {}
     layers?.forEach(l => { layerOpacities[l.name] = l.opacity })
-    await supabase.from('presets').insert({
+    const { error } = await supabase.from('presets').insert({
       user_id: user.id,
       name,
       panel: 'retouch',
       payload: { mode: 'professional', plugins, intensity },
       layer_opacities: layerOpacities,
     })
+    if (error) toast.error('Failed to save preset')
+    else toast.success(`Preset "${name}" saved`)
   }
 
   async function handleDownload() {
@@ -118,13 +131,15 @@ export default function RetouchPage() {
           try { await refundTokens(user.id, activePreset.tokenCost) } catch {}
         }
         setBatchStatuses(prev => ({ ...prev, [img.id]: 'failed' }))
-        console.error('Batch item failed:', img.name, err)
+        toast.error(`Failed: ${img.name}`)
       }
     }
 
     await Promise.allSettled(batchQueue.map(runItem))
     setBatchRunning(false)
-  }, [activePreset, batchQueue, batchRunning, profile, user, deductTokens, refundTokens, runQuickEnhance, navigate])
+    toast.success('Batch complete')
+    setMobileTab('results')
+  }, [activePreset, batchQueue, batchRunning, profile, user, deductTokens, refundTokens, runQuickEnhance, navigate, toast])
 
   async function handleDownloadAll() {
     const completed = jobs.filter(j => j.status === 'completed' && j.result?.url)
@@ -153,47 +168,74 @@ export default function RetouchPage() {
   }
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <LibraryPanel
-        images={images}
-        selectedImage={selectedImage}
-        onSelect={setSelectedImage}
-        onUpload={handleUpload}
-        batchQueue={batchQueue}
-        onAddToBatch={img => setBatchQueue(prev => prev.find(i => i.id === img.id) ? prev : [...prev, img])}
-        onRemoveFromBatch={id => setBatchQueue(prev => prev.filter(i => i.id !== id))}
-        onStartBatch={handleStartBatch}
-        batchRunning={batchRunning}
-        batchStatuses={batchStatuses}
-        activePreset={activePreset}
-      />
+    <div className="flex flex-col flex-1 overflow-hidden min-h-0">
+      {/* Mobile tab switcher */}
+      <div className="md:hidden flex border-b border-[#2a2a2a] shrink-0 bg-[#1a1a1a]">
+        {MOBILE_TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setMobileTab(tab.id)}
+            className={`flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
+              mobileTab === tab.id
+                ? 'text-[#a855f7] border-[#a855f7]'
+                : 'text-[#555] border-transparent hover:text-[#a3a3a3]'
+            }`}
+          >
+            {tab.label}
+            {tab.id === 'results' && jobs.length > 0 && (
+              <span className="ml-1 text-[9px] bg-[#a855f7]/20 text-[#a855f7] px-1 rounded-full">{jobs.length}</span>
+            )}
+          </button>
+        ))}
+      </div>
 
-      <main className="flex-1 overflow-y-auto p-4 space-y-6">
-        <QuickEnhance
-          selectedImage={selectedImage}
-          onEnhance={handleQuickEnhance}
-          selectedPreset={activePreset}
-          onPresetSelect={setActivePreset}
-          disabled={advancedProcessing}
-          balance={balance}
-        />
+      {/* Columns */}
+      <div className="flex flex-1 overflow-hidden min-h-0">
+        <div className={`${mobileTab === 'library' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[240px] shrink-0 border-r border-[#2a2a2a] overflow-y-auto`}>
+          <LibraryPanel
+            images={images}
+            selectedImage={selectedImage}
+            onSelect={img => { setSelectedImage(img); setMobileTab('tools') }}
+            onUpload={handleUpload}
+            batchQueue={batchQueue}
+            onAddToBatch={img => setBatchQueue(prev => prev.find(i => i.id === img.id) ? prev : [...prev, img])}
+            onRemoveFromBatch={id => setBatchQueue(prev => prev.filter(i => i.id !== id))}
+            onStartBatch={handleStartBatch}
+            batchRunning={batchRunning}
+            batchStatuses={batchStatuses}
+            activePreset={activePreset}
+          />
+        </div>
 
-        <div className="border-t border-[#2a2a2a]" />
+        <main className={`${mobileTab === 'tools' ? 'block' : 'hidden'} md:block flex-1 overflow-y-auto p-4 space-y-6`}>
+          <QuickEnhance
+            selectedImage={selectedImage}
+            onEnhance={handleQuickEnhance}
+            selectedPreset={activePreset}
+            onPresetSelect={setActivePreset}
+            disabled={advancedProcessing}
+            balance={balance}
+          />
 
-        <AdvancedEdit
-          selectedImage={selectedImage}
-          onStartEditing={handleAdvancedEdit}
-          processing={advancedProcessing}
-          layers={advancedLayers}
-          onLayerOpacityChange={handleLayerOpacityChange}
-          onSavePreset={handleSavePreset}
-          onDownload={handleDownload}
-          balance={balance}
-          disabled={false}
-        />
-      </main>
+          <div className="border-t border-[#2a2a2a]" />
 
-      <ResultsPanel jobs={jobs} onDownloadAll={handleDownloadAll} />
+          <AdvancedEdit
+            selectedImage={selectedImage}
+            onStartEditing={handleAdvancedEdit}
+            processing={advancedProcessing}
+            layers={advancedLayers}
+            onLayerOpacityChange={handleLayerOpacityChange}
+            onSavePreset={handleSavePreset}
+            onDownload={handleDownload}
+            balance={balance}
+            disabled={false}
+          />
+        </main>
+
+        <div className={`${mobileTab === 'results' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[280px] shrink-0 border-l border-[#2a2a2a] overflow-y-auto`}>
+          <ResultsPanel jobs={jobs} onDownloadAll={handleDownloadAll} />
+        </div>
+      </div>
     </div>
   )
 }

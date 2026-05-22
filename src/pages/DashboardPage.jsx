@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock } from 'lucide-react'
 import { panels } from '../registry/panels'
@@ -5,10 +6,12 @@ import { systemPresets } from '../registry/presets'
 import { canUsePanel, getRequiredPackage } from '../lib/access'
 import { useAuth } from '../hooks/useAuth'
 import TokenCostBadge from '../components/shared/TokenCostBadge'
+import OnboardingModal, { shouldShowOnboarding } from '../components/shared/OnboardingModal'
 
 export default function DashboardPage() {
   const { profile } = useAuth()
   const navigate = useNavigate()
+  const [showOnboarding, setShowOnboarding] = useState(() => shouldShowOnboarding())
   const featured = systemPresets.slice(0, 3)
 
   function handlePanelClick(panel) {
@@ -19,6 +22,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-8">
+      {showOnboarding && <OnboardingModal onClose={() => setShowOnboarding(false)} />}
       <div>
         <h1 className="font-display font-bold text-[#f5f5f5] text-2xl">What would you like to do today?</h1>
         <p className="text-[#a3a3a3] text-sm mt-1">Choose a tool to get started</p>

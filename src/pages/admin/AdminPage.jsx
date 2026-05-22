@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Download, RefreshCw, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { packages } from '../../registry/packages'
+import { SkeletonAdminRow } from '../../components/shared/Skeleton'
 
 async function getAuthHeader() {
   const { data: { session } } = await supabase.auth.getSession()
@@ -237,9 +238,10 @@ function CodesTab() {
       {error && <p className="text-[#ef4444] text-sm">{error}</p>}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[#a3a3a3] text-sm py-8 justify-center">
-          <Loader2 size={16} className="animate-spin" />
-          Loading...
+        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <tbody>{Array.from({ length: 8 }).map((_, i) => <SkeletonAdminRow key={i} />)}</tbody>
+          </table>
         </div>
       ) : codes.length === 0 ? (
         <p className="text-[#a3a3a3] text-sm text-center py-8">No codes found</p>
@@ -345,9 +347,10 @@ function UsersTab() {
       {error && <p className="text-[#ef4444] text-sm">{error}</p>}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[#a3a3a3] text-sm py-8 justify-center">
-          <Loader2 size={16} className="animate-spin" />
-          Loading...
+        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <tbody>{Array.from({ length: 6 }).map((_, i) => <SkeletonAdminRow key={i} />)}</tbody>
+          </table>
         </div>
       ) : users.length === 0 ? (
         <p className="text-[#a3a3a3] text-sm text-center py-8">No users found</p>
