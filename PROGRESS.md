@@ -1,6 +1,6 @@
 # Smalltouch Studio — Implementation Progress
 
-> Last updated: 2026-05-22
+> Last updated: 2026-05-22 (all pre-launch items complete)
 
 ---
 
@@ -39,7 +39,7 @@
 | Vercel configuration | ✅ Done | `vercel.json` with 10s function timeout |
 | Environment variable template | ✅ Done | `.env.local.example` |
 | Supabase schema | ✅ Done | `docs/supabase-schema.sql` — tables, RLS, triggers, functions |
-| Google OAuth | ❌ Pending | Supabase supports it; needs dashboard config + UI button |
+| Google OAuth | ⚙️ Config only | UI + code done; enable Google provider in Supabase dashboard + set redirect URL |
 
 ---
 
@@ -60,7 +60,7 @@
 | Single image download | ✅ Done | Signed URL from Supabase outputs bucket |
 | Token deduction on confirm | ✅ Done | `deductTokens()` before API call |
 | Token refund on failure | ✅ Done | Auto-refund in catch block of `runQuickEnhance` |
-| Admin preset editor (`/admin/presets`) | ✅ Done | `PresetsEditorPage.jsx` + `api/admin/presets.js` — full CRUD, `system_presets` table, DB fallback in `QuickEnhance` |
+| Admin preset editor (`/admin/presets`) | ✅ Done | `PresetsEditorPage.jsx` + `api/admin/presets.js` — full CRUD, `system_presets` table, DB fallback in `QuickEnhance.jsx` |
 
 ---
 
@@ -172,6 +172,8 @@ Per CLAUDE.md rules, every implemented feature must have a help entry. All imple
 | Background Replace | ✅ | "Replace Background" |
 | Background Blur | ✅ | "Blur Background" |
 | Smart Expand | ✅ | "Smart Expand" |
+| Admin Dashboard | ✅ | "Admin Dashboard" |
+| Admin Preset Editor | ✅ | "Admin — Preset Editor" |
 
 ---
 
@@ -199,7 +201,5 @@ Deploy with `vercel deploy`. All serverless functions in `/api/` deploy automati
 
 ## Next Tasks (Priority Order)
 
-1. **Google OAuth Supabase config** — enable Google provider in Supabase dashboard, add redirect URL
-2. **Admin preset editor** — `/admin/presets` for uploading before/after images and plugin configs (Phase 2 pending)
-3. **Sharp compositing** — server-side flat JPEG download for Advanced Edit results (Phase 3 pending item)
-4. **Phase 8** — Pose Generator, Outfit Changer, Color Grading, Headshot Generator panels
+1. **Google OAuth Supabase config** — enable Google provider in Supabase dashboard, add redirect URL (no code changes needed)
+2. **Phase 8** — Pose Generator, Outfit Changer, Color Grading, Headshot Generator panels
