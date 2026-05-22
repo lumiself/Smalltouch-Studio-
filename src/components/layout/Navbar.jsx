@@ -1,13 +1,14 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Sparkles, LogOut, Coins, HelpCircle, History } from 'lucide-react'
+import { Sparkles, LogOut, Coins, HelpCircle, History, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
 export default function Navbar() {
-  const { profile, signOut } = useAuth()
+  const { user, profile, signOut } = useAuth()
   const location = useLocation()
   const balance = profile?.token_balance ?? 0
   const isLow = balance < 5 && balance > 0
   const isEmpty = balance === 0
+  const isAdmin = user?.email && import.meta.env.VITE_ADMIN_EMAIL && user.email === import.meta.env.VITE_ADMIN_EMAIL
 
   return (
     <nav className="h-14 bg-[#1a1a1a] border-b border-[#2a2a2a] flex items-center justify-between px-4 shrink-0">
@@ -17,6 +18,12 @@ export default function Navbar() {
       </Link>
 
       <div className="flex items-center gap-4">
+        {isAdmin && (
+          <Link to="/admin" className={`text-xs flex items-center gap-1 transition-colors ${location.pathname === '/admin' ? 'text-[#a855f7]' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}>
+            <ShieldCheck size={14} />
+            <span>Admin</span>
+          </Link>
+        )}
         <Link to="/help" className={`text-xs flex items-center gap-1 transition-colors ${location.pathname === '/help' ? 'text-[#a855f7]' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}>
           <HelpCircle size={14} />
           <span>Help</span>
