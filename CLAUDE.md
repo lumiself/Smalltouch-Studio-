@@ -27,17 +27,19 @@ If an approach would exceed these limits, flag it and propose a free-tier-compat
 
 ---
 
-### 2. User Documentation Alongside Every Feature
-Every feature added must be accompanied by an entry in the help/documentation section. Documentation lives in `docs/help/` and is also surfaced in-app via a Help section.
+### 2. In-App Help Section Alongside Every Feature
+Every feature added must be accompanied by content in the platform's in-app Help section (`/help`). This is user-facing — it lives inside the app, not in the repository docs.
 
-**For each feature, document:**
-- What the feature does (plain language, user-facing)
+**The Help section is a page in the app.** Each feature gets its own entry, accessible to logged-in users.
+
+**For each feature, the in-app help entry must cover:**
+- What the feature does (plain language, no jargon)
 - Step-by-step usage instructions
-- Any token costs involved
+- Token costs involved
 - Expected outcomes and output formats
 - Common issues or tips
 
-Do not mark a feature as complete without its corresponding help doc.
+Do not mark a feature as complete without its corresponding in-app help entry.
 
 ---
 

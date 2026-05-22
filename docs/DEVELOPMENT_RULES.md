@@ -32,20 +32,18 @@ All code must run within the **free tiers** of Vercel and Supabase. Plans will b
 
 ---
 
-## Rule 2: Help Documentation Alongside Every Feature
+## Rule 2: In-App Help Section Alongside Every Feature
 
-Every feature must ship with user-facing documentation. Help docs live in `docs/help/` and are surfaced in-app.
+Every feature must ship with a corresponding entry in the platform's in-app Help section. This is a page inside the app (`/help`), accessible to logged-in users — it is **not** a markdown file in the repository.
 
-**Each help doc must include:**
-- Plain-language description of the feature
+**Each in-app help entry must include:**
+- Plain-language description of the feature (no jargon)
 - Step-by-step usage instructions
 - Token costs involved
 - Expected output / what the user receives
 - Tips and common issues
 
-A feature is not complete without its help doc.
-
-**Help docs folder:** `docs/help/`
+A feature is not complete without its in-app help entry.
 
 ---
 
