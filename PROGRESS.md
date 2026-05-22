@@ -1,0 +1,191 @@
+# Smalltouch Studio — Implementation Progress
+
+> Last updated: 2026-05-22
+
+---
+
+## Overall Status
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| Phase 1 | Foundation | ✅ Complete |
+| Phase 2 | Retouching Panel — One Click Enhance | ✅ Complete |
+| Phase 3 | Advanced Edit with layer controls | ✅ Complete |
+| Phase 4 | Batch Processing | 🔶 Partial |
+| Phase 5 | Background Panel | ❌ Not started |
+| Phase 6 | Token System, Packages & Admin | 🔶 Partial |
+| Phase 7 | Polish & Launch | ❌ Not started |
+| Phase 8 | Future Panels | ❌ Not started |
+
+---
+
+## Phase 1 — Foundation ✅
+
+| Item | Status | Notes |
+|------|--------|-------|
+| React + Vite + Tailwind setup | ✅ Done | `package.json`, `vite.config.js`, `tailwind.config.js` |
+| Dark design system | ✅ Done | Colors, typography, scrollbars in `src/index.css` |
+| Supabase auth (email/password) | ✅ Done | `AuthProvider`, login, signup pages |
+| Registry system — panels | ✅ Done | `src/registry/panels.js` |
+| Registry system — actions | ✅ Done | `src/registry/actions.js` |
+| Registry system — models | ✅ Done | `src/registry/models.js` |
+| Registry system — presets | ✅ Done | `src/registry/presets.js` — all 9 system presets |
+| Registry system — packages | ✅ Done | `src/registry/packages.js` — all 5 tiers |
+| Access control library | ✅ Done | `src/lib/access.js` — `canUsePanel`, `canUseAction`, limits |
+| Supabase storage helpers | ✅ Done | `src/lib/storage.js` |
+| Dashboard page | ✅ Done | Panel cards, locked states, featured presets |
+| Navbar with token balance | ✅ Done | Low/empty balance color states |
+| Protected routes | ✅ Done | Redirects to login when unauthenticated |
+| Vercel configuration | ✅ Done | `vercel.json` with 10s function timeout |
+| Environment variable template | ✅ Done | `.env.local.example` |
+| Supabase schema | ✅ Done | `docs/supabase-schema.sql` — tables, RLS, triggers, functions |
+| Google OAuth | ❌ Pending | Supabase supports it; needs dashboard config + UI button |
+
+---
+
+## Phase 2 — One Click Enhance ✅
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Image upload with drag & drop | ✅ Done | `LibraryPanel.jsx` — multi-file, preview grid |
+| Preset card grid | ✅ Done | `QuickEnhance.jsx` — all 9 system presets |
+| Category filter bar | ✅ Done | All / Portrait / Beauty / Editorial / E-commerce / Color |
+| Inline before/after slider on card click | ✅ Done | `BeforeAfterSlider.jsx` — drag divider |
+| Vercel serverless proxy — start job | ✅ Done | `api/retouch/start.js` |
+| Vercel serverless proxy — poll status | ✅ Done | `api/retouch/status.js` |
+| Vercel serverless proxy — download result | ✅ Done | `api/retouch/download.js` |
+| Client-side job polling (3s interval) | ✅ Done | `useRetouch.js` — `pollStatus()` |
+| Results panel with progress | ✅ Done | `ResultsPanel.jsx` — progress bars, status icons |
+| Before/after thumbnail in results | ✅ Done | `BeforeAfterSlider` embedded in result card |
+| Single image download | ✅ Done | Signed URL from Supabase outputs bucket |
+| Token deduction on confirm | ✅ Done | `deductTokens()` before API call |
+| Token refund on failure | ✅ Done | Auto-refund in catch block of `runQuickEnhance` |
+| Admin preset editor (`/admin/presets`) | ❌ Pending | Admin panel not yet built |
+
+---
+
+## Phase 3 — Advanced Edit ✅
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Side-by-side original + edited viewer | ✅ Done | `AdvancedEdit.jsx` — stacked CSS blend layers |
+| Plugin checkbox controls | ✅ Done | 12 plugins listed, all toggleable |
+| Intensity mode selector | ✅ Done | Subtle / Normal / Extreme with alpha table |
+| Start Editing → layered ZIP flow | ✅ Done | `runAdvancedEdit` in `useRetouch.js` |
+| JSZip extraction of layer PNGs | ✅ Done | `jszip` — extracts PNGs, reads `result.json` |
+| CSS blend mode live compositing | ✅ Done | `mix-blend-mode` per layer in `AdvancedEdit.jsx` |
+| Layer opacity sliders | ✅ Done | `LayerControls.jsx` — per-layer range inputs |
+| Save as Preset | ✅ Done | Saves to Supabase `presets` table with `layer_opacities` |
+| Sharp server-side compositing | ❌ Pending | Final download uses signed URL; Sharp compositing not wired |
+| Changing intensity resets layers | ✅ Done | Handled in `AdvancedEdit.jsx` — sliders only visible after layers returned |
+
+---
+
+## Phase 4 — Batch Processing 🔶 Partial
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Batch queue UI | ✅ Done | `LibraryPanel.jsx` — queue section with remove buttons |
+| Multi-file upload | ✅ Done | Already supports multiple files |
+| Batch job execution | ❌ Pending | `onStartBatch` handler not wired up in `RetouchPage.jsx` |
+| Concurrent polling per image | ❌ Pending | Not implemented |
+| Per-image progress tracking | ❌ Pending | Not implemented |
+| ZIP download of all results | ❌ Pending | "Download All" triggers sequential downloads (not a ZIP) |
+
+---
+
+## Phase 5 — Background Panel ❌ Not Started
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Background removal (Replicate) | ❌ Pending | |
+| Solid/gradient background replace | ❌ Pending | |
+| AI background generation | ❌ Pending | |
+| Stock background library | ❌ Pending | |
+| Canvas compositing preview | ❌ Pending | |
+| Export pipeline | ❌ Pending | |
+
+---
+
+## Phase 6 — Token System 🔶 Partial
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Package registry | ✅ Done | 5 tiers in `packages.js` |
+| Access control | ✅ Done | `access.js` — panel/action/batch/file-size checks |
+| Voucher redemption flow | ✅ Done | `api/tokens/redeem.js` + `TokensPage.jsx` |
+| Locked panel cards on dashboard | ✅ Done | Greyed out with required package badge |
+| Token balance in navbar | ✅ Done | Color-coded: purple → amber (low) → red (empty) |
+| Low balance warning | ✅ Done | Navbar pill turns red at 0 tokens |
+| Per-operation token deduction | ✅ Done | Quick Enhance and Advanced Edit wired |
+| Token refund on failure | ✅ Done | Wired in `runQuickEnhance` |
+| Token voucher generation (admin) | ❌ Pending | Admin dashboard not built |
+| Admin dashboard `/admin` | ❌ Pending | |
+| CSV export of codes | ❌ Pending | |
+| Manual package assignment (admin) | ❌ Pending | |
+| Locked action button states | 🔶 Partial | Navigation to Tokens page on locked action; no visual lock on buttons |
+
+---
+
+## Phase 7 — Polish & Launch ❌ Not Started
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Mobile responsive (tab layout) | ❌ Pending | Currently desktop-only |
+| Error handling refinement | 🔶 Partial | Basic error states exist |
+| Loading states and animations | 🔶 Partial | Spinners exist; no skeleton loaders |
+| Onboarding flow | ❌ Pending | |
+| Google OAuth login | ❌ Pending | |
+| History page | ✅ Done | `HistoryPage.jsx` — jobs list with download |
+| Help page (in-app) | ✅ Done | `HelpPage.jsx` — full accordion covering all features |
+
+---
+
+## In-App Help Coverage ✅
+
+Per CLAUDE.md rules, every implemented feature must have a help entry. All implemented features are covered:
+
+| Feature | Help Entry | Location |
+|---------|-----------|----------|
+| Retouch Studio overview | ✅ | "Retouch Studio — Overview" |
+| One Click Enhance | ✅ | "One Click Enhance" |
+| Advanced Edit | ✅ | "Advanced Edit" |
+| Batch Processing | ✅ | "Batch Processing" |
+| Plugin reference | ✅ | "Plugin Reference" |
+| Tokens and Packages | ✅ | "Tokens and Packages" |
+| File requirements | ✅ | "File Requirements" |
+
+---
+
+## Setup Requirements
+
+Before the app can run, the following must be configured:
+
+### Supabase
+1. Create a Supabase project
+2. Run `docs/supabase-schema.sql` in the SQL editor
+3. Create storage buckets: `inputs` (private), `outputs` (private), `backgrounds` (public), `thumbnails` (private)
+4. Add RLS policies on storage buckets (user-scoped folder access)
+
+### Environment Variables
+Copy `.env.local.example` to `.env.local` and fill in:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `RETOUCH4ME_TOKEN` (from retouch4.me/token_page)
+
+### Vercel
+Deploy with `vercel deploy`. All serverless functions in `/api/` deploy automatically.
+
+---
+
+## Next Tasks (Priority Order)
+
+1. **Batch processing** — wire up `onStartBatch` in `RetouchPage.jsx`, concurrent polling, ZIP download
+2. **Mobile layout** — tab-based view for library / tools / results on < 768px
+3. **Admin dashboard** — voucher generation, CSV export, user management at `/admin`
+4. **Google OAuth** — add button to login/signup pages, configure in Supabase
+5. **Sharp compositing** — server-side flat JPEG download for Advanced Edit results
+6. **Background Panel** — Replicate API integration, Phase 5
+7. **Locked action UI** — visual lock badges on Premium-gated buttons
+8. **Error handling** — toast notifications, retry logic
