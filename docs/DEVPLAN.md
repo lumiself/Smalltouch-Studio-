@@ -70,37 +70,110 @@ Smalltouch Studio is organized into independent panels accessible from the main 
 
 Powered by the **Retouch4me Cloud API**.
 
-### Two Modes
+The panel is split into two sections stacked vertically in the center column:
+1. **One Click Enhance** — preset cards at the top
+2. **Advanced Edit** — layer-based editor below
 
-#### Quick Enhance Mode
-For users who want fast, no-fuss results. User selects a named look and clicks Enhance.
+---
 
-| Look | Plugins Used | Best For |
+### Section 1 — One Click Enhance
+
+Preset cards for users who want fast results. Each preset has a name, category, token cost, and admin-uploaded before/after images.
+
+#### Preset Categories
+
+Presets are tagged with one or more categories. A filter bar above the cards lets users narrow the grid.
+
+| Category | Presets |
+|---|---|
+| Portrait | Natural, Glam, Fresh, Matte, Sharp |
+| Beauty | Glam, Fresh |
+| Editorial | Matte, Sharp |
+| E-commerce | E-commerce |
+| Product | E-commerce |
+
+Default system presets:
+
+| Preset | Category | Plugins Used | Best For |
+|---|---|---|---|
+| Natural | Portrait | Heal + Skin Tone + Eye Vessels | Everyday portraits |
+| Glam | Portrait, Beauty | Heal + Dodge Burn + White Teeth + Eye Brilliance | Beauty & fashion |
+| Fresh | Portrait, Beauty | Heal + Mattifier + Skin Tone + Eye Brilliance | Lifestyle photography |
+| Matte | Portrait, Editorial | Heal + Mattifier + Portrait Volumes + Skin Tone | Editorial |
+| Sharp | Portrait, Editorial | Heal + Dodge Burn + Portrait Volumes + Eye Brilliance | Commercial headshots |
+| E-commerce | E-commerce, Product | Dust + Clean Backdrop + Fabric | Product photography |
+
+#### Preset Card Interaction
+
+- Cards display: thumbnail (before image), preset name, category tags, token cost badge
+- **Clicking a card** opens an inline before/after slider preview — no navigation, no modal — so the user can judge the look before committing
+- Selecting a card (second click / dedicated select button) marks it as active
+- Active card shows a highlighted border; "Enhance Now" button becomes available
+- If no image is loaded in the library, the Enhance Now button prompts the user to upload first
+
+#### Admin Preset Editor
+
+Admins manage presets from `/admin/presets`. Each preset entry has:
+
+| Field | Type | Description |
 |---|---|---|
-| Natural | Heal + Skin Tone + Eye Vessels | Everyday portraits |
-| Glam | Heal + Dodge Burn + White Teeth + Eye Brilliance | Beauty & fashion |
-| Fresh | Heal + Mattifier + Skin Tone + Eye Brilliance | Lifestyle photography |
-| Matte | Heal + Mattifier + Portrait Volumes + Skin Tone | Editorial |
-| Sharp | Heal + Dodge Burn + Portrait Volumes + Eye Brilliance | Commercial headshots |
-| E-commerce | Dust + Clean Backdrop + Fabric | Product photography |
+| Name | text | Display name shown on the card |
+| Categories | multi-select | Tags used by the filter bar |
+| Before image | image upload | Representative source photo shown on the card |
+| After image | image upload | Retouched result shown in the before/after slider |
+| Plugin config | JSON / slider UI | Full Retouch4me payload — plugin list, Alpha1, Alpha2, Scale per plugin |
+| Token cost | number | Tokens deducted when this preset is applied |
+| Status | active / hidden | Hidden presets do not appear in the panel |
 
-#### Advanced Mode — Preset Builder
-For photographers and retouchers who need full control.
+The before/after images are stored in the `backgrounds` Supabase bucket (public). The plugin config is stored in the `presets` table.
 
-**Workflow:**
-1. Upload a sample image
-2. Select and configure plugins (Alpha1, Alpha2, Scale per plugin)
-3. Send to Retouch4me — receive layered ZIP response
-4. Adjust opacity per layer using live CSS blend mode preview
-5. Save as a named preset
-6. Use preset for batch processing
+---
 
-**Supported Plugins:**
+### Section 2 — Advanced Edit
+
+For photographers who need full control. Lives below the One Click Enhance section in the same center column.
+
+#### Workflow
+
+```
+User selects image from library
+    → Image loads in "Original" panel
+        → User enables plugins via checkboxes
+        → User clicks [Start Editing]
+            → App sends image + initial Alpha values to Retouch4me
+            → Retouch4me returns layered ZIP (one PNG per plugin)
+                → Edited image rendered via CSS blend modes
+                    → User moves opacity sliders per layer
+                    → Edited image updates in real-time (no re-fetch)
+                        → User clicks [Save as Preset]
+                            → Temporary preset created from current slider state
+                                → User can apply that preset to bulk edit remaining images
+```
+
+#### Plugin Controls
+
+Each available plugin has a row with:
+- **Checkbox** — enables/disables the plugin (checked plugins are included in the API call)
+- **Alpha1 slider** — maps to the plugin's primary strength parameter
+- **Alpha2 slider** — shown only for plugins that use it (Dodge Burn, White Teeth, Skin Tone)
+- **Scale selector** — dropdown for plugins where scale matters (Dodge Burn: 0/2, Dust: 0/1/2/3)
+
+Initial values when a plugin is first enabled are the balanced preset defaults (same as Example 1 in the API docs).
+
+**Supported Plugins in Advanced Edit:**
 - Heal, Dodge Burn, Portrait Volumes, Skin Tone, Skin Mask
 - Eye Vessels, Eye Brilliance, White Teeth, Mattifier
 - Face Lifting, Face Detection, Glasses Anti Glare
 - Clean Backdrop, Dust, Fabric
 - Color Correction (Exposure only / Exposure + WB / Full)
+
+#### Layer Opacity Sliders
+
+After [Start Editing] completes and the layers are returned:
+- Each enabled plugin gets an **opacity slider** in a "Layers" section below the plugin list
+- Moving a slider changes the CSS `opacity` of that layer's PNG in real time — no API call
+- Blend modes are applied automatically per layer (Normal / Soft Light / Linear Light)
+- The edited result updates immediately as sliders move
 
 **Layer Blend Modes:**
 
@@ -110,43 +183,86 @@ For photographers and retouchers who need full control.
 | Dodge Burn, Skin Tone, Portrait Volumes | Soft Light |
 | Glasses Anti Glare (full layout) | Linear Light |
 
-**Compositing Strategy:**
-- Live preview → CSS `mix-blend-mode` (fast, browser-native)
-- Final download → Sharp server-side compositing (pixel perfect)
+#### Compositing Strategy
+
+- **Live preview** → CSS `mix-blend-mode` on stacked PNGs (browser-native, instant)
+- **Final download** → Sharp server-side compositing (pixel-perfect flat JPEG)
+
+#### Save as Preset / Bulk Edit
+
+When the user is happy with the look:
+1. Click **[Save as Preset]** — a name field appears
+2. App captures the current opacity per layer and the plugin config (Alpha values, Scale)
+3. Preset is saved to Supabase `presets` table with `layer_opacities` JSON
+4. Preset immediately appears in the left column batch queue as the active preset
+5. User can drag additional images into the batch queue and run bulk processing
+
+Bulk processing uses flat output (no layers) so it is faster and costs 1 token per image.
+
+---
 
 ### Batch Processing
-- User selects a saved preset
-- Uploads multiple images (drag & drop)
-- App queues each image independently to Retouch4me
+
+- User has a saved or temporary preset from Advanced Edit (or selects a One Click Enhance preset)
+- Drags additional images into the batch queue in the left Library column
+- App queues each image independently to Retouch4me with flat output
 - Polls each job status concurrently
-- Collects all results and packages as a downloadable ZIP
-- Flat output used for batch (no layers) — faster and cheaper
+- Collects results and packages them as a downloadable ZIP
+- Progress shown per image in the batch queue and the right Results panel
+
+---
 
 ### UI Layout
 
 ```
-┌──────────────┬─────────────────┬──────────────┐
-│   Upload     │    Process      │   Output     │
-│              │                 │              │
-│ Drag & Drop  │ Quick Enhance   │ Before/After │
-│ or Browse    │ or              │ slider       │
-│              │ Preset Builder  │              │
-│ File list    │                 │ Batch list   │
-│              │ [Preview]       │ Progress bar │
-│              │ [Save Preset]   │              │
-│              │ [Batch Process] │ [Download]   │
-└──────────────┴─────────────────┴──────────────┘
+┌──────────────┬──────────────────────────────────┬──────────────┐
+│   LIBRARY    │         CENTER PANEL             │   RESULTS    │
+│              │                                  │              │
+│ [+ Upload]   │ ── One Click Enhance ──           │  Completed   │
+│              │                                  │              │
+│ [thumb]      │ Filters: [All][Portrait][Beauty] │ ✅ [thumb]   │
+│ [thumb]      │          [Editorial][E-commerce] │ ✅ [thumb]   │
+│ [thumb]      │                                  │ ⏳ [thumb]   │
+│ [thumb]      │ ┌──────┐ ┌──────┐ ┌──────┐       │              │
+│              │ │before│ │before│ │before│       │ ────────     │
+│ ── Batch ──  │ │/after│ │/after│ │/after│       │              │
+│              │ │Nature│ │Glam  │ │Fresh │       │ [↓ Download  │
+│ ⏳ img3      │ │1 tok │ │1 tok │ │1 tok │       │    All]      │
+│ ⏸ img4      │ └──────┘ └──────┘ └──────┘       │              │
+│ ⏸ img5      │                                  │              │
+│              │ ── Advanced Edit ──               │              │
+│ [▶ Batch]    │                                  │              │
+│              │ ┌──────────┬──────────┐          │              │
+│              │ │ Original │  Edited  │          │              │
+│              │ │  image   │  image   │          │              │
+│              │ └──────────┴──────────┘          │              │
+│              │                                  │              │
+│              │ ✅ Heal      α1[━━●──] α2 —      │              │
+│              │ ✅ Dodge Burn α1[━━━●] α2[━●───] │              │
+│              │ ☐  Skin Tone                     │              │
+│              │ ☐  Eye Vessels                   │              │
+│              │                                  │              │
+│              │ [▶ Start Editing]  Cost: 2 tok   │              │
+│              │                                  │              │
+│              │ ── Layers ──                     │              │
+│              │ Heal        [━━━━●──────] 65%    │              │
+│              │ Dodge Burn  [━━━━━━●────] 80%    │              │
+│              │                                  │              │
+│              │ [Save as Preset] [↓ Download]    │              │
+└──────────────┴──────────────────────────────────┴──────────────┘
 ```
 
 **Panel States:**
 
-| Scenario | Upload | Process | Output |
-|---|---|---|---|
-| First visit | Active | Locked | Locked |
-| Single upload | Done | Active | Locked |
-| Preset saved | Done | Done | Active |
-| Batch running | Done | Done | Live progress |
-| Batch complete | Reset ready | Reset ready | Download ready |
+| Scenario | Library | One Click Enhance | Advanced Edit | Results |
+|---|---|---|---|---|
+| No image loaded | Upload prompt | Cards visible, Enhance disabled | Greyed out | Empty |
+| Image selected | Highlighted | Enhance Now enabled | Original loaded | Empty |
+| Processing (enhance) | Normal | Progress shown | — | Pending item |
+| Layers returned | Normal | — | Layer sliders active | — |
+| Preset saved | Batch queue ready | — | Save confirmed | — |
+| Batch running | Queue with progress | — | — | Live progress |
+| Batch complete | Reset ready | — | — | Download ready |
 
 ---
 
@@ -741,21 +857,25 @@ Admins access a protected `/admin` dashboard to:
 - [ ] Basic dashboard layout driven by panels registry
 - [ ] Vercel deployment pipeline
 
-### Phase 2 — Retouching Panel *(Weeks 3–5)*
+### Phase 2 — Retouching Panel: One Click Enhance *(Weeks 3–5)*
 - [ ] Upload component with drag & drop
-- [ ] Quick Enhance mode with preset cards
+- [ ] Preset card grid with category filter bar
+- [ ] Inline before/after slider on preset card click
 - [ ] Vercel serverless functions for Retouch4me API proxy
 - [ ] Job polling and status tracking
 - [ ] Before/after result viewer
 - [ ] Single image download
+- [ ] Admin preset editor (`/admin/presets`) — upload before/after images, set plugin config
 
-### Phase 3 — Preset Builder *(Weeks 6–8)*
-- [ ] Plugin selector UI with parameter controls
-- [ ] Layered ZIP extraction with JSZip
-- [ ] CSS blend mode live preview
-- [ ] Sharp server-side compositing for download
-- [ ] Preset save/load from Supabase
-- [ ] Preset management UI
+### Phase 3 — Advanced Edit *(Weeks 6–8)*
+- [ ] Side-by-side original + edited image panel
+- [ ] Plugin checkbox + Alpha/Scale controls
+- [ ] Start Editing → sends image + plugin config → receives layered ZIP
+- [ ] JSZip extraction of returned layer PNGs
+- [ ] CSS blend mode live compositing (opacity sliders drive layer opacity)
+- [ ] Sharp server-side compositing for final download
+- [ ] Save as Preset from current layer state
+- [ ] Saved preset immediately available as batch preset
 
 ### Phase 4 — Batch Processing *(Weeks 9–10)*
 - [ ] Multi-file upload
@@ -1256,67 +1376,103 @@ Used by all active panels (Retouch, Background, future panels). Same shell, diff
 
 ### Center Column — Panel in Action
 
-**Quick Enhance state:**
+The center column is a single scrollable column with two stacked sections.
+
+**One Click Enhance — idle (image loaded):**
 ```
-┌──────────────────────────────┐
-│  [Quick Enhance] [Advanced]  │
-│                              │
-│  ── Choose a Look ──         │
-│  ┌──────┐ ┌──────┐ ┌──────┐ │
-│  │👤    │ │💄    │ │✨    │ │
-│  │Nature│ │Glam  │ │Fresh │ │
-│  │1 tok │ │1 tok │ │1 tok │ │
-│  └──────┘ └──────┘ └──────┘ │
-│  ┌──────┐ ┌──────┐ ┌──────┐ │
-│  │🎨    │ │📸    │ │🛍️    │ │
-│  │Matte │ │Sharp │ │E-com │ │
-│  │1 tok │ │1 tok │ │1 tok │ │
-│  └──────┘ └──────┘ └──────┘ │
-│                              │
-│  Selected: Natural  1 token  │
-│  Balance: 24 tokens          │
-│                              │
-│  [▶ Enhance Now]             │
-└──────────────────────────────┘
+┌──────────────────────────────────┐
+│  ── One Click Enhance ──         │
+│                                  │
+│  [All] [Portrait] [Beauty]       │
+│  [Editorial] [E-commerce]        │
+│                                  │
+│  ┌────────┐ ┌────────┐ ┌───────┐ │
+│  │▶ b/a   │ │▶ b/a   │ │▶ b/a  │ │
+│  │Natural │ │Glam    │ │Fresh  │ │
+│  │1 token │ │1 token │ │1 token│ │
+│  └────────┘ └────────┘ └───────┘ │
+│  ┌────────┐ ┌────────┐ ┌───────┐ │
+│  │▶ b/a   │ │▶ b/a   │ │▶ b/a  │ │
+│  │Matte   │ │Sharp   │ │E-com  │ │
+│  │1 token │ │1 token │ │1 token│ │
+│  └────────┘ └────────┘ └───────┘ │
+│                                  │
+│  Selected: Natural  · 1 token    │
+│  [▶ Enhance Now]                 │
+└──────────────────────────────────┘
 ```
 
-**Processing state:**
+**Preset card clicked — inline before/after preview:**
 ```
-┌──────────────────────────────┐
-│  Processing: Natural         │
-│                              │
-│  [████████░░░░] 65%          │
-│  Applying Skin Tone...       │
-│                              │
-│  Job ID: abc-123             │
-│  Est. time: ~15 seconds      │
-└──────────────────────────────┘
+┌────────────────────────────────┐
+│  ┌────────────────────────┐    │
+│  │  BEFORE  │◀▶│  AFTER   │    │  ← drag divider
+│  │  [photo] │  │ [photo]  │    │
+│  └────────────────────────┘    │
+│  Natural — Subtle cleanup      │
+│  Portrait · 1 token            │
+│                                │
+│  [Select This Preset]  [✕]     │
+└────────────────────────────────┘
 ```
 
-**Advanced / Preset Builder state:**
+**One Click Enhance — processing:**
 ```
-┌──────────────────────────────┐
-│  [Quick Enhance] [Advanced ●]│
-│                              │
-│  Preset: Wedding Clean  [▾]  │
-│  [+ New Preset]              │
-│                              │
-│  ── Plugins ──               │
-│  ✅ Heal        Alpha: [━●─] │
-│  ✅ Dodge Burn  Alpha: [━━●] │
-│  ✅ Skin Tone   Alpha: [●───] │
-│  ☐  Face Lifting             │
-│  ☐  White Teeth              │
-│                              │
-│  ── Layer Opacities ──       │
-│  Heal       [━━━━●─────] 80% │
-│  Dodge Burn [━━━━━━━●──] 90% │
-│                              │
-│  Output: ○ Flat  ● Layered   │
-│  Cost: 3 tokens              │
-│                              │
-│  [Preview] [Save] [Process]  │
-└──────────────────────────────┘
+┌──────────────────────────────────┐
+│  Processing: Natural             │
+│                                  │
+│  [████████░░░░] 65%              │
+│  Applying Skin Tone...           │
+└──────────────────────────────────┘
+```
+
+**Advanced Edit — image loaded, plugins selected:**
+```
+┌──────────────────────────────────┐
+│  ── Advanced Edit ──             │
+│                                  │
+│  ┌────────────┬────────────┐     │
+│  │  Original  │   Edited   │     │
+│  │   [photo]  │  [photo]   │     │
+│  └────────────┴────────────┘     │
+│                                  │
+│  ✅ Heal       α1 [━━●──]        │
+│  ✅ Dodge Burn α1 [━━━●] α2[━●] │
+│  ✅ Skin Tone  α1 [━●───] α2[●] │
+│  ☐  Eye Vessels                  │
+│  ☐  Face Lifting                 │
+│  ☐  White Teeth                  │
+│                                  │
+│  Cost: 2 tokens                  │
+│  [▶ Start Editing]               │
+└──────────────────────────────────┘
+```
+
+**Advanced Edit — layers returned, opacity controls active:**
+```
+┌──────────────────────────────────┐
+│  ┌────────────┬────────────┐     │
+│  │  Original  │   Edited   │     │
+│  │   [photo]  │  [live]    │     │  ← updates as sliders move
+│  └────────────┴────────────┘     │
+│                                  │
+│  ── Layers ──                    │
+│  Heal        [━━━━●──────] 65%   │
+│  Dodge Burn  [━━━━━━●────] 80%   │
+│  Skin Tone   [━━━━━━━━●──] 90%   │
+│                                  │
+│  [Save as Preset]  [↓ Download]  │
+└──────────────────────────────────┘
+```
+
+**Save as Preset prompt:**
+```
+┌──────────────────────────────────┐
+│  Name this preset:               │
+│  [________________________]      │
+│                                  │
+│  [Save & Add to Batch Queue]     │
+└──────────────────────────────────┘
 ```
 
 ---
@@ -1387,11 +1543,15 @@ On screens under 768px the 3-column layout collapses to a tabbed view:
 | Component | Description |
 |---|---|
 | `PanelCard` | Home page action cards with icon, name, coming soon state |
-| `PresetCard` | Quick Enhance cards with thumbnail, name, token cost |
+| `PresetCard` | One Click Enhance cards with before thumbnail, name, token cost, inline before/after on click |
+| `PresetCategoryFilter` | Filter bar above preset grid — All + category tag buttons |
+| `PresetBeforeAfter` | Inline before/after drag-divider shown when a preset card is clicked |
 | `LibraryGrid` | Image thumbnail grid with drag-to-batch support |
 | `BatchQueue` | Ordered list of queued images with status indicators |
-| `PluginControl` | Single plugin row with toggle + alpha sliders |
-| `LayerOpacitySlider` | Labeled opacity slider per layer |
+| `PluginControl` | Single plugin row with checkbox + Alpha1/Alpha2 sliders + Scale selector |
+| `LayerOpacitySlider` | Per-layer opacity slider shown after layers are returned from API |
+| `AdvancedEditViewer` | Side-by-side original + edited image panel (CSS blend mode compositing) |
+| `SavePresetPrompt` | Name input + save button that creates a preset from current layer state |
 | `JobProgressBar` | Animated progress bar with step label |
 | `ResultCard` | Result thumbnail with before/after, download, retry |
 | `BeforeAfterSlider` | Drag divider comparing original and retouched |
@@ -1472,6 +1632,7 @@ smalltouch-studio/
 │   │   ├── history.jsx               ← shared job history all panels
 │   │   ├── admin/
 │   │   │   ├── index.jsx             ← admin dashboard
+│   │   │   ├── presets.jsx           ← preset editor: upload b/a images, set plugin config
 │   │   │   ├── generate.jsx          ← generate token codes per package
 │   │   │   └── users.jsx             ← user packages + token balances
 │   │   └── auth/
