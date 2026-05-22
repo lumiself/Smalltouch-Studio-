@@ -4,10 +4,9 @@ import { systemPresets, CATEGORIES, getPresetsByCategory } from '../../registry/
 import TokenCostBadge from '../shared/TokenCostBadge'
 import BeforeAfterSlider from '../shared/BeforeAfterSlider'
 
-export default function QuickEnhance({ selectedImage, onEnhance, disabled, balance }) {
+export default function QuickEnhance({ selectedImage, onEnhance, disabled, balance, selectedPreset, onPresetSelect }) {
   const [activeCategory, setActiveCategory] = useState('All')
   const [previewPreset, setPreviewPreset] = useState(null)
-  const [selectedPreset, setSelectedPreset] = useState(null)
 
   const visiblePresets = getPresetsByCategory(activeCategory)
 
@@ -20,7 +19,7 @@ export default function QuickEnhance({ selectedImage, onEnhance, disabled, balan
   }
 
   function handleSelect(preset) {
-    setSelectedPreset(preset)
+    onPresetSelect(preset)
     setPreviewPreset(null)
   }
 
