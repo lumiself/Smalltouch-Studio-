@@ -162,6 +162,9 @@ Before hitting Start Editing, the user picks one of three intensity levels. This
 | Normal | Balanced commercial result | ~0.5–0.6 of the plugin's max |
 | Extreme | Strong, polished look | ~0.9–1.0 of the plugin's max |
 
+**Changing mode after layers are returned requires a new Start Editing call.**
+If the user selects a different intensity mode after layers have already been fetched, the current layers and opacity state are discarded and the [Start Editing] button reactivates. This is intentional — it ensures that the saved preset and any subsequent batch jobs always match the previewed result exactly. There is no way to upgrade or downgrade the intensity of existing layers without re-processing.
+
 **Alpha values per plugin per mode:**
 
 | Plugin | Subtle α1 | Normal α1 | Extreme α1 | α2 (Subtle/Normal/Extreme) | Scale |
