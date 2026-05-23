@@ -4,14 +4,14 @@ import LayerControls from './LayerControls'
 import { useAuth } from '../../hooks/useAuth'
 import { canUseAction, getRequiredPackageForAction } from '../../lib/access'
 
+// Canvas supports these blend modes natively (matches CSS Compositing spec)
 const CANVAS_BLEND_MAP = {
-  'normal': 'source-over',
+  'normal':     'source-over',
+  'multiply':   'multiply',
+  'screen':     'screen',
+  'overlay':    'overlay',
   'soft-light': 'soft-light',
   'hard-light': 'hard-light',
-  'multiply': 'multiply',
-  'screen': 'screen',
-  'overlay': 'overlay',
-  'linear-light': 'source-over', // no Canvas equivalent, fallback to source-over
 }
 
 function loadImage(src) {
@@ -21,6 +21,59 @@ function loadImage(src) {
     img.onerror = reject
     img.src = src
   })
+}
+
+// linear-light = 2*Cs + Cb - 1, clamped to [0,1]
+// Canvas has no native equivalent so we compute it per-pixel.
+function blendLinearLight(ctx, img, w, h, opacity) {
+  const tmp = document.createElement('canvas')
+  tmp.width = w
+  tmp.height = h
+  tmp.getContext('2d').drawImage(img, 0, 0, w, h)
+  const base = ctx.getImageData(0, 0, w, h)
+  const layer = tmp.getContext('2d').getImageData(0, 0, w, h)
+  for (let i = 0; i < base.data.length; i += 4) {
+    const la = (layer.data[i + 3] / 255) * opacity
+    if (la === 0) continue
+    for (let c = 0; c < 3; c++) {
+      const cb = base.data[i + c] / 255
+      const cs = layer.data[i + c] / 255
+      const ll = Math.min(1, Math.max(0, 2 * cs + cb - 1))
+      base.data[i + c] = Math.round((ll * la + cb * (1 - la)) * 255)
+    }
+  }
+  ctx.putImageData(base, 0, 0)
+}
+
+// Applies a layer using Photoshop-accurate opacity:
+//   result = base * (1 - opacity) + Blend(base, layer) * opacity
+// Canvas globalAlpha applies alpha BEFORE blending (pre-multiplied), which
+// differs from Photoshop opacity that applies AFTER. The two-canvas approach
+// below matches Photoshop behavior for all blend modes at any opacity.
+function blendLayer(ctx, img, w, h, blendMode, opacity) {
+  if (opacity <= 0) return
+
+  if (blendMode === 'linear-light') {
+    blendLinearLight(ctx, img, w, h, opacity)
+    return
+  }
+
+  const canvasMode = CANVAS_BLEND_MAP[blendMode] || 'source-over'
+
+  // Step 1: produce the fully-blended result on a temp canvas
+  const blend = document.createElement('canvas')
+  blend.width = w
+  blend.height = h
+  const bCtx = blend.getContext('2d')
+  bCtx.drawImage(ctx.canvas, 0, 0)          // copy current base
+  bCtx.globalCompositeOperation = canvasMode
+  bCtx.drawImage(img, 0, 0, w, h)           // blend layer at full strength
+
+  // Step 2: composite the blended result over the base at the desired opacity
+  // source-over at opacity X gives: base*(1-X) + blended*X  ✓
+  ctx.globalAlpha = opacity
+  ctx.drawImage(blend, 0, 0)
+  ctx.globalAlpha = 1
 }
 
 async function compositeLayersToCanvas(canvas, baseUrl, layers) {
@@ -34,11 +87,7 @@ async function compositeLayersToCanvas(canvas, baseUrl, layers) {
   for (const layer of layers) {
     if (layer.opacity <= 0) continue
     const img = await loadImage(layer.url)
-    ctx.save()
-    ctx.globalAlpha = layer.opacity
-    ctx.globalCompositeOperation = CANVAS_BLEND_MAP[layer.blendMode] || 'source-over'
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-    ctx.restore()
+    blendLayer(ctx, img, canvas.width, canvas.height, layer.blendMode, layer.opacity)
   }
 }
 
