@@ -451,6 +451,63 @@ The `payload` form field in `/retoucher/start` is a JSON string with the followi
 
 ---
 
+## Plugin Parameter Correspondence Table
+
+Complete reference for all plugin parameters with value ranges. **The numerical value of 1 corresponds to 100% in the plugin.**
+
+### Parameter Definitions
+
+- **Alpha1** — Primary strength parameter (cleanup/shaping/enhancement intensity)
+- **Alpha2** — Secondary strength parameter (used by plugins like Dodge Burn, White Teeth, Skin Tone)
+- **Scale** — Scale of the person in the photo, also can be interpreted as resolution:
+  - `0` - Auto detection (standard)
+  - `1` - Close-up of the face
+  - `2` - Half-body portrait (used by Dodge Burn for more detailed work)
+  - `3` - Full-body portrait (used by Dust/Fabric for finest particles)
+- **Automask** — (Clean Backdrop only) Protects the person so changes apply only to the background
+- **Layer** — `0` = apply directly to flattened output, `1` = return as separate file in ZIP
+
+### Complete Plugin Parameter Reference
+
+| Plugin | Alpha1 | Alpha1 Range | Alpha2 | Alpha2 Range | Default Scale |
+|---|---|---|---|---|---|
+| Skin Mask | Sensitivity | [0, 2] | — | — | 0 |
+| Clean Backdrop | Blend | [0, 1] | — | — | 0 |
+| Heal | Sensitivity | [0, 1] | — | — | 0 |
+| Fabric | Blend | [0, 2] | — | — | 0 |
+| Dust | Blend | [0, 2] | — | — | 0 |
+| Eye Vessels | Blend | [0, 1] | — | — | 0 |
+| Eye Brilliance | Blend | [0, 2] | — | — | 0 |
+| White Teeth | Whiten | [0, 1] | Brighten | [0, 1] | 0 |
+| Mattifier | Blend | [0, 1] | — | — | 0 |
+| Dodge Burn | Blend | [0, 2] | Warmth | [0, 1] | 0 (use 2 for detail work) |
+| Skin Tone | Blend | [0, 2] | Tone Smoothing | [0, 2] | 0 |
+| Portrait Volumes | Blend | [0, 2] | — | — | 0 |
+| Glasses Anti Glare | Glasses Glare Removal | [0, 1] | — | — | 0 |
+
+---
+
+### Intensity Preset Levels
+
+The three standard intensity levels below map parameter values for commonly-used plugin combinations. Use these as templates when building preset tasks.
+
+| Plugin | Subtle | Normal | Extreme |
+|---|---|---|---|
+| Heal | Alpha1: 0.2 | Alpha1: 0.6 | Alpha1: 1.0 |
+| Dodge Burn | Alpha1: 0.2, Alpha2: 0.05 | Alpha1: 0.6, Alpha2: 0.15 | Alpha1: 1.0, Alpha2: 0.35 |
+| Portrait Volumes | Alpha1: 0.1 | Alpha1: 0.3 | Alpha1: 0.9 |
+| Eye Vessels | Alpha1: 0.2 | Alpha1: 0.5 | Alpha1: 1.0 |
+| Eye Brilliance | Alpha1: 0.2 | Alpha1: 0.5 | Alpha1: 0.85 |
+| White Teeth | Alpha1: 0.1, Alpha2: 0.08 | Alpha1: 0.25, Alpha2: 0.25 | Alpha1: 0.65, Alpha2: 0.55 |
+| Mattifier | Alpha1: 0.2 | Alpha1: 0.5 | Alpha1: 0.9 |
+| Skin Tone | Alpha1: 0.2, Alpha2: 0.2 | Alpha1: 0.5, Alpha2: 0.5 | Alpha1: 1.0, Alpha2: 1.0 |
+| Fabric | Alpha1: 0.1 | Alpha1: 0.39 | Alpha1: 0.75 |
+| Dust | Alpha1: 0.2 | Alpha1: 0.5 | Alpha1: 1.0 |
+| Clean Backdrop | Alpha1: 0.2 | Alpha1: 0.5 | Alpha1: 1.0 |
+| Glasses Anti Glare | 0.2 | 0.5 | 1.0 |
+
+---
+
 ## Plugin Parameter Details
 
 ### Face Detection
