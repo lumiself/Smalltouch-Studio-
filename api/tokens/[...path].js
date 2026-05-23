@@ -35,7 +35,7 @@ export default async function handler(req, res) {
   const user = await verifyUser(supabase, authHeader.slice(7))
   if (!user) return res.status(401).json({ error: 'Invalid token' })
 
-  const subpath = Array.isArray(req.query.path) ? req.query.path[0] : req.query.path
+  const subpath = (req.url || '').split('?')[0].split('/').filter(Boolean)[2]
   const body = await parseJsonBody(req)
 
   // POST /api/tokens/generate  (admin only)
