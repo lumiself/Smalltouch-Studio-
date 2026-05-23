@@ -1,6 +1,4 @@
 import { createClient } from '@supabase/supabase-js'
-import FormData from 'form-data'
-import fetch from 'node-fetch'
 
 const RETOUCH4ME_BASE = 'https://retoucher.hz.labs.retouch4.me/api/v1'
 
@@ -82,14 +80,14 @@ export default async function handler(req, res) {
       }
 
       const form = new FormData()
-      form.append('file', file.buffer, { filename: file.filename, contentType: file.contentType })
+      const fileBlob = new Blob([file.buffer], { type: file.contentType || 'image/jpeg' })
+      form.append('file', fileBlob, file.filename)
       form.append('token', retouch4meToken)
       form.append('payload', JSON.stringify(parsedPayload))
 
       const startRes = await fetch(`${RETOUCH4ME_BASE}/retoucher/start`, {
         method: 'POST',
         body: form,
-        headers: form.getHeaders(),
       })
 
       const startData = await startRes.json()

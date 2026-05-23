@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js'
-import fetch from 'node-fetch'
 
 const REPLICATE_BASE = 'https://api.replicate.com/v1'
 
