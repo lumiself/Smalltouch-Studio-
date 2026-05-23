@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       const fileRes = await fetch(`${RETOUCH4ME_BASE}/retoucher/getFile/${encodeURIComponent(jobId)}`)
       if (!fileRes.ok) return res.status(fileRes.status).json({ error: 'Failed to download result' })
       const contentType = fileRes.headers.get('content-type') || 'image/jpeg'
-      const buffer = await fileRes.buffer()
+      const buffer = Buffer.from(await fileRes.arrayBuffer())
       res.setHeader('Content-Type', contentType)
       res.setHeader('Content-Length', buffer.length)
       return res.status(200).send(buffer)
@@ -55,33 +55,45 @@ export default async function handler(req, res) {
     }
   }
 
-  // POST /api/retouch/start  (multipart/form-data)
+  // POST /api/retouch/start  (JSON body: { inputPath, payload })
+  // The file is already in Supabase Storage from the client-side upload.
+  // Vercel fetches it datacenter-to-datacenter (fast) and forwards to Retouch4me,
+  // avoiding the slow browser→Vercel file upload that caused 10s timeout failures.
   if (subpath === 'start') {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
     try {
       const chunks = []
       for await (const chunk of req) chunks.push(chunk)
-      const body = Buffer.concat(chunks)
+      const body = JSON.parse(Buffer.concat(chunks).toString())
+      const { inputPath, payload: payloadRaw } = body
 
-      const boundary = req.headers['content-type']?.match(/boundary=([^\s;]+)/)?.[1]
-      if (!boundary) return res.status(400).json({ error: 'Missing boundary' })
-
-      const { file, payload } = parseMultipart(body, boundary)
-      if (!file) return res.status(400).json({ error: 'No file uploaded' })
+      if (!inputPath) return res.status(400).json({ error: 'Missing inputPath' })
+      if (!inputPath.startsWith(`${user.id}/`)) return res.status(403).json({ error: 'Access denied' })
 
       const retouch4meToken = process.env.RETOUCH4ME_TOKEN
       if (!retouch4meToken) return res.status(500).json({ error: 'API token not configured' })
 
       let parsedPayload
       try {
-        parsedPayload = JSON.parse(payload)
+        parsedPayload = typeof payloadRaw === 'string' ? JSON.parse(payloadRaw) : payloadRaw
       } catch {
-        return res.status(400).json({ error: 'Invalid payload JSON' })
+        return res.status(400).json({ error: 'Invalid payload' })
       }
 
+      // Get a short-lived signed URL for the already-uploaded file
+      const { data: urlData, error: urlError } = await supabase.storage.from('inputs').createSignedUrl(inputPath, 60)
+      if (urlError || !urlData?.signedUrl) return res.status(500).json({ error: 'Could not access input file' })
+
+      // Download from Supabase (datacenter-to-datacenter, fast)
+      const fileRes = await fetch(urlData.signedUrl)
+      if (!fileRes.ok) return res.status(500).json({ error: 'Failed to fetch input file from storage' })
+      const fileBuffer = Buffer.from(await fileRes.arrayBuffer())
+      const contentType = fileRes.headers.get('content-type') || 'image/jpeg'
+      const filename = inputPath.split('/').pop() || 'image.jpg'
+
+      // Forward to Retouch4me
       const form = new FormData()
-      const fileBlob = new Blob([file.buffer], { type: file.contentType || 'image/jpeg' })
-      form.append('file', fileBlob, file.filename)
+      form.append('file', new Blob([fileBuffer], { type: contentType }), filename)
       form.append('token', retouch4meToken)
       form.append('payload', JSON.stringify(parsedPayload))
 
@@ -103,49 +115,4 @@ export default async function handler(req, res) {
   }
 
   return res.status(404).json({ error: 'Not found' })
-}
-
-function parseMultipart(body, boundary) {
-  const boundaryBuf = Buffer.from(`--${boundary}`)
-  const parts = splitBuffer(body, boundaryBuf)
-  let file = null
-  let payload = null
-
-  for (const part of parts) {
-    const headerEnd = part.indexOf('\r\n\r\n')
-    if (headerEnd === -1) continue
-    const headerStr = part.slice(0, headerEnd).toString()
-    const content = part.slice(headerEnd + 4)
-    const trimmed = content.slice(0, content.lastIndexOf('\r\n'))
-
-    const nameMatch = headerStr.match(/name="([^"]+)"/)
-    const filenameMatch = headerStr.match(/filename="([^"]+)"/)
-    const contentTypeMatch = headerStr.match(/Content-Type:\s*([^\r\n]+)/)
-    const name = nameMatch?.[1]
-
-    if (name === 'file' && filenameMatch) {
-      file = {
-        buffer: trimmed,
-        filename: filenameMatch[1],
-        contentType: contentTypeMatch?.[1]?.trim() || 'image/jpeg',
-      }
-    } else if (name === 'payload') {
-      payload = trimmed.toString()
-    }
-  }
-
-  return { file, payload }
-}
-
-function splitBuffer(buf, delimiter) {
-  const parts = []
-  let start = 0
-  let idx
-  while ((idx = buf.indexOf(delimiter, start)) !== -1) {
-    if (idx > start) parts.push(buf.slice(start, idx))
-    start = idx + delimiter.length
-    if (buf[start] === 0x0d && buf[start + 1] === 0x0a) start += 2
-    else if (buf[start] === 0x2d && buf[start + 1] === 0x2d) break
-  }
-  return parts.filter(p => p.length > 4)
 }
