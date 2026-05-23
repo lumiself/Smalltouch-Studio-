@@ -5,6 +5,24 @@ import { uploadInput, uploadOutputBlob, getOutputUrl } from '../lib/storage'
 
 const POLL_INTERVAL_MS = 3000
 
+async function readResponse(res) {
+  const text = await res.text()
+  try {
+    return { ok: res.ok, status: res.status, data: JSON.parse(text), raw: text }
+  } catch {
+    return { ok: res.ok, status: res.status, data: null, raw: text }
+  }
+}
+
+function serverError(parsed, fallback) {
+  if (parsed.data?.error) return new Error(parsed.data.error)
+  if (parsed.raw?.toLowerCase().includes('a server error')) {
+    return new Error(`Server timed out or crashed (${parsed.status}). Likely Vercel 10s function limit — try a smaller image.`)
+  }
+  const snippet = parsed.raw?.trim().slice(0, 200)
+  return new Error(snippet ? `${fallback} (${parsed.status}): ${snippet}` : `${fallback} (${parsed.status})`)
+}
+
 export function useRetouch() {
   const [jobs, setJobs] = useState([])
 
@@ -17,7 +35,13 @@ export function useRetouch() {
       const interval = setInterval(async () => {
         try {
           const res = await fetch(`/api/retouch/status?jobId=${externalJobId}`)
-          const data = await res.json()
+          const parsed = await readResponse(res)
+          if (!parsed.ok || !parsed.data) {
+            clearInterval(interval)
+            reject(serverError(parsed, 'Status check failed'))
+            return
+          }
+          const data = parsed.data
           if (data.state === 'completed') {
             clearInterval(interval)
             resolve(data)
@@ -58,8 +82,9 @@ export function useRetouch() {
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       })
-      const startData = await startRes.json()
-      if (!startRes.ok) throw new Error(startData.error || 'Failed to start job')
+      const startParsed = await readResponse(startRes)
+      if (!startParsed.ok || !startParsed.data) throw serverError(startParsed, 'Failed to start job')
+      const startData = startParsed.data
 
       const externalJobId = startData.externalJobId
 
@@ -125,8 +150,9 @@ export function useRetouch() {
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       })
-      const startData = await startRes.json()
-      if (!startRes.ok) throw new Error(startData.error || 'Failed to start job')
+      const startParsed = await readResponse(startRes)
+      if (!startParsed.ok || !startParsed.data) throw serverError(startParsed, 'Failed to start job')
+      const startData = startParsed.data
 
       const externalJobId = startData.externalJobId
 
