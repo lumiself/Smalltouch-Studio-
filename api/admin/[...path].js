@@ -25,7 +25,7 @@ export default async function handler(req, res) {
   const user = await verifyAdmin(req, supabase)
   if (!user) return res.status(401).json({ error: 'Unauthorized' })
 
-  const subpath = Array.isArray(req.query.path) ? req.query.path[0] : req.query.path
+  const subpath = (req.url || '').split('?')[0].split('/').filter(Boolean)[2]
 
   // GET /api/admin/users
   if (subpath === 'users') {

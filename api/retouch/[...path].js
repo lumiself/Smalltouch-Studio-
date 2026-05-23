@@ -16,7 +16,7 @@ async function verifyUser(req, supabase) {
 }
 
 export default async function handler(req, res) {
-  const subpath = Array.isArray(req.query.path) ? req.query.path[0] : req.query.path
+  const subpath = (req.url || '').split('?')[0].split('/').filter(Boolean)[2]
 
   // GET /api/retouch/status?jobId=...  (no auth required — public status check)
   if (subpath === 'status') {
