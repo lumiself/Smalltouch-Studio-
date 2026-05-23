@@ -8,7 +8,7 @@ const HELP_SECTIONS = [
     content: `
 **What it does**
 
-Retouch Studio uses the Retouch4me Cloud AI to apply professional portrait retouching to your photos. It works on faces, skin, eyes, teeth, and product photography.
+Retouch Studio applies professional portrait retouching to your photos using AI. It works on faces, skin, eyes, teeth, and product photography.
 
 There are three ways to use it:
 - **One Click Enhance** — pick a preset, click once, get a retouched result
@@ -234,7 +234,7 @@ A warning appears in the top bar when your balance drops below 5 tokens.
     content: `
 **What it does**
 
-Background Studio lets you remove, replace, blur, and expand the background of any photo using AI. All processing is powered by Replicate AI models.
+Background Studio lets you remove, replace, blur, and expand the background of any photo using AI.
 
 There are three tools:
 - **Replace BG** — swap the background with a solid color, gradient, AI-generated image, or a stock photo
@@ -350,7 +350,7 @@ Your subject sharp in the foreground with the original background blurred behind
     content: `
 **What it does**
 
-Extends the canvas in all directions by a set number of pixels, then fills the expanded area with AI-generated content that matches your prompt. Uses Replicate stable-diffusion-inpainting.
+Extends the canvas in all directions by a set number of pixels, then fills the expanded area with AI-generated content that matches your prompt.
 
 **How to use it**
 1. Complete background removal first
@@ -427,13 +427,13 @@ Visit /admin/presets or click the Presets link at the top of the Admin dashboard
    - **Description** — one-line description shown in the preview panel
 3. Select one or more categories from Portrait, Beauty, Editorial, E-commerce, Color
 4. Set the token cost (default: 1)
-5. Enter the Payload JSON — this is the Retouch4me API call configuration
+5. Enter the Payload JSON — this is the AI processing configuration sent to the retouching service
 6. Optionally add before/after image URLs for the preview slider
 7. Click **Save**
 
 **Payload format**
 
-The payload is sent directly to the Retouch4me API. Example structure:
+The payload is sent directly to the retouching service. Example structure:
 \`\`\`json
 {
   "mode": "professional",
@@ -444,7 +444,7 @@ The payload is sent directly to the Retouch4me API. Example structure:
 }
 \`\`\`
 
-Refer to the Retouch4me documentation for available plugins and parameter values.
+See the **Plugin Reference** section in this help page for the available plugin names. Scale, Alpha1, and Alpha2 are intensity parameters; values typically range from 0 to 1.
 
 **Before/after images**
 

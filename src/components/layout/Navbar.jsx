@@ -17,16 +17,16 @@ export default function Navbar() {
         <span className="font-display font-semibold text-[#f5f5f5] text-sm tracking-wide">Smalltouch Studio</span>
       </Link>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 md:gap-4">
         {isAdmin && (
-          <Link to="/admin" className={`hidden md:flex text-xs items-center gap-1 transition-colors ${location.pathname.startsWith('/admin') ? 'text-[#a855f7]' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}>
+          <Link to="/admin" className={`flex text-xs items-center gap-1 transition-colors ${location.pathname.startsWith('/admin') ? 'text-[#a855f7]' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}>
             <ShieldCheck size={14} />
-            <span>Admin</span>
+            <span className="hidden sm:inline">Admin</span>
           </Link>
         )}
-        <Link to="/help" className={`hidden md:flex text-xs items-center gap-1 transition-colors ${location.pathname === '/help' ? 'text-[#a855f7]' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}>
+        <Link to="/help" className={`flex text-xs items-center gap-1 transition-colors ${location.pathname === '/help' ? 'text-[#a855f7]' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}>
           <HelpCircle size={14} />
-          <span>Help</span>
+          <span className="hidden sm:inline">Help</span>
         </Link>
         <Link to="/history" className={`hidden md:flex text-xs items-center gap-1 transition-colors ${location.pathname === '/history' ? 'text-[#a855f7]' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}>
           <History size={14} />
