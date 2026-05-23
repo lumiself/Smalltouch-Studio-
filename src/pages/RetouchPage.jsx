@@ -8,6 +8,7 @@ import { useRetouch } from '../hooks/useRetouch'
 import { useToast } from '../contexts/ToastContext'
 import { canUseAction } from '../lib/access'
 import { saveUpload, loadUpload, clearUpload } from '../lib/uploadStore'
+import { getOutputUrl } from '../lib/storage'
 import LibraryPanel from '../components/retouch/LibraryPanel'
 import QuickEnhance from '../components/retouch/QuickEnhance'
 import AdvancedEdit from '../components/retouch/AdvancedEdit'
@@ -32,7 +33,6 @@ export default function RetouchPage() {
   const [batchQueue, setBatchQueue] = useState([])
   const [batchRunning, setBatchRunning] = useState(false)
   const [batchStatuses, setBatchStatuses] = useState({})
-  const [advancedLayers, setAdvancedLayers] = useState(null)
   const [advancedProcessing, setAdvancedProcessing] = useState(false)
   const [activeJobId, setActiveJobId] = useState(null)
   const [mobileTab, setMobileTab] = useState('tools')
@@ -104,11 +104,9 @@ export default function RetouchPage() {
       return
     }
     setAdvancedProcessing(true)
-    setAdvancedLayers(null)
     try {
       await deductTokens(user.id, 2, crypto.randomUUID(), 'advanced_edit')
       const result = await runAdvancedEdit({ userId: user.id, file: selectedImage.file, plugins, intensityMode })
-      setAdvancedLayers(result.layers)
       setActiveJobId(result.jobId)
     } catch (err) {
       toast.error(err.message || 'Advanced edit failed')
@@ -117,63 +115,23 @@ export default function RetouchPage() {
     }
   }, [user, selectedImage, profile, deductTokens, runAdvancedEdit, navigate, toast])
 
-  function handleLayerOpacityChange(layerName, opacity) {
-    setAdvancedLayers(prev => prev?.map(l => l.name === layerName ? { ...l, opacity } : l))
-  }
-
-  async function handleSavePreset({ name, plugins, layers, intensity }) {
-    if (!user) return
-    const layerOpacities = {}
-    layers?.forEach(l => { layerOpacities[l.name] = l.opacity })
-    const { error } = await supabase.from('presets').insert({
-      user_id: user.id,
-      name,
-      panel: 'retouch',
-      payload: { mode: 'professional', plugins, intensity },
-      layer_opacities: layerOpacities,
-    })
-    if (error) toast.error('Failed to save preset')
-    else toast.success(`Preset "${name}" saved`)
-  }
-
-  async function handleDownload() {
+  async function handleDownloadZip() {
     const job = jobs.find(j => j.id === activeJobId)
-    if (!job) return
-
-    if (job.type === 'advanced_edit' && advancedLayers?.length) {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        const token = session?.access_token
-        const res = await fetch('/api/composite', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            jobId: activeJobId,
-            layers: advancedLayers.map(l => ({ name: l.name, opacity: l.opacity, blendMode: l.blendMode })),
-          }),
-        })
-        if (!res.ok) throw new Error('Composite failed')
-        const blob = await res.blob()
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `retouched_${activeJobId?.slice(0, 8)}.jpg`
-        a.click()
-        URL.revokeObjectURL(url)
-      } catch (err) {
-        toast.error(err.message || 'Download failed')
-      }
-      return
-    }
-
-    if (job.result?.url) {
+    if (!job?.outputPath) return
+    try {
+      const url = await getOutputUrl(job.outputPath)
+      if (!url) throw new Error('Could not get download URL')
+      const res = await fetch(url)
+      if (!res.ok) throw new Error('Download failed')
+      const blob = await res.blob()
+      const objectUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = job.result.url
-      a.download = `retouched_${activeJobId?.slice(0, 8)}.jpg`
+      a.href = objectUrl
+      a.download = `retouch_layers_${activeJobId.slice(0, 8)}.zip`
       a.click()
+      URL.revokeObjectURL(objectUrl)
+    } catch (err) {
+      toast.error(err.message || 'Download failed')
     }
   }
 
@@ -261,7 +219,7 @@ export default function RetouchPage() {
           <LibraryPanel
             images={images}
             selectedImage={selectedImage}
-            onSelect={img => { setSelectedImage(img); setMobileTab('tools') }}
+            onSelect={img => { setSelectedImage(img); setActiveJobId(null); setMobileTab('tools') }}
             onUpload={handleUpload}
             batchQueue={batchQueue}
             onAddToBatch={img => setBatchQueue(prev => prev.find(i => i.id === img.id) ? prev : [...prev, img])}
@@ -289,10 +247,8 @@ export default function RetouchPage() {
             selectedImage={selectedImage}
             onStartEditing={handleAdvancedEdit}
             processing={advancedProcessing}
-            layers={advancedLayers}
-            onLayerOpacityChange={handleLayerOpacityChange}
-            onSavePreset={handleSavePreset}
-            onDownload={handleDownload}
+            jobComplete={!!activeJobId && jobs.find(j => j.id === activeJobId)?.status === 'completed'}
+            onDownloadZip={handleDownloadZip}
             balance={balance}
             disabled={false}
           />

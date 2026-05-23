@@ -1,7 +1,12 @@
 import { useState, useCallback } from 'react'
-import JSZip from 'jszip'
 import { supabase } from '../lib/supabase'
-import { uploadInput, uploadOutputBlob, getOutputUrl } from '../lib/storage'
+import { uploadInput, uploadOutputBlob } from '../lib/storage'
+
+async function isZip(blob) {
+  const buf = await blob.slice(0, 2).arrayBuffer()
+  const b = new Uint8Array(buf)
+  return b[0] === 0x50 && b[1] === 0x4B // PK magic bytes
+}
 
 const POLL_INTERVAL_MS = 3000
 
@@ -168,38 +173,12 @@ export function useRetouch() {
       if (!downloadRes.ok) throw new Error('Download failed')
       const blob = await downloadRes.blob()
 
-      let layers = []
-      let resultJson = null
-      let parsedAsZip = false
-
-      // Always try ZIP parsing regardless of Content-Type header, since some servers
-      // return application/octet-stream or image/jpeg even for ZIP responses.
-      try {
-        const zip = await JSZip.loadAsync(blob)
-        parsedAsZip = true
-
-        const resultJsonFile = zip.file('result.json')
-        if (resultJsonFile) resultJson = JSON.parse(await resultJsonFile.async('string'))
-
-        for (const [name, zipEntry] of Object.entries(zip.files)) {
-          if (zipEntry.dir) continue
-          const basename = name.split('/').pop()
-          if (!basename.endsWith('.png')) continue
-          if (basename.toLowerCase().startsWith('result')) continue
-          const layerBlob = await zipEntry.async('blob')
-          const url = URL.createObjectURL(layerBlob)
-          const pluginName = basename.replace(/\.png$/i, '').replace(/_/g, ' ')
-          layers.push({ name: pluginName, url, opacity: 1.0, blendMode: getBlendMode(pluginName) })
-        }
-      } catch {
-        // Not a ZIP — single-image result (shouldn't happen in professional mode but handled gracefully)
-      }
-
+      const parsedAsZip = await isZip(blob)
       const outputPath = await uploadOutputBlob(userId, jobId, blob, parsedAsZip ? 'zip' : 'jpg')
       await supabase.from('jobs').update({ status: 'completed', output_path: outputPath }).eq('id', jobId)
 
-      updateJob(jobId, { status: 'completed', layers, resultJson, outputPath, originalFile: file })
-      return { jobId, layers, resultJson }
+      updateJob(jobId, { status: 'completed', outputPath })
+      return { jobId, outputPath }
     } catch (err) {
       updateJob(jobId, { status: 'failed', error: err.message })
       await supabase.from('jobs').update({ status: 'failed' }).eq('id', jobId)
@@ -250,13 +229,3 @@ function buildAdvancedPayload(enabledPlugins, intensityMode) {
   return tasks
 }
 
-const BLEND_MODES = {
-  heal: 'normal', fabric: 'normal', 'eye vessels': 'normal',
-  'eye brilliance': 'normal', 'white teeth': 'normal',
-  'dodge burn': 'soft-light', 'skin tone': 'soft-light', 'portrait volumes': 'soft-light',
-  'glasses anti glare': 'linear-light',
-}
-
-function getBlendMode(pluginName) {
-  return BLEND_MODES[pluginName.toLowerCase()] || 'normal'
-}
