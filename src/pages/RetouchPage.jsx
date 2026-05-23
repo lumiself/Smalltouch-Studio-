@@ -299,7 +299,7 @@ export default function RetouchPage() {
         </main>
 
         <div className={`${mobileTab === 'results' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[280px] shrink-0 border-l border-[#2a2a2a] overflow-y-auto`}>
-          <ResultsPanel jobs={jobs} onDownloadAll={handleDownloadAll} />
+          <ResultsPanel jobs={jobs.filter(j => j.type !== 'advanced_edit')} onDownloadAll={handleDownloadAll} />
         </div>
       </div>
     </div>

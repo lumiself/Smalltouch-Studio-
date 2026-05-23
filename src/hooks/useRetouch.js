@@ -168,26 +168,34 @@ export function useRetouch() {
       if (!downloadRes.ok) throw new Error('Download failed')
       const blob = await downloadRes.blob()
 
-      const isZip = blob.type === 'application/zip' || blob.type === 'application/octet-stream'
       let layers = []
       let resultJson = null
+      let parsedAsZip = false
 
-      if (isZip) {
+      // Always try ZIP parsing regardless of Content-Type header, since some servers
+      // return application/octet-stream or image/jpeg even for ZIP responses.
+      try {
         const zip = await JSZip.loadAsync(blob)
+        parsedAsZip = true
+
         const resultJsonFile = zip.file('result.json')
         if (resultJsonFile) resultJson = JSON.parse(await resultJsonFile.async('string'))
 
         for (const [name, zipEntry] of Object.entries(zip.files)) {
-          if (name.endsWith('.png') && !name.includes('result')) {
-            const layerBlob = await zipEntry.async('blob')
-            const url = URL.createObjectURL(layerBlob)
-            const pluginName = name.replace('.png', '').replace(/_/g, ' ')
-            layers.push({ name: pluginName, url, opacity: 1.0, blendMode: getBlendMode(pluginName) })
-          }
+          if (zipEntry.dir) continue
+          const basename = name.split('/').pop()
+          if (!basename.endsWith('.png')) continue
+          if (basename.toLowerCase().startsWith('result')) continue
+          const layerBlob = await zipEntry.async('blob')
+          const url = URL.createObjectURL(layerBlob)
+          const pluginName = basename.replace(/\.png$/i, '').replace(/_/g, ' ')
+          layers.push({ name: pluginName, url, opacity: 1.0, blendMode: getBlendMode(pluginName) })
         }
+      } catch {
+        // Not a ZIP — single-image result (shouldn't happen in professional mode but handled gracefully)
       }
 
-      const outputPath = await uploadOutputBlob(userId, jobId, blob, isZip ? 'zip' : 'jpg')
+      const outputPath = await uploadOutputBlob(userId, jobId, blob, parsedAsZip ? 'zip' : 'jpg')
       await supabase.from('jobs').update({ status: 'completed', output_path: outputPath }).eq('id', jobId)
 
       updateJob(jobId, { status: 'completed', layers, resultJson, outputPath, originalFile: file })
