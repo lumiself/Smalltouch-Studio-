@@ -12,7 +12,7 @@ Retouch Studio applies professional portrait retouching to your photos using AI.
 
 There are three ways to use it:
 - **One Click Enhance** — pick a preset, click once, get a retouched result
-- **Advanced Edit** — choose individual plugins, control intensity, adjust each layer after processing
+- **Advanced Edit** — choose individual plugins and intensity, then download a layers ZIP to finish in Photoshop
 - **Batch Processing** — apply a saved preset to multiple images at once
 
 **Token costs**
@@ -66,49 +66,36 @@ A single flat JPEG with all retouching applied. The before/after slider in the R
     content: `
 **What it does**
 
-Gives you full control over which AI plugins are applied and how strong each one is. After processing, you get live layer sliders to fine-tune the result in real time without re-processing.
+Lets you choose exactly which AI plugins run and how strong each effect is. The result is a ZIP file containing a separate PNG layer for each plugin, ready to open in Photoshop. You apply the layers yourself, giving you full creative control over blending, order, and opacity.
 
 **How to use it**
 1. Select an image from the library
 2. Check the plugins you want to apply (e.g. Heal, Dodge Burn, Skin Tone)
 3. Pick an **Intensity Mode**: Subtle, Normal, or Extreme
 4. Click **Start Editing** — costs 2 tokens
-5. Wait for processing (30–60 seconds typically)
-6. Use the **Layer sliders** to adjust each effect's strength
-7. Click **Save as Preset** to name and save the combination
-8. Click **Download** to export the final result
+5. Wait for processing (typically 30–60 seconds)
+6. Click **Download Layers ZIP** when the green checkmark appears
+7. Open the ZIP in Photoshop — each plugin is a named layer
 
 **Intensity modes**
-| Mode | Effect | Alpha range |
-|------|--------|-------------|
-| Subtle | Light touch, natural texture preserved | ~20% of max |
-| Normal | Balanced commercial result | ~50–60% of max |
-| Extreme | Strong, polished finish | ~90–100% of max |
+| Mode | Effect |
+|------|--------|
+| Subtle | Light touch, natural texture preserved |
+| Normal | Balanced commercial result |
+| Extreme | Strong, polished finish |
 
-**Layer sliders**
+**What's in the ZIP**
 
-Each plugin returns as a separate PNG layer. The slider controls how much of that layer is visible (0% = hidden, 100% = full intensity as rendered by the AI).
-
-Blend modes are applied automatically per layer:
-- Normal: Heal, Fabric, Eye Vessels, Eye Brilliance, White Teeth
-- Soft Light: Dodge Burn, Skin Tone, Portrait Volumes
-- Linear Light: Glasses Anti Glare
-
-**Saving a preset**
-
-After adjusting sliders, click **Save as Preset**. The preset captures your exact plugin settings and layer opacities. It then appears in your batch queue, ready to apply to more images.
+Each plugin you selected appears as a separate PNG file named after that plugin (e.g. Heal.png, Dodge Burn.png). Open all layers in Photoshop on top of your original image and set the blend modes recommended in the Plugin Reference section.
 
 **Token cost**
 
-2 tokens per Advanced Edit session. Batch processing using a saved preset costs 1 token per image.
-
-**Note on intensity modes**
-
-Changing the intensity mode after layers have been returned requires restarting the edit. The current layers are discarded and a new API call is made. This ensures saved presets always match what you saw in the preview.
+2 tokens per Advanced Edit session.
 
 **Common issues**
-- *Start Editing is greyed out* — check you have at least one plugin selected and enough tokens
-- *No layers returned* — the job may have returned a flat JPEG if all plugins failed; check for error messages
+- *Start Editing is greyed out* — make sure at least one plugin is checked and you have 2 or more tokens
+- *Download button doesn't appear* — wait for the green checkmark; if it never appears, check for an error toast and try again
+- *Selecting a new image* — this resets the panel so you can run a fresh edit on the new image
     `,
   },
   {
@@ -120,7 +107,7 @@ Changing the intensity mode after layers have been returned requires restarting 
 Applies a saved preset to multiple images at once. Each image is processed independently in parallel.
 
 **How to use it**
-1. Save a preset from Advanced Edit (or select a One Click Enhance preset)
+1. Select a One Click Enhance preset (active preset is shown at the bottom of the Quick Enhance panel)
 2. Upload multiple images — they appear in the library grid
 3. Drag images into the **Batch Queue** in the left panel, or click to select then add
 4. Click **Start Batch** — tokens are deducted per image (1 token each)
