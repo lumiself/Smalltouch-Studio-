@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import JSZip from 'jszip'
 import { supabase } from '../lib/supabase'
@@ -7,6 +7,7 @@ import { useTokens } from '../hooks/useTokens'
 import { useRetouch } from '../hooks/useRetouch'
 import { useToast } from '../contexts/ToastContext'
 import { canUseAction } from '../lib/access'
+import { saveUpload, loadUpload, clearUpload } from '../lib/uploadStore'
 import LibraryPanel from '../components/retouch/LibraryPanel'
 import QuickEnhance from '../components/retouch/QuickEnhance'
 import AdvancedEdit from '../components/retouch/AdvancedEdit'
@@ -35,6 +36,39 @@ export default function RetouchPage() {
   const [advancedProcessing, setAdvancedProcessing] = useState(false)
   const [activeJobId, setActiveJobId] = useState(null)
   const [mobileTab, setMobileTab] = useState('tools')
+  const [restored, setRestored] = useState(false)
+
+  const storeKey = user ? `retouch:${user.id}` : null
+
+  useEffect(() => {
+    if (!storeKey) return
+    let cancelled = false
+    loadUpload(storeKey).then(stored => {
+      if (cancelled || !Array.isArray(stored) || stored.length === 0) {
+        setRestored(true)
+        return
+      }
+      const rehydrated = stored.map(item => ({
+        id: item.id,
+        file: item.file,
+        name: item.name,
+        preview: URL.createObjectURL(item.file),
+      }))
+      setImages(rehydrated)
+      setSelectedImage(prev => prev ?? rehydrated[0])
+      setRestored(true)
+    }).catch(() => setRestored(true))
+    return () => { cancelled = true }
+  }, [storeKey])
+
+  useEffect(() => {
+    if (!storeKey || !restored) return
+    if (images.length === 0) {
+      clearUpload(storeKey).catch(() => {})
+    } else {
+      saveUpload(storeKey, images.map(({ id, file, name }) => ({ id, file, name }))).catch(() => {})
+    }
+  }, [images, storeKey, restored])
 
   function handleUpload(files) {
     const newImages = files.map(f => ({

@@ -489,6 +489,35 @@ Up to 250 megapixels (very large images). For best results, use files between 5 
 - Fabric plugin works best on clothing with visible texture or wrinkles
     `,
   },
+  {
+    id: 'uploads-persist',
+    title: 'Uploads Survive Refresh',
+    content: `
+**What it does**
+
+Your uploaded images stay loaded if you refresh the page or close the tab and come back. There is nothing to set up — uploads are saved automatically to your browser as soon as you pick a file.
+
+**How it works**
+- Files are stored locally in your browser (IndexedDB), not on Smalltouch servers
+- Each account on a given browser keeps its own uploads — switching accounts on the same device does not mix them
+- Signing out clears your saved uploads from the browser
+- Other devices and other browsers will not see your uploads — they are local to this browser only
+
+**Token costs**
+
+None. Persisting uploads to your browser is free and does not cost tokens or storage quota.
+
+**Expected behavior**
+- Refresh the Retouch or Background page → your most recent uploads reload automatically
+- On the Background page, if you had already uploaded to cloud storage (the **Uploaded** step), that link is restored too so you can continue from where you left off
+- Layer adjustments, presets, AI-generated backgrounds, and partially completed jobs are **not** restored — only the source files are
+
+**Common issues**
+- *Uploads do not reappear* — make sure cookies/site data are not blocked for this domain; private/incognito tabs may clear IndexedDB on close
+- *Wrong files appear* — sign out and back in to clear stale data
+- *Storage full* — modern browsers grant ~50% of free disk to a site; if you hit the limit, clear browser data for this site or remove a few large uploads
+    `,
+  },
 ]
 
 function Accordion({ section }) {

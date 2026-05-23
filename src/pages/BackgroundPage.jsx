@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -7,6 +7,7 @@ import { useBackground } from '../hooks/useBackground'
 import { useToast } from '../contexts/ToastContext'
 import { canUseAction } from '../lib/access'
 import { uploadInput } from '../lib/storage'
+import { saveUpload, loadUpload, clearUpload } from '../lib/uploadStore'
 import BackgroundTools from '../components/background/BackgroundTools'
 import CanvasPreview from '../components/background/CanvasPreview'
 
@@ -41,6 +42,37 @@ export default function BackgroundPage() {
   const [expanding, setExpanding] = useState(false)
   const [stockBgUrl, setStockBgUrl] = useState(null)
   const [removing, setRemoving] = useState(false)
+  const [restored, setRestored] = useState(false)
+
+  const storeKey = user ? `background:${user.id}` : null
+
+  useEffect(() => {
+    if (!storeKey) return
+    let cancelled = false
+    loadUpload(storeKey).then(stored => {
+      if (cancelled || !stored?.file) {
+        setRestored(true)
+        return
+      }
+      setFile(stored.file)
+      setOriginalUrl(URL.createObjectURL(stored.file))
+      if (stored.inputPath) {
+        setInputPath(stored.inputPath)
+        setStep('uploaded')
+      }
+      setRestored(true)
+    }).catch(() => setRestored(true))
+    return () => { cancelled = true }
+  }, [storeKey])
+
+  useEffect(() => {
+    if (!storeKey || !restored) return
+    if (!file) {
+      clearUpload(storeKey).catch(() => {})
+    } else {
+      saveUpload(storeKey, { file, inputPath }).catch(() => {})
+    }
+  }, [file, inputPath, storeKey, restored])
 
   const handleUpload = useCallback(async (uploadedFile) => {
     const url = URL.createObjectURL(uploadedFile)
