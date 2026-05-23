@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { clearAllUploads } from '../lib/uploadStore'
 import { AuthContext } from './AuthContext'
 
 export function AuthProvider({ children }) {
@@ -56,6 +57,7 @@ export function AuthProvider({ children }) {
   }
 
   async function signOut() {
+    await clearAllUploads().catch(() => {})
     await supabase.auth.signOut()
   }
 

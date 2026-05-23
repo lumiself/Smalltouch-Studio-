@@ -75,7 +75,7 @@ export default async function handler(req, res) {
       .from('users')
       .select('token_balance, package_id')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     const currentBalance = userRecord?.token_balance ?? 0
     const newBalance = currentBalance + voucher.value
@@ -84,11 +84,17 @@ export default async function handler(req, res) {
     const currentTier = packages.indexOf(currentPkg)
     const voucherTier = packages.indexOf(voucherPkg)
     const newPackageId = voucherTier > currentTier ? voucher.package_id : userRecord?.package_id
+    const packageChanged = newPackageId && newPackageId !== userRecord?.package_id
 
     const { error: updateError } = await supabase
       .from('users')
-      .update({ token_balance: newBalance, package_id: newPackageId })
-      .eq('id', user.id)
+      .upsert({
+        id: user.id,
+        email: user.email,
+        token_balance: newBalance,
+        package_id: newPackageId ?? null,
+        ...(packageChanged ? { package_set_at: new Date().toISOString() } : {}),
+      }, { onConflict: 'id' })
     if (updateError) return res.status(500).json({ error: 'Failed to update balance' })
 
     await supabase
