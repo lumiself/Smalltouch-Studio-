@@ -4,7 +4,7 @@ export async function uploadInput(userId, jobId, file) {
   const ext = file.name.split('.').pop()
   const path = `${userId}/${jobId}_original.${ext}`
   const { error } = await supabase.storage.from('inputs').upload(path, file, { upsert: true })
-  if (error) throw error
+  if (error) throw toStorageError(error)
   return path
 }
 
@@ -19,8 +19,15 @@ export async function uploadOutputBlob(userId, jobId, blob, ext = 'jpg') {
     contentType: ext === 'zip' ? 'application/zip' : 'image/jpeg',
     upsert: true,
   })
-  if (error) throw error
+  if (error) throw toStorageError(error)
   return path
+}
+
+function toStorageError(err) {
+  if (err?.message?.toLowerCase().includes('row level security')) {
+    return new Error('Storage access not configured — run the storage RLS policies from docs/supabase-schema.sql in your Supabase SQL editor.')
+  }
+  return err
 }
 
 export async function getOutputUrl(path) {

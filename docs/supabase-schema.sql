@@ -164,13 +164,62 @@ $$ language plpgsql security definer;
 -- 3. Create bucket "backgrounds" — public
 -- 4. Create bucket "thumbnails"  — private
 
--- Storage RLS policies for inputs bucket:
--- Allow authenticated users to upload to their own folder:
---   (storage.foldername(name))[1] = auth.uid()::text
--- Allow authenticated users to read their own files:
---   (storage.foldername(name))[1] = auth.uid()::text
+-- ─────────────────────────────────────
+-- STORAGE RLS POLICIES
+-- Run this block in the Supabase SQL editor after creating the buckets.
+-- Without these policies users will get "new row violates row level security"
+-- when uploading images in the retouch panel.
+-- ─────────────────────────────────────
 
--- Storage RLS policies for outputs bucket: same pattern as inputs.
+-- inputs bucket: authenticated users can upload/read/delete their own files
+create policy "inputs_insert_own" on storage.objects
+  for insert with check (
+    bucket_id = 'inputs' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+create policy "inputs_select_own" on storage.objects
+  for select using (
+    bucket_id = 'inputs' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+create policy "inputs_update_own" on storage.objects
+  for update using (
+    bucket_id = 'inputs' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+create policy "inputs_delete_own" on storage.objects
+  for delete using (
+    bucket_id = 'inputs' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+-- outputs bucket: same pattern as inputs
+create policy "outputs_insert_own" on storage.objects
+  for insert with check (
+    bucket_id = 'outputs' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+create policy "outputs_select_own" on storage.objects
+  for select using (
+    bucket_id = 'outputs' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+create policy "outputs_update_own" on storage.objects
+  for update using (
+    bucket_id = 'outputs' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+create policy "outputs_delete_own" on storage.objects
+  for delete using (
+    bucket_id = 'outputs' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
 
 -- ─────────────────────────────────────
 -- ADMIN PRESET EDITOR (run after initial setup)

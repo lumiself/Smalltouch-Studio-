@@ -63,7 +63,7 @@ export function useRetouch() {
 
       const externalJobId = startData.externalJobId
 
-      await supabase.from('jobs').insert({
+      const { error: jobInsertError } = await supabase.from('jobs').insert({
         id: jobId,
         user_id: userId,
         panel: 'retouch',
@@ -73,6 +73,7 @@ export function useRetouch() {
         input_path: inputPath,
         tokens_used: preset.tokenCost,
       })
+      if (jobInsertError) throw new Error(jobInsertError.message)
 
       updateJob(jobId, { status: 'processing' })
       await pollStatus(externalJobId, jobId)
@@ -129,7 +130,7 @@ export function useRetouch() {
 
       const externalJobId = startData.externalJobId
 
-      await supabase.from('jobs').insert({
+      const { error: jobInsertError } = await supabase.from('jobs').insert({
         id: jobId,
         user_id: userId,
         panel: 'retouch',
@@ -139,6 +140,7 @@ export function useRetouch() {
         input_path: inputPath,
         tokens_used: 2,
       })
+      if (jobInsertError) throw new Error(jobInsertError.message)
 
       updateJob(jobId, { status: 'processing' })
       await pollStatus(externalJobId, jobId)
