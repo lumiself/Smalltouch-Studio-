@@ -450,13 +450,17 @@ Refer to the Retouch4me documentation for available plugins and parameter values
 
 These are demo images shown in the preset preview when a user clicks a preset card. Upload sample images to Supabase storage, get their public URL, and paste it into the Before/After URL fields.
 
+**Thumbnails on preset cards**
+
+The **After image URL** is also used as the thumbnail on preset cards in One Click Enhance and on the Dashboard's Featured Presets. If you do not set an After URL, the preset card falls back to the emoji icon. Use a clean square or landscape sample of the finished look — square works best for One Click Enhance grid cards.
+
 **Hiding presets**
 
 Use the eye icon on each row to toggle a preset between active and hidden. Hidden presets are not shown to users but are preserved in the database for later re-activation.
 
-**Fallback behavior**
+**Empty state**
 
-If no presets exist in the database, the platform automatically falls back to the built-in system presets defined in the codebase. Once you create at least one preset in the database, the database version replaces the built-in list entirely.
+If no presets exist in the database, the One Click Enhance panel shows an empty-state message and the Dashboard's Featured Presets section is hidden. There is no built-in fallback library — every preset must be created here.
 
 **Sort order**
 

@@ -212,7 +212,18 @@ export default function PresetsEditorPage() {
                 </div>
               ) : (
                 <div className="flex items-center gap-3 px-4 py-3">
-                  <span className="text-xl w-8 text-center shrink-0">{preset.icon}</span>
+                  <div className="w-10 h-10 rounded-lg bg-[#0d0d0d] flex items-center justify-center overflow-hidden shrink-0">
+                    {preset.after_image_url ? (
+                      <img
+                        src={preset.after_image_url}
+                        alt={preset.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="text-xl">{preset.icon}</span>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-[#f5f5f5] text-sm font-medium">{preset.name}</span>

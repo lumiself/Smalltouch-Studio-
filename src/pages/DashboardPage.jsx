@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock } from 'lucide-react'
 import { panels } from '../registry/panels'
-import { systemPresets } from '../registry/presets'
+import { supabase } from '../lib/supabase'
 import { canUsePanel, getRequiredPackage } from '../lib/access'
 import { useAuth } from '../hooks/useAuth'
 import TokenCostBadge from '../components/shared/TokenCostBadge'
@@ -12,7 +12,17 @@ export default function DashboardPage() {
   const { profile } = useAuth()
   const navigate = useNavigate()
   const [showOnboarding, setShowOnboarding] = useState(() => shouldShowOnboarding())
-  const featured = systemPresets.slice(0, 3)
+  const [featured, setFeatured] = useState([])
+
+  useEffect(() => {
+    supabase
+      .from('system_presets')
+      .select('id, name, icon, description, token_cost, after_image_url')
+      .eq('status', 'active')
+      .order('sort_order')
+      .limit(3)
+      .then(({ data }) => setFeatured(data ?? []))
+  }, [])
 
   function handlePanelClick(panel) {
     if (panel.status === 'coming_soon') return
@@ -64,23 +74,38 @@ export default function DashboardPage() {
         })}
       </div>
 
-      <div className="space-y-3">
-        <h2 className="font-display font-semibold text-[#f5f5f5] text-base">Featured Presets</h2>
-        <div className="grid grid-cols-3 gap-3">
-          {featured.map(preset => (
-            <button
-              key={preset.id}
-              onClick={() => navigate('/retouch')}
-              className="bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#a855f7]/40 rounded-xl p-4 text-left transition-all group"
-            >
-              <span className="text-xl">{preset.icon}</span>
-              <p className="text-[#f5f5f5] text-sm font-medium mt-2">{preset.name}</p>
-              <p className="text-[#a3a3a3] text-xs mt-0.5 leading-snug">{preset.description}</p>
-              <TokenCostBadge cost={preset.tokenCost} className="mt-2" />
-            </button>
-          ))}
+      {featured.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="font-display font-semibold text-[#f5f5f5] text-base">Featured Presets</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {featured.map(preset => (
+              <button
+                key={preset.id}
+                onClick={() => navigate('/retouch')}
+                className="bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#a855f7]/40 rounded-xl overflow-hidden text-left transition-all group"
+              >
+                <div className="aspect-video bg-[#0d0d0d] flex items-center justify-center overflow-hidden">
+                  {preset.after_image_url ? (
+                    <img
+                      src={preset.after_image_url}
+                      alt={preset.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="text-2xl">{preset.icon}</span>
+                  )}
+                </div>
+                <div className="p-3">
+                  <p className="text-[#f5f5f5] text-sm font-medium">{preset.name}</p>
+                  <p className="text-[#a3a3a3] text-xs mt-0.5 leading-snug">{preset.description}</p>
+                  <TokenCostBadge cost={preset.token_cost} className="mt-2" />
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {!profile?.package_id && (
         <div className="bg-[#a855f7]/10 border border-[#a855f7]/30 rounded-xl p-4 flex items-center justify-between">
