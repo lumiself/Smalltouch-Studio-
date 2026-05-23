@@ -1,8 +1,46 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Play, Save, Lock } from 'lucide-react'
 import LayerControls from './LayerControls'
 import { useAuth } from '../../hooks/useAuth'
 import { canUseAction, getRequiredPackageForAction } from '../../lib/access'
+
+const CANVAS_BLEND_MAP = {
+  'normal': 'source-over',
+  'soft-light': 'soft-light',
+  'hard-light': 'hard-light',
+  'multiply': 'multiply',
+  'screen': 'screen',
+  'overlay': 'overlay',
+  'linear-light': 'source-over', // no Canvas equivalent, fallback to source-over
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = reject
+    img.src = src
+  })
+}
+
+async function compositeLayersToCanvas(canvas, baseUrl, layers) {
+  const base = await loadImage(baseUrl)
+  canvas.width = base.naturalWidth
+  canvas.height = base.naturalHeight
+  const ctx = canvas.getContext('2d')
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.drawImage(base, 0, 0)
+
+  for (const layer of layers) {
+    if (layer.opacity <= 0) continue
+    const img = await loadImage(layer.url)
+    ctx.save()
+    ctx.globalAlpha = layer.opacity
+    ctx.globalCompositeOperation = CANVAS_BLEND_MAP[layer.blendMode] || 'source-over'
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    ctx.restore()
+  }
+}
 
 const AVAILABLE_PLUGINS = [
   { id: 'Heal', label: 'Heal', description: 'Blemish cleanup' },
@@ -31,8 +69,18 @@ export default function AdvancedEdit({ selectedImage, onStartEditing, processing
   const [intensity, setIntensity] = useState('normal')
   const [savingPreset, setSavingPreset] = useState(false)
   const [presetName, setPresetName] = useState('')
+  const canvasRef = useRef(null)
+  const compositeIdRef = useRef(0)
 
   const haslayers = layers && layers.length > 0
+
+  useEffect(() => {
+    if (!haslayers || !selectedImage || !canvasRef.current) return
+    const id = ++compositeIdRef.current
+    compositeLayersToCanvas(canvasRef.current, selectedImage.preview, layers)
+      .catch(err => { if (compositeIdRef.current === id) console.error('Composite error:', err) })
+  }, [layers, selectedImage, haslayers])
+
   const tokenCost = 2
   const isLocked = !canUseAction(profile, 'advanced_edit')
   const requiredPkg = getRequiredPackageForAction('advanced_edit')
@@ -98,22 +146,14 @@ export default function AdvancedEdit({ selectedImage, onStartEditing, processing
           </div>
           <div className="space-y-1">
             <p className="text-[#a3a3a3] text-xs">Edited</p>
-            <div className="aspect-[4/3] bg-[#242424] rounded-lg overflow-hidden relative">
-              {selectedImage && (
-                <img src={selectedImage.preview} alt="Base" className="w-full h-full object-cover absolute inset-0" />
+            <div className="aspect-[4/3] bg-[#242424] rounded-lg overflow-hidden relative flex items-center justify-center">
+              {haslayers ? (
+                <canvas ref={canvasRef} className="w-full h-full" style={{ objectFit: 'cover', display: 'block' }} />
+              ) : (
+                <p className="text-[#555] text-xs text-center px-4">
+                  {processing ? '' : 'Run advanced edit to see result'}
+                </p>
               )}
-              {haslayers && layers.map(layer => (
-                <img
-                  key={layer.name}
-                  src={layer.url}
-                  alt={layer.name}
-                  className="w-full h-full object-cover absolute inset-0"
-                  style={{
-                    opacity: layer.opacity,
-                    mixBlendMode: layer.blendMode,
-                  }}
-                />
-              ))}
               {processing && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                   <div className="w-5 h-5 border-2 border-[#a855f7] border-t-transparent rounded-full animate-spin" />
