@@ -18,7 +18,7 @@ export default function BottomNav() {
   const isLow = balance < 5 && balance > 0
 
   return (
-    <nav className="md:hidden h-16 bg-[#1a1a1a] border-t border-[#2a2a2a] flex items-stretch shrink-0">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#1a1a1a] border-t border-[#2a2a2a] flex items-stretch z-50 pb-[env(safe-area-inset-bottom)]">
       {NAV_ITEMS.map(({ path, icon: Icon, label }) => {
         const active = location.pathname === path
         const isTokens = path === '/tokens'

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { randomUUID } from 'crypto'
 
 function adminClient() {
   return createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -10,6 +11,44 @@ async function parseJsonBody(req) {
   const raw = Buffer.concat(chunks).toString()
   if (!raw) return {}
   try { return JSON.parse(raw) } catch { return {} }
+}
+
+async function parseFileFromMultipart(req) {
+  const boundaryMatch = req.headers['content-type']?.match(/boundary=([^\s;]+)/)
+  if (!boundaryMatch) return null
+  const boundary = Buffer.from(`--${boundaryMatch[1]}`)
+
+  const chunks = []
+  for await (const chunk of req) chunks.push(chunk)
+  const body = Buffer.concat(chunks)
+
+  const parts = []
+  let start = 0
+  let idx
+  while ((idx = body.indexOf(boundary, start)) !== -1) {
+    if (idx > start) parts.push(body.slice(start, idx))
+    start = idx + boundary.length
+    if (body[start] === 0x0d && body[start + 1] === 0x0a) start += 2
+    else if (body[start] === 0x2d && body[start + 1] === 0x2d) break
+  }
+
+  for (const part of parts) {
+    if (part.length < 4) continue
+    const headerEnd = part.indexOf('\r\n\r\n')
+    if (headerEnd === -1) continue
+    const headerStr = part.slice(0, headerEnd).toString()
+    const filenameMatch = headerStr.match(/filename="([^"]+)"/)
+    if (!filenameMatch) continue
+    const contentTypeMatch = headerStr.match(/Content-Type:\s*([^\r\n]+)/)
+    const content = part.slice(headerEnd + 4)
+    const trimmed = content.slice(0, content.lastIndexOf('\r\n'))
+    return {
+      buffer: trimmed,
+      filename: filenameMatch[1],
+      contentType: contentTypeMatch?.[1]?.trim() || 'image/jpeg',
+    }
+  }
+  return null
 }
 
 async function verifyAdmin(req, supabase) {
@@ -130,6 +169,23 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  // POST /api/admin/upload-sample  (multipart/form-data with "file" field)
+  if (subpath === 'upload-sample') {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+    const file = await parseFileFromMultipart(req)
+    if (!file) return res.status(400).json({ error: 'No file uploaded' })
+
+    const ext = (file.filename.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
+    const path = `preset-samples/${randomUUID()}.${ext}`
+    const { error: uploadError } = await supabase.storage
+      .from('backgrounds')
+      .upload(path, file.buffer, { contentType: file.contentType, upsert: false })
+    if (uploadError) return res.status(500).json({ error: uploadError.message })
+
+    const { data: { publicUrl } } = supabase.storage.from('backgrounds').getPublicUrl(path)
+    return res.status(200).json({ url: publicUrl })
   }
 
   return res.status(404).json({ error: 'Not found' })

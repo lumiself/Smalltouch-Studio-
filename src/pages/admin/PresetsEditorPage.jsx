@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Check, X, RefreshCw, Loader2, Eye, EyeOff } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Plus, Pencil, Trash2, Check, X, RefreshCw, Loader2, Eye, EyeOff, Upload } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { uploadPresetSample } from '../../lib/storage'
 import { SkeletonAdminRow } from '../../components/shared/Skeleton'
 
 const PRESET_CATEGORIES = ['Portrait', 'Beauty', 'Editorial', 'E-commerce', 'Color']
@@ -212,7 +213,18 @@ export default function PresetsEditorPage() {
                 </div>
               ) : (
                 <div className="flex items-center gap-3 px-4 py-3">
-                  <span className="text-xl w-8 text-center shrink-0">{preset.icon}</span>
+                  <div className="w-10 h-10 rounded-lg bg-[#0d0d0d] flex items-center justify-center overflow-hidden shrink-0">
+                    {preset.after_image_url ? (
+                      <img
+                        src={preset.after_image_url}
+                        alt={preset.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="text-xl">{preset.icon}</span>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-[#f5f5f5] text-sm font-medium">{preset.name}</span>
@@ -355,24 +367,16 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-[#a3a3a3] text-xs block mb-1">Before image URL</label>
-          <input
-            value={form.before_image_url}
-            onChange={e => setForm(prev => ({ ...prev, before_image_url: e.target.value }))}
-            placeholder="https://..."
-            className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-xs focus:outline-none focus:border-[#a855f7] transition-colors"
-          />
-        </div>
-        <div>
-          <label className="text-[#a3a3a3] text-xs block mb-1">After image URL</label>
-          <input
-            value={form.after_image_url}
-            onChange={e => setForm(prev => ({ ...prev, after_image_url: e.target.value }))}
-            placeholder="https://..."
-            className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-xs focus:outline-none focus:border-[#a855f7] transition-colors"
-          />
-        </div>
+        <ImageUploadField
+          label="Before image"
+          value={form.before_image_url}
+          onChange={url => setForm(prev => ({ ...prev, before_image_url: url }))}
+        />
+        <ImageUploadField
+          label="After image (also used as the preset card thumbnail)"
+          value={form.after_image_url}
+          onChange={url => setForm(prev => ({ ...prev, after_image_url: url }))}
+        />
       </div>
 
       <div>
@@ -425,6 +429,79 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
           {saving ? 'Saving...' : 'Save'}
         </button>
       </div>
+    </div>
+  )
+}
+
+function ImageUploadField({ label, value, onChange }) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+  const inputRef = useRef(null)
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError('')
+    setUploading(true)
+    try {
+      const url = await uploadPresetSample(file)
+      onChange(url)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ''
+    }
+  }
+
+  return (
+    <div>
+      <label className="text-[#a3a3a3] text-xs block mb-1">{label}</label>
+      <div className="flex gap-2">
+        <div className="w-16 h-16 bg-[#0d0d0d] rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-[#2a2a2a]">
+          {value ? (
+            <img src={value} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-[#555] text-[10px]">No image</span>
+          )}
+        </div>
+        <div className="flex-1 flex flex-col gap-1 min-w-0">
+          <div className="flex gap-1">
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              disabled={uploading}
+              className="flex-1 px-2 py-1.5 rounded bg-[#242424] hover:bg-[#2a2a2a] text-[#a3a3a3] hover:text-[#f5f5f5] text-xs transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+            >
+              {uploading ? <><Loader2 size={11} className="animate-spin" /> Uploading…</> : <><Upload size={11} /> Upload</>}
+            </button>
+            {value && (
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                className="px-2 py-1.5 rounded bg-[#242424] hover:bg-[#ef4444]/20 text-[#a3a3a3] hover:text-[#ef4444] text-xs transition-colors"
+                title="Clear"
+              >
+                <X size={11} />
+              </button>
+            )}
+          </div>
+          <input
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            placeholder="…or paste a URL"
+            className="w-full px-2 py-1 bg-[#242424] border border-[#2a2a2a] rounded text-[#f5f5f5] text-[10px] font-mono focus:outline-none focus:border-[#a855f7] transition-colors"
+          />
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFile}
+          className="hidden"
+        />
+      </div>
+      {error && <p className="text-[#ef4444] text-[10px] mt-1">{error}</p>}
     </div>
   )
 }

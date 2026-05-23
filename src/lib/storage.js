@@ -32,3 +32,17 @@ export async function deleteInput(path) {
   const { error } = await supabase.storage.from('inputs').remove([path])
   if (error) throw error
 }
+
+export async function uploadPresetSample(file) {
+  const { data: { session } } = await supabase.auth.getSession()
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await fetch('/api/admin/upload-sample', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+    body: formData,
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || 'Upload failed')
+  return data.url
+}

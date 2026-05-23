@@ -18,9 +18,9 @@ import AdminRoute from './components/layout/AdminRoute'
 
 function AppLayout({ children }) {
   return (
-    <div className="flex flex-col h-screen bg-[#0d0d0d]">
+    <div className="flex flex-col h-dvh bg-[#0d0d0d]">
       <Navbar />
-      <div className="flex flex-1 overflow-hidden min-h-0">
+      <div className="flex flex-1 overflow-hidden min-h-0 pb-16 md:pb-0">
         {children}
       </div>
       <BottomNav />
