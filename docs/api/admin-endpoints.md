@@ -147,3 +147,44 @@ List all voucher codes with their redemption status. Returns the 200 most recent
 | 403 | Forbidden | User is not the admin |
 | 405 | Method not allowed | Non-GET request |
 | 500 | Failed to fetch codes | Database error |
+
+---
+
+## POST /api/admin/upload-sample
+
+Upload a sample image (before or after) for a preset card. The file is stored in the public `backgrounds` bucket under `preset-samples/` and the public URL is returned for the admin UI to paste into the preset's `before_image_url` or `after_image_url`.
+
+Server-side upload is used (rather than direct client → Supabase) so admin RLS does not have to be configured separately on the storage bucket. Authorization is gated on the admin email check that protects all other admin endpoints.
+
+### Request Headers
+| Header | Value |
+|--------|-------|
+| Authorization | `Bearer <access_token>` |
+| Content-Type | `multipart/form-data; boundary=...` |
+
+### Request Body (multipart)
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| file | file | yes | Image file (JPEG, PNG, WebP). Recommended ≤ 2 MB. |
+
+### Response — 200 OK
+```json
+{
+  "url": "https://<project>.supabase.co/storage/v1/object/public/backgrounds/preset-samples/<uuid>.jpg"
+}
+```
+
+### Response — Error Cases
+| Status | Error | Cause |
+|--------|-------|-------|
+| 400 | No file uploaded | Multipart body missing the `file` field |
+| 400 | Missing boundary | `Content-Type` header has no `boundary=` parameter |
+| 401 | Unauthorized | Missing or invalid auth token |
+| 403 | Forbidden | User is not the admin (handled by shared admin gate) |
+| 405 | Method not allowed | Non-POST request |
+| 500 | Upload failed | Supabase storage rejected the file |
+
+### Notes
+- Each upload creates a new object with a UUID filename — old files are not deleted automatically. If you change a preset's sample image many times, the prior versions remain in `backgrounds/preset-samples/` until manually removed.
+- The bucket is public, so anyone with the returned URL can fetch the image (this is intentional — the URL is rendered on the public Retouch page).
+- Vercel serverless body limit is ~4.5 MB; files larger than that will fail at the request layer before reaching this handler.

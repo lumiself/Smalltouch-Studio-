@@ -448,7 +448,12 @@ Refer to the Retouch4me documentation for available plugins and parameter values
 
 **Before/after images**
 
-These are demo images shown in the preset preview when a user clicks a preset card. Upload sample images to Supabase storage, get their public URL, and paste it into the Before/After URL fields.
+Each preset has a Before image and an After image used to demonstrate the look. Each field has an **Upload** button — click it, pick a file from your computer, and the image is pushed to the public \`backgrounds\` bucket and the URL auto-fills. You can also paste a URL directly into the small text field below the Upload button if you already host the image elsewhere. The thumbnail next to each field is a live preview of what the user will see.
+
+Recommended sizes:
+- **Before image** — square or matching the After image's aspect ratio (used only in the preview slider when a user expands a card)
+- **After image** — square (also used as the preset card thumbnail in One Click Enhance and Featured Presets)
+- Keep each file under ~2 MB; Vercel rejects multipart uploads larger than ~4.5 MB.
 
 **Thumbnails on preset cards**
 
