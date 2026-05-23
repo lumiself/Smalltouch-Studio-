@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { uploadInput, uploadOutputBlob } from '../lib/storage'
+import { uploadInput, uploadOutputBlob, getOutputUrl } from '../lib/storage'
 
 async function isZip(blob) {
   const buf = await blob.slice(0, 2).arrayBuffer()
