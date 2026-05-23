@@ -40,16 +40,41 @@ export async function deleteInput(path) {
   if (error) throw error
 }
 
+// Resizes an image file to fit within maxPx on its longest edge, returning a JPEG blob.
+// Keeps preset sample uploads well under Vercel's 4.5 MB serverless body limit.
+function resizeImage(file, maxPx = 1200, quality = 0.85) {
+  return new Promise(resolve => {
+    const img = new Image()
+    const blobUrl = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(blobUrl)
+      const scale = Math.min(1, maxPx / Math.max(img.naturalWidth, img.naturalHeight))
+      const w = Math.round(img.naturalWidth * scale)
+      const h = Math.round(img.naturalHeight * scale)
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+      canvas.toBlob(blob => resolve(blob ?? file), 'image/jpeg', quality)
+    }
+    img.onerror = () => { URL.revokeObjectURL(blobUrl); resolve(file) }
+    img.src = blobUrl
+  })
+}
+
 export async function uploadPresetSample(file) {
+  const resized = await resizeImage(file)
   const { data: { session } } = await supabase.auth.getSession()
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append('file', new File([resized], 'sample.jpg', { type: 'image/jpeg' }))
   const res = await fetch('/api/admin/upload-sample', {
     method: 'POST',
     headers: { Authorization: `Bearer ${session?.access_token}` },
     body: formData,
   })
-  const data = await res.json()
+  const text = await res.text()
+  let data
+  try { data = JSON.parse(text) } catch { data = { error: text.trim().slice(0, 200) } }
   if (!res.ok) throw new Error(data.error || 'Upload failed')
   return data.url
 }
