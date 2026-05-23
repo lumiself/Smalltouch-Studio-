@@ -72,15 +72,10 @@ export function useRetouch() {
       const token = session?.access_token
 
       updateJob(jobId, { status: 'submitting' })
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('payload', JSON.stringify(preset.payload))
-      formData.append('jobId', jobId)
-
       const startRes = await fetch('/api/retouch/start', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inputPath, payload: preset.payload }),
       })
       const startParsed = await readResponse(startRes)
       if (!startParsed.ok || !startParsed.data) throw serverError(startParsed, 'Failed to start job')
@@ -140,15 +135,10 @@ export function useRetouch() {
       const payload = { mode: 'professional', tasks }
 
       updateJob(jobId, { status: 'submitting' })
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('payload', JSON.stringify(payload))
-      formData.append('jobId', jobId)
-
       const startRes = await fetch('/api/retouch/start', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inputPath, payload }),
       })
       const startParsed = await readResponse(startRes)
       if (!startParsed.ok || !startParsed.data) throw serverError(startParsed, 'Failed to start job')
