@@ -25,10 +25,10 @@ export default function PlaygroundPanel({
   const canEnhance = !!(selectedImage && selectedPreset && canAfford && !batchRunning)
 
   return (
-    <div className="shrink-0 border-t border-[#2a2a2a] flex flex-col h-[260px] md:h-[290px]">
+    <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
 
       {/* Large preview — always shows the selected image */}
-      <div className="flex-1 bg-[#0d0d0d] relative overflow-hidden min-h-0">
+      <div className="h-52 bg-[#0d0d0d] relative overflow-hidden">
         {selectedImage ? (
           <img
             src={selectedImage.preview}
@@ -66,7 +66,7 @@ export default function PlaygroundPanel({
 
       {/* Batch filmstrip */}
       {hasBatch && (
-        <div className="shrink-0 h-[76px] border-t border-[#2a2a2a] bg-[#141414] flex items-center gap-2 px-3">
+        <div className="h-[76px] border-t border-[#2a2a2a] bg-[#141414] flex items-center gap-2 px-3">
           {/* Thumbnails */}
           <div className="flex items-center gap-1.5 flex-1 overflow-x-auto min-w-0 pr-1">
             {batchQueue.map(item => (

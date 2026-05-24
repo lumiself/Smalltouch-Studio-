@@ -274,8 +274,8 @@ export default function RetouchPage() {
               ))}
             </nav>
 
-            {/* Active tool content */}
-            <div className="flex-1 overflow-y-auto p-4">
+            {/* Active tool content + playground scrolling together */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
               {activeTool === 'quick-enhance' && (
                 <QuickEnhance
                   selectedPreset={activePreset}
@@ -293,21 +293,19 @@ export default function RetouchPage() {
                   disabled={false}
                 />
               )}
+              <PlaygroundPanel
+                selectedImage={selectedImage}
+                selectedPreset={activePreset}
+                batchQueue={batchQueue}
+                batchStatuses={batchStatuses}
+                batchRunning={batchRunning}
+                balance={balance}
+                onRemoveFromBatch={id => setBatchQueue(prev => prev.filter(i => i.id !== id))}
+                onStartBatch={handleStartBatch}
+                onEnhance={handleQuickEnhance}
+              />
             </div>
           </div>
-
-          {/* Playground — pinned at bottom of center column */}
-          <PlaygroundPanel
-            selectedImage={selectedImage}
-            selectedPreset={activePreset}
-            batchQueue={batchQueue}
-            batchStatuses={batchStatuses}
-            batchRunning={batchRunning}
-            balance={balance}
-            onRemoveFromBatch={id => setBatchQueue(prev => prev.filter(i => i.id !== id))}
-            onStartBatch={handleStartBatch}
-            onEnhance={handleQuickEnhance}
-          />
         </div>
 
         {/* ── Results ── */}
