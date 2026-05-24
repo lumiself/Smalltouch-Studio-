@@ -278,12 +278,8 @@ export default function RetouchPage() {
             <div className="flex-1 overflow-y-auto p-4">
               {activeTool === 'quick-enhance' && (
                 <QuickEnhance
-                  selectedImage={selectedImage}
-                  onEnhance={handleQuickEnhance}
                   selectedPreset={activePreset}
                   onPresetSelect={setActivePreset}
-                  disabled={advancedProcessing}
-                  balance={balance}
                 />
               )}
               {activeTool === 'advanced-edit' && (
@@ -303,12 +299,14 @@ export default function RetouchPage() {
           {/* Playground — pinned at bottom of center column */}
           <PlaygroundPanel
             selectedImage={selectedImage}
+            selectedPreset={activePreset}
             batchQueue={batchQueue}
             batchStatuses={batchStatuses}
             batchRunning={batchRunning}
-            activePreset={activePreset}
+            balance={balance}
             onRemoveFromBatch={id => setBatchQueue(prev => prev.filter(i => i.id !== id))}
             onStartBatch={handleStartBatch}
+            onEnhance={handleQuickEnhance}
           />
         </div>
 
