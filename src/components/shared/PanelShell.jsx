@@ -1,31 +1,26 @@
 import { useState } from 'react'
+import { useLibrary } from '../../contexts/LibraryContext'
 import LibraryPanel from './LibraryPanel'
 import ResultsPanel from './ResultsPanel'
 
 export default function PanelShell({
-  // Library
-  images = [],
-  selectedImage = null,
-  onSelect,
-  onUpload,
-  libraryMode = 'multi',
-  batchQueue = [],
-  onAddToBatch,
-  // Default results (job list)
-  jobs = [],
-  onDownloadAll,
-  // Override right column entirely
-  resultsSlot,
-  resultsLabel = 'Results',
-  // Column layout — override only when a panel needs non-default sizing
+  // Column sizing — override only when a panel needs non-default proportions
   toolsClassName = 'flex-1 overflow-hidden min-h-0',
   resultsClassName,
-  // Controlled mobile tab (optional — panels that need programmatic navigation pass these)
+  // Optional right-column override (for panels with non-job output)
+  resultsSlot,
+  resultsLabel = 'Results',
+  // Controlled mobile tab (panels that need programmatic navigation pass these)
   mobileTab: externalTab,
   onMobileTabChange,
   // Center tools content
   children,
 }) {
+  const {
+    images, selectedImage, setSelectedImage,
+    addImages, batchQueue, addToBatch, jobs,
+  } = useLibrary()
+
   const [internalTab, setInternalTab] = useState('tools')
   const mobileTab = externalTab ?? internalTab
   const setMobileTab = onMobileTabChange ?? setInternalTab
@@ -69,11 +64,10 @@ export default function PanelShell({
           <LibraryPanel
             images={images}
             selectedImage={selectedImage}
-            onSelect={img => { onSelect?.(img); setMobileTab('tools') }}
-            onUpload={onUpload}
-            mode={libraryMode}
+            onSelect={img => { setSelectedImage(img); setMobileTab('tools') }}
+            onUpload={addImages}
             batchQueue={batchQueue}
-            onAddToBatch={onAddToBatch}
+            onAddToBatch={addToBatch}
           />
         </div>
 
@@ -84,7 +78,7 @@ export default function PanelShell({
 
         {/* ── Results / Output ── */}
         <div className={`${mobileTab === 'results' ? 'flex' : 'hidden'} md:flex flex-col ${resolvedResultsClassName} overflow-hidden`}>
-          {resultsSlot ?? <ResultsPanel jobs={jobs} onDownloadAll={onDownloadAll} />}
+          {resultsSlot ?? <ResultsPanel jobs={jobs} />}
         </div>
 
       </div>

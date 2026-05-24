@@ -1,4 +1,5 @@
 import { Download, CheckCircle, Clock, XCircle } from 'lucide-react'
+import JSZip from 'jszip'
 import ProgressBar from './ProgressBar'
 import BeforeAfterSlider from './BeforeAfterSlider'
 
@@ -11,15 +12,37 @@ const STATUS_ICONS = {
   failed:      <XCircle size={14} className="text-[#ef4444]" />,
 }
 
-export default function ResultsPanel({ jobs = [], onDownloadAll }) {
-  const completed = jobs.filter(j => j.status === 'completed')
+export default function ResultsPanel({ jobs = [] }) {
+  const downloadable = jobs.filter(j => j.status === 'completed' && j.result?.url)
 
   async function downloadResult(job) {
-    if (!job.result?.url) return
     const a = document.createElement('a')
     a.href = job.result.url
     a.download = `result_${job.id.slice(0, 8)}.jpg`
     a.click()
+  }
+
+  async function downloadAll() {
+    if (!downloadable.length) return
+    const zip = new JSZip()
+    await Promise.all(downloadable.map(async (job, i) => {
+      try {
+        const res = await fetch(job.result.url)
+        const blob = await res.blob()
+        const ext = blob.type.includes('png') ? 'png' : 'jpg'
+        const label = job.presetName
+          ? `${job.presetName.replace(/\s+/g, '_')}_${i + 1}.${ext}`
+          : `result_${i + 1}.${ext}`
+        zip.file(label, blob)
+      } catch {}
+    }))
+    const content = await zip.generateAsync({ type: 'blob' })
+    const url = URL.createObjectURL(content)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'smalltouch_results.zip'
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -28,9 +51,9 @@ export default function ResultsPanel({ jobs = [], onDownloadAll }) {
         <h3 className="text-[#f5f5f5] text-sm font-medium">
           Results{jobs.length > 0 ? ` (${jobs.length})` : ''}
         </h3>
-        {completed.length > 1 && (
+        {downloadable.length > 1 && (
           <button
-            onClick={onDownloadAll}
+            onClick={downloadAll}
             className="flex items-center gap-1 text-xs text-[#a855f7] hover:text-[#7c3aed] transition-colors"
           >
             <Download size={12} />
@@ -62,7 +85,7 @@ export default function ResultsPanel({ jobs = [], onDownloadAll }) {
               </div>
             )}
 
-            {job.status === 'completed' && job.result && (
+            {job.status === 'completed' && job.result?.url && (
               <>
                 <BeforeAfterSlider
                   beforeSrc={job.originalFile ? URL.createObjectURL(job.originalFile) : null}
