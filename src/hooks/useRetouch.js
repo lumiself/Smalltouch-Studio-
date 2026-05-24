@@ -1,11 +1,11 @@
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { uploadInput, uploadOutputBlob, getOutputUrl } from '../lib/storage'
 
 async function isZip(blob) {
   const buf = await blob.slice(0, 2).arrayBuffer()
   const b = new Uint8Array(buf)
-  return b[0] === 0x50 && b[1] === 0x4B // PK magic bytes
+  return b[0] === 0x50 && b[1] === 0x4B
 }
 
 const POLL_INTERVAL_MS = 3000
@@ -28,14 +28,10 @@ function serverError(parsed, fallback) {
   return new Error(snippet ? `${fallback} (${parsed.status}): ${snippet}` : `${fallback} (${parsed.status})`)
 }
 
-export function useRetouch() {
-  const [jobs, setJobs] = useState([])
+// addJob / updateJob come from LibraryContext via the calling component
+export function useRetouch({ addJob, updateJob }) {
 
-  function updateJob(id, patch) {
-    setJobs(prev => prev.map(j => j.id === id ? { ...j, ...patch } : j))
-  }
-
-  async function pollStatus(externalJobId, jobId) {
+  function pollStatus(externalJobId, jobId) {
     return new Promise((resolve, reject) => {
       const interval = setInterval(async () => {
         try {
@@ -66,8 +62,7 @@ export function useRetouch() {
 
   const runQuickEnhance = useCallback(async ({ userId, file, preset }) => {
     const jobId = crypto.randomUUID()
-    const newJob = { id: jobId, type: 'quick_enhance', presetName: preset.name, status: 'uploading', progress: 0, result: null }
-    setJobs(prev => [...prev, newJob])
+    addJob({ id: jobId, type: 'quick_enhance', panel: 'retouch', presetName: preset.name, status: 'uploading', progress: 0, result: null })
 
     try {
       updateJob(jobId, { status: 'uploading' })
@@ -84,19 +79,13 @@ export function useRetouch() {
       })
       const startParsed = await readResponse(startRes)
       if (!startParsed.ok || !startParsed.data) throw serverError(startParsed, 'Failed to start job')
-      const startData = startParsed.data
 
-      const externalJobId = startData.externalJobId
+      const externalJobId = startParsed.data.externalJobId
 
       const { error: jobInsertError } = await supabase.from('jobs').insert({
-        id: jobId,
-        user_id: userId,
-        panel: 'retouch',
-        operation: 'quick_enhance',
-        status: 'processing',
-        external_job_id: externalJobId,
-        input_path: inputPath,
-        tokens_used: preset.tokenCost,
+        id: jobId, user_id: userId, panel: 'retouch', operation: 'quick_enhance',
+        status: 'processing', external_job_id: externalJobId,
+        input_path: inputPath, tokens_used: preset.tokenCost,
       })
       if (jobInsertError) throw new Error(jobInsertError.message)
 
@@ -114,7 +103,6 @@ export function useRetouch() {
       const resultUrl = await getOutputUrl(outputPath)
 
       await supabase.from('jobs').update({ status: 'completed', output_path: outputPath }).eq('id', jobId)
-
       updateJob(jobId, { status: 'completed', result: { url: resultUrl, outputPath }, originalFile: file })
       return { jobId, resultUrl }
     } catch (err) {
@@ -122,12 +110,11 @@ export function useRetouch() {
       await supabase.from('jobs').update({ status: 'failed' }).eq('id', jobId)
       throw err
     }
-  }, [])
+  }, [addJob, updateJob])
 
   const runAdvancedEdit = useCallback(async ({ userId, file, plugins, intensityMode }) => {
     const jobId = crypto.randomUUID()
-    const newJob = { id: jobId, type: 'advanced_edit', status: 'uploading', progress: 0, layers: null }
-    setJobs(prev => [...prev, newJob])
+    addJob({ id: jobId, type: 'advanced_edit', panel: 'retouch', status: 'uploading', progress: 0 })
 
     try {
       updateJob(jobId, { status: 'uploading' })
@@ -147,19 +134,13 @@ export function useRetouch() {
       })
       const startParsed = await readResponse(startRes)
       if (!startParsed.ok || !startParsed.data) throw serverError(startParsed, 'Failed to start job')
-      const startData = startParsed.data
 
-      const externalJobId = startData.externalJobId
+      const externalJobId = startParsed.data.externalJobId
 
       const { error: jobInsertError } = await supabase.from('jobs').insert({
-        id: jobId,
-        user_id: userId,
-        panel: 'retouch',
-        operation: 'advanced_edit',
-        status: 'processing',
-        external_job_id: externalJobId,
-        input_path: inputPath,
-        tokens_used: 2,
+        id: jobId, user_id: userId, panel: 'retouch', operation: 'advanced_edit',
+        status: 'processing', external_job_id: externalJobId,
+        input_path: inputPath, tokens_used: 2,
       })
       if (jobInsertError) throw new Error(jobInsertError.message)
 
@@ -176,7 +157,6 @@ export function useRetouch() {
       const parsedAsZip = await isZip(blob)
       const outputPath = await uploadOutputBlob(userId, jobId, blob, parsedAsZip ? 'zip' : 'jpg')
       await supabase.from('jobs').update({ status: 'completed', output_path: outputPath }).eq('id', jobId)
-
       updateJob(jobId, { status: 'completed', outputPath })
       return { jobId, outputPath }
     } catch (err) {
@@ -184,9 +164,9 @@ export function useRetouch() {
       await supabase.from('jobs').update({ status: 'failed' }).eq('id', jobId)
       throw err
     }
-  }, [])
+  }, [addJob, updateJob])
 
-  return { jobs, runQuickEnhance, runAdvancedEdit, updateJob }
+  return { runQuickEnhance, runAdvancedEdit }
 }
 
 const INTENSITY_ALPHAS = {
@@ -212,9 +192,7 @@ const PLUGIN_SCALE = {
 
 function buildAdvancedPayload(enabledPlugins, intensityMode) {
   const tasks = []
-  const needsFaceDetection = enabledPlugins.includes('Glasses Anti Glare')
-  if (needsFaceDetection) tasks.push({ Plugin: 'Face Detection' })
-
+  if (enabledPlugins.includes('Glasses Anti Glare')) tasks.push({ Plugin: 'Face Detection' })
   for (const plugin of enabledPlugins) {
     if (plugin === 'Glasses Anti Glare') {
       const alphas = INTENSITY_ALPHAS[plugin]?.[intensityMode] || {}
@@ -225,7 +203,5 @@ function buildAdvancedPayload(enabledPlugins, intensityMode) {
       tasks.push({ Plugin: plugin, Scale: scale, Layer: 1, ...alphas })
     }
   }
-
   return tasks
 }
-

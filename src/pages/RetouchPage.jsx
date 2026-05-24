@@ -1,13 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Zap, SlidersHorizontal } from 'lucide-react'
-import JSZip from 'jszip'
 import { useAuth } from '../hooks/useAuth'
 import { useTokens } from '../hooks/useTokens'
 import { useRetouch } from '../hooks/useRetouch'
 import { useToast } from '../contexts/ToastContext'
+import { useLibrary } from '../contexts/LibraryContext'
 import { canUseAction } from '../lib/access'
-import { saveUpload, loadUpload, clearUpload } from '../lib/uploadStore'
 import { getOutputUrl } from '../lib/storage'
 import PanelShell from '../components/shared/PanelShell'
 import QuickEnhance from '../components/retouch/QuickEnhance'
@@ -22,65 +21,19 @@ const TOOL_NAV = [
 export default function RetouchPage() {
   const { user, profile } = useAuth()
   const { balance, deductTokens, refundTokens } = useTokens()
-  const { jobs, runQuickEnhance, runAdvancedEdit } = useRetouch()
+  const { selectedImage, batchQueue, setBatchQueue, addToBatch, removeFromBatch, jobs, addJob, updateJob } = useLibrary()
+  const { runQuickEnhance, runAdvancedEdit } = useRetouch({ addJob, updateJob })
   const toast = useToast()
   const navigate = useNavigate()
 
-  const [images, setImages] = useState([])
-  const [selectedImage, setSelectedImage] = useState(null)
+  // Tool-only state — no library or results state here
+  const [activeTool, setActiveTool] = useState('quick-enhance')
   const [activePreset, setActivePreset] = useState(null)
-  const [batchQueue, setBatchQueue] = useState([])
   const [batchRunning, setBatchRunning] = useState(false)
   const [batchStatuses, setBatchStatuses] = useState({})
   const [advancedProcessing, setAdvancedProcessing] = useState(false)
   const [activeJobId, setActiveJobId] = useState(null)
   const [mobileTab, setMobileTab] = useState('tools')
-  const [activeTool, setActiveTool] = useState('quick-enhance')
-  const [restored, setRestored] = useState(false)
-
-  const storeKey = user ? `retouch:${user.id}` : null
-
-  useEffect(() => {
-    if (!storeKey) return
-    let cancelled = false
-    loadUpload(storeKey).then(stored => {
-      if (cancelled || !Array.isArray(stored) || stored.length === 0) {
-        setRestored(true)
-        return
-      }
-      const rehydrated = stored.map(item => ({
-        id: item.id,
-        file: item.file,
-        name: item.name,
-        preview: URL.createObjectURL(item.file),
-      }))
-      setImages(rehydrated)
-      setSelectedImage(prev => prev ?? rehydrated[0])
-      setRestored(true)
-    }).catch(() => setRestored(true))
-    return () => { cancelled = true }
-  }, [storeKey])
-
-  useEffect(() => {
-    if (!storeKey || !restored) return
-    if (images.length === 0) {
-      clearUpload(storeKey).catch(() => {})
-    } else {
-      saveUpload(storeKey, images.map(({ id, file, name }) => ({ id, file, name }))).catch(() => {})
-    }
-  }, [images, storeKey, restored])
-
-  function handleUpload(files) {
-    const newImages = files.map(f => ({
-      id: crypto.randomUUID(),
-      file: f,
-      name: f.name,
-      preview: URL.createObjectURL(f),
-    }))
-    setImages(prev => [...prev, ...newImages])
-    if (!selectedImage) setSelectedImage(newImages[0])
-    setMobileTab('tools')
-  }
 
   const handleQuickEnhance = useCallback(async (preset) => {
     if (!user || !selectedImage) return
@@ -159,48 +112,9 @@ export default function RetouchPage() {
     setMobileTab('results')
   }, [activePreset, batchQueue, batchRunning, profile, user, deductTokens, refundTokens, runQuickEnhance, navigate, toast])
 
-  async function handleDownloadAll() {
-    const completed = jobs.filter(j => j.status === 'completed' && j.result?.url)
-    if (!completed.length) return
-
-    const zip = new JSZip()
-    await Promise.all(completed.map(async (job, i) => {
-      try {
-        const res = await fetch(job.result.url)
-        const blob = await res.blob()
-        const ext = blob.type.includes('png') ? 'png' : 'jpg'
-        const label = job.presetName
-          ? `${job.presetName.replace(/\s+/g, '_')}_${i + 1}.${ext}`
-          : `retouched_${i + 1}.${ext}`
-        zip.file(label, blob)
-      } catch {}
-    }))
-
-    const content = await zip.generateAsync({ type: 'blob' })
-    const url = URL.createObjectURL(content)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'smalltouch_results.zip'
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
   return (
-    <PanelShell
-      images={images}
-      selectedImage={selectedImage}
-      onSelect={img => { setSelectedImage(img); setActiveJobId(null) }}
-      onUpload={handleUpload}
-      libraryMode="multi"
-      batchQueue={batchQueue}
-      onAddToBatch={img => setBatchQueue(prev =>
-        prev.find(i => i.id === img.id) ? prev : [...prev, img]
-      )}
-      jobs={jobs.filter(j => j.type !== 'advanced_edit')}
-      onDownloadAll={handleDownloadAll}
-      mobileTab={mobileTab}
-      onMobileTabChange={setMobileTab}
-    >
+    <PanelShell mobileTab={mobileTab} onMobileTabChange={setMobileTab}>
+
       {/* Mobile horizontal tool switcher */}
       <div className="md:hidden flex shrink-0 border-b border-[#2a2a2a] bg-[#161616]">
         {TOOL_NAV.map(({ id, label, Icon }) => (
@@ -238,7 +152,7 @@ export default function RetouchPage() {
           ))}
         </nav>
 
-        {/* Tool content + playground */}
+        {/* Tool content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {activeTool === 'quick-enhance' && (
             <QuickEnhance
@@ -264,13 +178,14 @@ export default function RetouchPage() {
               batchStatuses={batchStatuses}
               batchRunning={batchRunning}
               balance={balance}
-              onRemoveFromBatch={id => setBatchQueue(prev => prev.filter(i => i.id !== id))}
+              onRemoveFromBatch={removeFromBatch}
               onStartBatch={handleStartBatch}
               onEnhance={handleQuickEnhance}
             />
           )}
         </div>
       </div>
+
     </PanelShell>
   )
 }

@@ -6,7 +6,6 @@ export default function LibraryPanel({
   selectedImage = null,
   onSelect,
   onUpload,
-  mode = 'multi',  // 'multi' | 'single'
   batchQueue = [],
   onAddToBatch,
 }) {
@@ -27,13 +26,13 @@ export default function LibraryPanel({
           className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] text-white text-sm font-medium transition-colors"
         >
           <Upload size={14} />
-          {mode === 'single' && images.length > 0 ? 'Replace Image' : 'Upload Image'}
+          Upload Images
         </button>
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          multiple={mode === 'multi'}
+          multiple
           className="hidden"
           onChange={e => handleFiles(e.target.files)}
         />
@@ -47,7 +46,7 @@ export default function LibraryPanel({
         {images.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-[#2a2a2a] rounded-lg text-center p-3">
             <ImagePlus size={20} className="text-[#a3a3a3] mb-1" />
-            <p className="text-[#a3a3a3] text-xs">Drop image here</p>
+            <p className="text-[#a3a3a3] text-xs">Drop images here</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-1">
@@ -63,8 +62,7 @@ export default function LibraryPanel({
                 >
                   <img src={img.preview} alt="" className="w-full h-full object-cover" />
                 </button>
-
-                {mode === 'multi' && !batchQueueIds.has(img.id) && (
+                {!batchQueueIds.has(img.id) && (
                   <button
                     onClick={() => onAddToBatch?.(img)}
                     title="Add to batch"
@@ -73,7 +71,7 @@ export default function LibraryPanel({
                     <Plus size={10} />
                   </button>
                 )}
-                {mode === 'multi' && batchQueueIds.has(img.id) && (
+                {batchQueueIds.has(img.id) && (
                   <span className="absolute top-1 right-1 w-5 h-5 rounded bg-[#a855f7]/80 flex items-center justify-center">
                     <Plus size={10} className="text-white rotate-45" />
                   </span>
