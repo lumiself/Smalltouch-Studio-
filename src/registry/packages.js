@@ -31,7 +31,7 @@ export const packages = [
     price: "$15",
     color: "#a855f7",
     panels: ["retouch", "background"],
-    actions: ["quick_enhance", "batch_retouch", "advanced_edit", "bg_remove", "bg_replace_solid", "bg_blur", "bg_ai_generate", "bg_expand", "bg_flux_preset"],
+    actions: ["quick_enhance", "batch_retouch", "advanced_edit", "bg_remove", "bg_replace_solid", "bg_blur", "bg_ai_generate", "bg_expand", "bg_flux_preset", "bg_replace"],
     limits: { maxBatchSize: 50, maxFileSizeMB: 100 },
     description: "Full retouch and background suite",
   },

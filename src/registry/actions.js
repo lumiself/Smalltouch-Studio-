@@ -62,6 +62,13 @@ export const actions = [
     tokenCost: 2,
     outputType: "flat",
   },
+  {
+    id: "bg_replace",
+    panel: "background",
+    name: "Replace Background",
+    tokenCost: 2,
+    outputType: "flat",
+  },
 ]
 
 export function getAction(id) {
