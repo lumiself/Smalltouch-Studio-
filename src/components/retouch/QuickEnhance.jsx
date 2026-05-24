@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Play, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { CATEGORIES } from '../../registry/presets'
 import { supabase } from '../../lib/supabase'
 import TokenCostBadge from '../shared/TokenCostBadge'
@@ -20,46 +20,41 @@ function dbToPreset(row) {
   }
 }
 
-export default function QuickEnhance({ selectedImage, onEnhance, disabled, balance, selectedPreset, onPresetSelect }) {
+export default function QuickEnhance({ selectedPreset, onPresetSelect }) {
   const [activeCategory, setActiveCategory] = useState('All')
   const [previewPreset, setPreviewPreset] = useState(null)
   const [dbPresets, setDbPresets] = useState([])
   const [presetsLoaded, setPresetsLoaded] = useState(false)
 
   useEffect(() => {
-    supabase.from('system_presets').select('*').eq('status', 'active').order('sort_order').then(({ data }) => {
-      setDbPresets(data?.map(dbToPreset) ?? [])
-      setPresetsLoaded(true)
-    })
+    supabase
+      .from('system_presets')
+      .select('*')
+      .eq('status', 'active')
+      .order('sort_order')
+      .then(({ data }) => {
+        setDbPresets(data?.map(dbToPreset) ?? [])
+        setPresetsLoaded(true)
+      })
   }, [])
 
-  const visiblePresets = activeCategory === 'All'
-    ? dbPresets
-    : dbPresets.filter(p => p.categories.includes(activeCategory))
+  const visiblePresets =
+    activeCategory === 'All'
+      ? dbPresets
+      : dbPresets.filter(p => p.categories.includes(activeCategory))
 
   function handleCardClick(preset) {
-    if (previewPreset?.id === preset.id) {
-      setPreviewPreset(null)
-    } else {
-      setPreviewPreset(preset)
-    }
+    setPreviewPreset(prev => prev?.id === preset.id ? null : preset)
   }
 
   function handleSelect(preset) {
-    onPresetSelect(preset)
+    onPresetSelect(selectedPreset?.id === preset.id ? null : preset)
     setPreviewPreset(null)
-  }
-
-  function handleEnhance() {
-    if (!selectedImage || !selectedPreset) return
-    onEnhance(selectedPreset)
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h2 className="font-display font-semibold text-[#f5f5f5] text-base">One Click Enhance</h2>
-      </div>
+      <h2 className="font-display font-semibold text-[#f5f5f5] text-base">Presets</h2>
 
       <div className="flex flex-wrap gap-1.5">
         {CATEGORIES.map(cat => (
@@ -80,11 +75,11 @@ export default function QuickEnhance({ selectedImage, onEnhance, disabled, balan
       {previewPreset && (
         <div className="bg-[#242424] rounded-xl p-3 border border-[#a855f7]/40 space-y-3">
           <BeforeAfterSlider
-            beforeSrc={previewPreset.beforeImageUrl || selectedImage?.preview}
-            afterSrc={previewPreset.afterImageUrl || null}
+            beforeSrc={previewPreset.beforeImageUrl}
+            afterSrc={previewPreset.afterImageUrl}
             className="w-full h-44"
           />
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-[#f5f5f5] text-sm font-medium">{previewPreset.name}</p>
               <p className="text-[#a3a3a3] text-xs">{previewPreset.description}</p>
@@ -99,11 +94,18 @@ export default function QuickEnhance({ selectedImage, onEnhance, disabled, balan
           <div className="flex gap-2">
             <button
               onClick={() => handleSelect(previewPreset)}
-              className="flex-1 py-2 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] text-white text-sm font-medium transition-colors"
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectedPreset?.id === previewPreset.id
+                  ? 'bg-[#7c3aed] text-white'
+                  : 'bg-[#a855f7] hover:bg-[#7c3aed] text-white'
+              }`}
             >
-              Select This Preset
+              {selectedPreset?.id === previewPreset.id ? 'Deselect' : 'Select Preset'}
             </button>
-            <button onClick={() => setPreviewPreset(null)} className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-[#2a2a2a] text-[#a3a3a3] transition-colors">
+            <button
+              onClick={() => setPreviewPreset(null)}
+              className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-[#2a2a2a] text-[#a3a3a3] transition-colors"
+            >
               <X size={16} />
             </button>
           </div>
@@ -112,7 +114,10 @@ export default function QuickEnhance({ selectedImage, onEnhance, disabled, balan
 
       {presetsLoaded && visiblePresets.length === 0 ? (
         <p className="text-[#a3a3a3] text-xs text-center py-8">
-          No presets available yet. {activeCategory !== 'All' ? `Try a different category, or an admin can ` : 'An admin can '}
+          No presets available yet.{' '}
+          {activeCategory !== 'All'
+            ? 'Try a different category, or an admin can '
+            : 'An admin can '}
           add presets from the Admin → Presets editor.
         </p>
       ) : (
@@ -146,31 +151,6 @@ export default function QuickEnhance({ selectedImage, onEnhance, disabled, balan
             </button>
           ))}
         </div>
-      )}
-
-      {selectedPreset && (
-        <div className="flex items-center justify-between bg-[#242424] rounded-xl p-3">
-          <div>
-            <p className="text-[#f5f5f5] text-sm font-medium">Selected: {selectedPreset.name}</p>
-            <p className="text-[#a3a3a3] text-xs">
-              {balance < selectedPreset.tokenCost
-                ? `Need ${selectedPreset.tokenCost} tokens — you have ${balance}`
-                : `Cost: ${selectedPreset.tokenCost} token`}
-            </p>
-          </div>
-          <button
-            onClick={handleEnhance}
-            disabled={disabled || !selectedImage || balance < selectedPreset.tokenCost}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
-          >
-            <Play size={14} />
-            Enhance Now
-          </button>
-        </div>
-      )}
-
-      {!selectedImage && (
-        <p className="text-[#a3a3a3] text-xs text-center">Upload an image to get started</p>
       )}
     </div>
   )
