@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthProvider'
 import { ToastProvider } from './contexts/ToastContext'
@@ -5,16 +6,25 @@ import { LibraryProvider } from './contexts/LibraryContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import Navbar from './components/layout/Navbar'
 import BottomNav from './components/layout/BottomNav'
-import LoginPage from './pages/LoginPage'
-import SignupPage from './pages/SignupPage'
-import DashboardPage from './pages/DashboardPage'
-import RetouchPage from './pages/RetouchPage'
-import TokensPage from './pages/TokensPage'
-import HelpPage from './pages/HelpPage'
-import HistoryPage from './pages/HistoryPage'
-import AdminPage from './pages/admin/AdminPage'
-import PresetsEditorPage from './pages/admin/PresetsEditorPage'
 import AdminRoute from './components/layout/AdminRoute'
+
+const LoginPage        = lazy(() => import('./pages/LoginPage'))
+const SignupPage       = lazy(() => import('./pages/SignupPage'))
+const DashboardPage    = lazy(() => import('./pages/DashboardPage'))
+const RetouchPage      = lazy(() => import('./pages/RetouchPage'))
+const TokensPage       = lazy(() => import('./pages/TokensPage'))
+const HelpPage         = lazy(() => import('./pages/HelpPage'))
+const HistoryPage      = lazy(() => import('./pages/HistoryPage'))
+const AdminPage        = lazy(() => import('./pages/admin/AdminPage'))
+const PresetsEditorPage = lazy(() => import('./pages/admin/PresetsEditorPage'))
+
+function PageLoader() {
+  return (
+    <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-[#a855f7] border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+}
 
 function AppLayout({ children }) {
   return (
@@ -34,6 +44,7 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <LibraryProvider>
+            <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
@@ -79,6 +90,7 @@ export default function App() {
                 </ProtectedRoute>
               } />
             </Routes>
+            </Suspense>
           </LibraryProvider>
         </ToastProvider>
       </AuthProvider>
