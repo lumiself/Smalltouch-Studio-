@@ -45,7 +45,6 @@ create table if not exists public.jobs (
   input_path text,
   output_path text,
   tokens_used integer not null default 0,
-  metadata jsonb not null default '{}',
   created_at timestamptz not null default now()
 );
 

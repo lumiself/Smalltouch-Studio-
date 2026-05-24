@@ -250,13 +250,7 @@ There are three tools:
     content: `
 **What it does**
 
-Background Presets give you a one-click background replacement using a three-step AI pipeline:
-
-1. **Remove background** — the subject is automatically cut out with AI (rembg model)
-2. **Generate scene** — Flux-2-Max creates a photorealistic background from the preset's scene description
-3. **Composite** — the subject is placed back over the new background at the correct scale
-
-The result is a clean, properly composited photo with the original subject on an AI-generated background scene.
+Background Presets replace the background of your photo in one step. Flux-2-Max receives your original image together with the preset's scene description and generates a new version with the background transformed. Your subject and composition are preserved.
 
 **How to use it**
 1. Upload your photo using the Upload button in the left Library panel
@@ -265,8 +259,8 @@ The result is a clean, properly composited photo with the original subject on an
 4. Click a card to see a before/after preview, then **Select Preset**
 5. Confirm your image is shown in the Apply Background section below
 6. Click **Replace Background** — costs 2 tokens
-7. Wait 30–90 seconds while all three steps run (removal → generation → composite)
-8. The final result appears in the Results panel on the right
+7. Wait 20–60 seconds while Flux-2-Max processes the image
+8. The result appears in the Results panel on the right
 9. Download your result
 
 **Preset categories**
@@ -287,7 +281,7 @@ The result is a clean, properly composited photo with the original subject on an
 
 **Expected output**
 
-A JPEG with the original subject composited over an AI-generated background. The background is scaled to match the subject's exact pixel dimensions.
+A WebP image with the background replaced according to the preset scene. Aspect ratio matches your input image.
 
 **Minimum package**
 
@@ -296,9 +290,8 @@ Standard or above.
 **Common issues**
 - *Replace Background is greyed out* — select both an image and a preset first
 - *Not enough tokens* — redeem a voucher on the Tokens page; each replacement costs 2 tokens
-- *Subject edges look rough* — the rembg model works best on photos with clear contrast between subject and background; avoid very busy or low-contrast backgrounds
-- *Background doesn't match the scene* — try a different preset in the same category, or ask your admin to adjust the preset prompt
-- *Job failed* — your token is refunded; if it happens repeatedly, the image may be too large or the background too complex for automatic removal
+- *Background not changed enough* — use a photo where the subject is clearly in frame; more distinct subjects give stronger scene transformations
+- *Job failed* — your token is refunded automatically; try again or choose a different preset
     `,
   },
   {

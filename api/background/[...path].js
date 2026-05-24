@@ -129,7 +129,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // POST /api/background/replace  — step 1 of 3: start rembg, insert job
+  // POST /api/background/replace  — single Flux-2-Max call: subject + prompt → new background
   if (subpath === 'replace') {
     const { jobId, inputPath, preset, tokenCost } = body
     if (!jobId || !inputPath || !preset?.prompt) {
@@ -150,23 +150,28 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Failed to create signed URL' })
       }
 
-      // Step 1: remove background
-      const rembgRes = await fetch(`${REPLICATE_BASE}/predictions`, {
+      const replicateRes = await fetch(FLUX_2_MAX_ENDPOINT, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'cjwbw/rembg',
-          input: { image: signedData.signedUrl },
+          input: {
+            prompt: preset.prompt,
+            input_images: [signedData.signedUrl],
+            aspect_ratio: preset.aspect_ratio ?? 'match_input_image',
+            resolution: preset.resolution ?? '1 MP',
+            output_format: preset.output_format ?? 'webp',
+            safety_tolerance: preset.safety_tolerance ?? 2,
+          },
           webhook: `${webhookBase}/api/webhook/replicate?jobId=${jobId}`,
           webhook_events_filter: ['completed'],
         }),
       })
-      const rembgData = await rembgRes.json()
-      if (!rembgRes.ok) {
-        return res.status(500).json({ error: rembgData.detail || 'Replicate error' })
+      const replicateData = await replicateRes.json()
+      if (!replicateRes.ok) {
+        return res.status(500).json({ error: replicateData.detail || replicateData.error || 'Replicate error' })
       }
 
       await supabase.from('jobs').insert({
@@ -175,10 +180,9 @@ export default async function handler(req, res) {
         panel: 'background',
         operation: 'bg_replace',
         status: 'processing',
-        external_job_id: rembgData.id,
+        external_job_id: replicateData.id,
         input_path: inputPath,
         tokens_used: tokenCost ?? 2,
-        metadata: { step: 1, preset },
       })
 
       return res.status(200).json({ jobId })
