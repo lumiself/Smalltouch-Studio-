@@ -4,22 +4,38 @@ import { supabase } from '../../lib/supabase'
 import { uploadPresetSample } from '../../lib/storage'
 import { SkeletonAdminRow } from '../../components/shared/Skeleton'
 
-const PRESET_CATEGORIES = ['Portrait', 'Beauty', 'Editorial', 'E-commerce', 'Color']
+const PANEL_OPTIONS = [
+  { id: 'retouch',    label: 'Retouch Studio' },
+  { id: 'background', label: 'Background Studio' },
+]
+
+const CATEGORIES_BY_PANEL = {
+  retouch:    ['Portrait', 'Beauty', 'Editorial', 'E-commerce', 'Color'],
+  background: ['Studio', 'Outdoor', 'Seated', 'Standing', 'Birthday', 'Portrait', 'Group', 'Baby'],
+}
+
+function getCategoriesForPanel(panel) {
+  return CATEGORIES_BY_PANEL[panel] ?? CATEGORIES_BY_PANEL.retouch
+}
 
 async function getAuthHeader() {
   const { data: { session } } = await supabase.auth.getSession()
   return { Authorization: `Bearer ${session.access_token}` }
 }
 
-function emptyForm() {
+function emptyForm(panel = 'retouch') {
+  const defaultPayload = panel === 'background'
+    ? '{\n  "prompt": "professional studio background, soft lighting, neutral gray"\n}'
+    : '{\n  "mode": "professional",\n  "tasks": []\n}'
   return {
     preset_key: '',
+    panel,
     name: '',
     icon: '✨',
     description: '',
     categories: [],
-    token_cost: 1,
-    payload_text: '{\n  "mode": "professional",\n  "tasks": []\n}',
+    token_cost: panel === 'background' ? 2 : 1,
+    payload_text: defaultPayload,
     before_image_url: '',
     after_image_url: '',
     status: 'active',
@@ -33,7 +49,8 @@ export default function PresetsEditorPage() {
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState(null)
   const [creating, setCreating] = useState(false)
-  const [newForm, setNewForm] = useState(emptyForm())
+  const [activePanel, setActivePanel] = useState('retouch')
+  const [newForm, setNewForm] = useState(emptyForm('retouch'))
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -59,6 +76,7 @@ export default function PresetsEditorPage() {
     setEditingId(preset.id)
     setEditForm({
       preset_key: preset.preset_key,
+      panel: preset.panel ?? 'retouch',
       name: preset.name,
       icon: preset.icon,
       description: preset.description,
@@ -87,7 +105,7 @@ export default function PresetsEditorPage() {
       const res = await fetch('/api/admin/presets', {
         method: 'PATCH',
         headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, name: editForm.name, icon: editForm.icon, description: editForm.description, categories: editForm.categories, token_cost: Number(editForm.token_cost), payload, before_image_url: editForm.before_image_url || null, after_image_url: editForm.after_image_url || null, status: editForm.status, sort_order: Number(editForm.sort_order) }),
+        body: JSON.stringify({ id, name: editForm.name, icon: editForm.icon, description: editForm.description, categories: editForm.categories, token_cost: Number(editForm.token_cost), payload, before_image_url: editForm.before_image_url || null, after_image_url: editForm.after_image_url || null, status: editForm.status, sort_order: Number(editForm.sort_order), panel: editForm.panel }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Save failed')
@@ -112,7 +130,7 @@ export default function PresetsEditorPage() {
       const res = await fetch('/api/admin/presets', {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ preset_key: newForm.preset_key.trim(), name: newForm.name, icon: newForm.icon, description: newForm.description, categories: newForm.categories, token_cost: Number(newForm.token_cost), payload, before_image_url: newForm.before_image_url || null, after_image_url: newForm.after_image_url || null, status: newForm.status, sort_order: Number(newForm.sort_order) }),
+        body: JSON.stringify({ preset_key: newForm.preset_key.trim(), panel: newForm.panel, name: newForm.name, icon: newForm.icon, description: newForm.description, categories: newForm.categories, token_cost: Number(newForm.token_cost), payload, before_image_url: newForm.before_image_url || null, after_image_url: newForm.after_image_url || null, status: newForm.status, sort_order: Number(newForm.sort_order) }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Create failed')
@@ -157,25 +175,44 @@ export default function PresetsEditorPage() {
     }
   }
 
+  const visiblePresets = presets.filter(p => (p.panel ?? 'retouch') === activePanel)
+
   return (
     <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display font-bold text-[#f5f5f5] text-2xl">Preset Editor</h1>
-          <p className="text-[#a3a3a3] text-sm mt-1">Manage the presets shown in One Click Enhance</p>
+          <p className="text-[#a3a3a3] text-sm mt-1">Manage presets for all panels</p>
         </div>
         <div className="flex gap-2">
           <button onClick={load} className="text-[#a3a3a3] hover:text-[#f5f5f5] transition-colors p-2">
             <RefreshCw size={14} />
           </button>
           <button
-            onClick={() => { setCreating(true); setEditingId(null) }}
+            onClick={() => { setCreating(true); setEditingId(null); setNewForm(emptyForm(activePanel)) }}
             className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] text-white text-sm font-medium transition-colors"
           >
             <Plus size={14} />
             New Preset
           </button>
         </div>
+      </div>
+
+      {/* Panel filter tabs */}
+      <div className="flex gap-1.5">
+        {PANEL_OPTIONS.map(p => (
+          <button
+            key={p.id}
+            onClick={() => { setActivePanel(p.id); setCreating(false) }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              activePanel === p.id
+                ? 'bg-[#a855f7] text-white'
+                : 'bg-[#242424] text-[#a3a3a3] hover:text-[#f5f5f5]'
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
       </div>
 
       {error && <p className="text-[#ef4444] text-sm bg-[#ef4444]/10 px-3 py-2 rounded-lg">{error}</p>}
@@ -185,7 +222,7 @@ export default function PresetsEditorPage() {
           form={newForm}
           setForm={setNewForm}
           onSave={saveNew}
-          onCancel={() => { setCreating(false); setNewForm(emptyForm()) }}
+          onCancel={() => { setCreating(false); setNewForm(emptyForm(activePanel)) }}
           saving={saving}
           isNew
         />
@@ -195,11 +232,11 @@ export default function PresetsEditorPage() {
         <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
           <table className="w-full"><tbody>{Array.from({ length: 5 }).map((_, i) => <SkeletonAdminRow key={i} />)}</tbody></table>
         </div>
-      ) : presets.length === 0 && !creating ? (
-        <p className="text-[#a3a3a3] text-sm text-center py-12">No presets yet. Click "New Preset" to create one, or presets from the registry are used automatically.</p>
+      ) : visiblePresets.length === 0 && !creating ? (
+        <p className="text-[#a3a3a3] text-sm text-center py-12">No {PANEL_OPTIONS.find(p => p.id === activePanel)?.label} presets yet. Click "New Preset" to create one.</p>
       ) : (
         <div className="space-y-2">
-          {presets.map(preset => (
+          {visiblePresets.map(preset => (
             <div key={preset.id} className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
               {editingId === preset.id ? (
                 <div className="p-4">
@@ -226,7 +263,7 @@ export default function PresetsEditorPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-[#f5f5f5] text-sm font-medium">{preset.name}</span>
                       <span className="text-[10px] text-[#555] font-mono">{preset.preset_key}</span>
                       {preset.status === 'hidden' && (
@@ -267,6 +304,8 @@ export default function PresetsEditorPage() {
 }
 
 function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
+  const panelCategories = getCategoriesForPanel(form.panel)
+
   function toggleCategory(cat) {
     setForm(prev => ({
       ...prev,
@@ -276,9 +315,42 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
     }))
   }
 
+  function handlePanelChange(panelId) {
+    setForm(prev => ({
+      ...prev,
+      panel: panelId,
+      categories: [],
+      token_cost: panelId === 'background' ? 2 : 1,
+      payload_text: panelId === 'background'
+        ? '{\n  "prompt": "professional studio background, soft lighting, neutral gray"\n}'
+        : '{\n  "mode": "professional",\n  "tasks": []\n}',
+    }))
+  }
+
   return (
     <div className="space-y-4 bg-[#0d0d0d] rounded-xl p-4 border border-[#a855f7]/30">
       <h3 className="text-[#f5f5f5] font-medium text-sm">{isNew ? 'New Preset' : 'Edit Preset'}</h3>
+
+      {/* Panel selector */}
+      <div>
+        <label className="text-[#a3a3a3] text-xs block mb-1.5">Panel</label>
+        <div className="flex gap-2">
+          {PANEL_OPTIONS.map(p => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => handlePanelChange(p.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                form.panel === p.id
+                  ? 'bg-[#a855f7] text-white'
+                  : 'bg-[#242424] text-[#a3a3a3] hover:text-[#f5f5f5]'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         {isNew && (
@@ -326,7 +398,7 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
         <div>
           <label className="text-[#a3a3a3] text-xs block mb-2">Categories</label>
           <div className="flex flex-wrap gap-1.5">
-            {PRESET_CATEGORIES.map(cat => (
+            {panelCategories.map(cat => (
               <button
                 key={cat}
                 type="button"
