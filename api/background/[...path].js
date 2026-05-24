@@ -131,10 +131,17 @@ export default async function handler(req, res) {
 
   // POST /api/background/flux-preset
   if (subpath === 'flux-preset') {
-    const { inputPath, preset } = body
-    if (!inputPath || !preset?.prompt) {
-      return res.status(400).json({ error: 'Missing inputPath or preset.prompt' })
+    const { jobId, inputPath, preset, tokenCost } = body
+    if (!jobId || !inputPath || !preset?.prompt) {
+      return res.status(400).json({ error: 'Missing jobId, inputPath, or preset.prompt' })
     }
+
+    const webhookBase = process.env.WEBHOOK_BASE ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+    if (!webhookBase) {
+      return res.status(500).json({ error: 'WEBHOOK_BASE is not configured — set it in Vercel environment variables' })
+    }
+
     try {
       const { data: signedData, error: signedError } = await supabase.storage
         .from('inputs')
@@ -143,28 +150,47 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Failed to create signed URL' })
       }
 
-      const input = {
-        prompt: preset.prompt,
-        input_images: [signedData.signedUrl],
-        aspect_ratio: preset.aspect_ratio ?? 'match_input_image',
-        resolution: preset.resolution ?? '1 MP',
-        output_format: preset.output_format ?? 'webp',
-        safety_tolerance: preset.safety_tolerance ?? 2,
-      }
-
       const replicateRes = await fetch(FLUX_2_MAX_ENDPOINT, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ input }),
+        body: JSON.stringify({
+          input: {
+            prompt: preset.prompt,
+            input_images: [signedData.signedUrl],
+            aspect_ratio: preset.aspect_ratio ?? 'match_input_image',
+            resolution: preset.resolution ?? '1 MP',
+            output_format: preset.output_format ?? 'webp',
+            safety_tolerance: preset.safety_tolerance ?? 2,
+          },
+          webhook: `${webhookBase}/api/webhook/replicate?jobId=${jobId}`,
+          webhook_events_filter: ['completed'],
+        }),
       })
       const replicateData = await replicateRes.json()
       if (!replicateRes.ok) {
         return res.status(500).json({ error: replicateData.detail || replicateData.error || 'Replicate error' })
       }
-      return res.status(200).json({ predictionId: replicateData.id })
+
+      // Insert job row server-side so the webhook can find it
+      const { error: insertError } = await supabase.from('jobs').insert({
+        id: jobId,
+        user_id: user.id,
+        panel: 'background',
+        operation: 'bg_flux_preset',
+        status: 'processing',
+        external_job_id: replicateData.id,
+        input_path: inputPath,
+        tokens_used: tokenCost ?? 2,
+      })
+      if (insertError) {
+        console.error('flux-preset job insert error:', insertError)
+        // Prediction is already running — log but don't error the client
+      }
+
+      return res.status(200).json({ jobId })
     } catch (err) {
       console.error('background/flux-preset error:', err)
       return res.status(500).json({ error: 'Internal server error' })
