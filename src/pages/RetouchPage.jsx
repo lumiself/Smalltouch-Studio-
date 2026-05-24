@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Zap, SlidersHorizontal } from 'lucide-react'
 import JSZip from 'jszip'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useTokens } from '../hooks/useTokens'
 import { useRetouch } from '../hooks/useRetouch'
@@ -13,11 +13,17 @@ import LibraryPanel from '../components/retouch/LibraryPanel'
 import QuickEnhance from '../components/retouch/QuickEnhance'
 import AdvancedEdit from '../components/retouch/AdvancedEdit'
 import ResultsPanel from '../components/retouch/ResultsPanel'
+import PlaygroundPanel from '../components/retouch/PlaygroundPanel'
 
 const MOBILE_TABS = [
   { id: 'library', label: 'Library' },
   { id: 'tools',   label: 'Tools'   },
   { id: 'results', label: 'Results' },
+]
+
+const TOOL_NAV = [
+  { id: 'quick-enhance',  label: 'Enhance',  Icon: Zap              },
+  { id: 'advanced-edit',  label: 'Advanced', Icon: SlidersHorizontal },
 ]
 
 export default function RetouchPage() {
@@ -36,6 +42,7 @@ export default function RetouchPage() {
   const [advancedProcessing, setAdvancedProcessing] = useState(false)
   const [activeJobId, setActiveJobId] = useState(null)
   const [mobileTab, setMobileTab] = useState('tools')
+  const [activeTool, setActiveTool] = useState('quick-enhance')
   const [restored, setRestored] = useState(false)
 
   const storeKey = user ? `retouch:${user.id}` : null
@@ -84,10 +91,7 @@ export default function RetouchPage() {
 
   const handleQuickEnhance = useCallback(async (preset) => {
     if (!user || !selectedImage) return
-    if (!canUseAction(profile, 'quick_enhance')) {
-      navigate('/tokens')
-      return
-    }
+    if (!canUseAction(profile, 'quick_enhance')) { navigate('/tokens'); return }
     try {
       await deductTokens(user.id, preset.tokenCost, crypto.randomUUID(), 'quick_enhance')
       await runQuickEnhance({ userId: user.id, file: selectedImage.file, preset })
@@ -99,10 +103,7 @@ export default function RetouchPage() {
 
   const handleAdvancedEdit = useCallback(async ({ plugins, intensityMode }) => {
     if (!user || !selectedImage) return
-    if (!canUseAction(profile, 'advanced_edit')) {
-      navigate('/tokens')
-      return
-    }
+    if (!canUseAction(profile, 'advanced_edit')) { navigate('/tokens'); return }
     setAdvancedProcessing(true)
     try {
       await deductTokens(user.id, 2, crypto.randomUUID(), 'advanced_edit')
@@ -193,7 +194,8 @@ export default function RetouchPage() {
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden min-h-0">
-      {/* Mobile tab switcher */}
+
+      {/* Mobile top tabs: Library / Tools / Results */}
       <div className="md:hidden flex border-b border-[#2a2a2a] shrink-0 bg-[#1a1a1a]">
         {MOBILE_TABS.map(tab => (
           <button
@@ -207,15 +209,19 @@ export default function RetouchPage() {
           >
             {tab.label}
             {tab.id === 'results' && jobs.length > 0 && (
-              <span className="ml-1 text-[9px] bg-[#a855f7]/20 text-[#a855f7] px-1 rounded-full">{jobs.length}</span>
+              <span className="ml-1 text-[9px] bg-[#a855f7]/20 text-[#a855f7] px-1 rounded-full">
+                {jobs.length}
+              </span>
             )}
           </button>
         ))}
       </div>
 
-      {/* Columns */}
+      {/* Three-column layout */}
       <div className="flex flex-1 overflow-hidden min-h-0">
-        <div className={`${mobileTab === 'library' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[240px] shrink-0 border-r border-[#2a2a2a] overflow-y-auto`}>
+
+        {/* ── Library ── */}
+        <div className={`${mobileTab === 'library' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[220px] shrink-0 border-r border-[#2a2a2a] overflow-hidden`}>
           <LibraryPanel
             images={images}
             selectedImage={selectedImage}
@@ -223,40 +229,97 @@ export default function RetouchPage() {
             onUpload={handleUpload}
             batchQueue={batchQueue}
             onAddToBatch={img => setBatchQueue(prev => prev.find(i => i.id === img.id) ? prev : [...prev, img])}
+          />
+        </div>
+
+        {/* ── Center: tool nav + tool content + playground ── */}
+        <div className={`${mobileTab === 'tools' ? 'flex' : 'hidden'} md:flex flex-1 flex-col overflow-hidden min-h-0`}>
+
+          {/* Mobile-only horizontal tool switcher */}
+          <div className="md:hidden flex shrink-0 border-b border-[#2a2a2a] bg-[#161616]">
+            {TOOL_NAV.map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTool(id)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
+                  activeTool === id
+                    ? 'text-[#a855f7] border-[#a855f7]'
+                    : 'text-[#555] border-transparent hover:text-[#a3a3a3]'
+                }`}
+              >
+                <Icon size={12} />
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Tool area */}
+          <div className="flex flex-1 overflow-hidden min-h-0">
+
+            {/* Vertical nav — desktop only */}
+            <nav className="hidden md:flex flex-col w-[72px] shrink-0 border-r border-[#2a2a2a] bg-[#161616] py-3 gap-1">
+              {TOOL_NAV.map(({ id, label, Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setActiveTool(id)}
+                  className={`flex flex-col items-center gap-1.5 py-3 mx-1.5 rounded-lg transition-colors ${
+                    activeTool === id
+                      ? 'bg-[#a855f7]/15 text-[#a855f7]'
+                      : 'text-[#555] hover:text-[#a3a3a3] hover:bg-[#242424]'
+                  }`}
+                >
+                  <Icon size={16} />
+                  <span className="text-[10px] font-medium leading-tight text-center">{label}</span>
+                </button>
+              ))}
+            </nav>
+
+            {/* Active tool content */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {activeTool === 'quick-enhance' && (
+                <QuickEnhance
+                  selectedImage={selectedImage}
+                  onEnhance={handleQuickEnhance}
+                  selectedPreset={activePreset}
+                  onPresetSelect={setActivePreset}
+                  disabled={advancedProcessing}
+                  balance={balance}
+                />
+              )}
+              {activeTool === 'advanced-edit' && (
+                <AdvancedEdit
+                  selectedImage={selectedImage}
+                  onStartEditing={handleAdvancedEdit}
+                  processing={advancedProcessing}
+                  jobComplete={!!activeJobId && jobs.find(j => j.id === activeJobId)?.status === 'completed'}
+                  onDownloadZip={handleDownloadZip}
+                  balance={balance}
+                  disabled={false}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Playground — pinned at bottom of center column */}
+          <PlaygroundPanel
+            selectedImage={selectedImage}
+            batchQueue={batchQueue}
+            batchStatuses={batchStatuses}
+            batchRunning={batchRunning}
+            activePreset={activePreset}
             onRemoveFromBatch={id => setBatchQueue(prev => prev.filter(i => i.id !== id))}
             onStartBatch={handleStartBatch}
-            batchRunning={batchRunning}
-            batchStatuses={batchStatuses}
-            activePreset={activePreset}
           />
         </div>
 
-        <main className={`${mobileTab === 'tools' ? 'block' : 'hidden'} md:block flex-1 overflow-y-auto p-4 space-y-6`}>
-          <QuickEnhance
-            selectedImage={selectedImage}
-            onEnhance={handleQuickEnhance}
-            selectedPreset={activePreset}
-            onPresetSelect={setActivePreset}
-            disabled={advancedProcessing}
-            balance={balance}
+        {/* ── Results ── */}
+        <div className={`${mobileTab === 'results' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[260px] shrink-0 border-l border-[#2a2a2a] overflow-hidden`}>
+          <ResultsPanel
+            jobs={jobs.filter(j => j.type !== 'advanced_edit')}
+            onDownloadAll={handleDownloadAll}
           />
-
-          <div className="border-t border-[#2a2a2a]" />
-
-          <AdvancedEdit
-            selectedImage={selectedImage}
-            onStartEditing={handleAdvancedEdit}
-            processing={advancedProcessing}
-            jobComplete={!!activeJobId && jobs.find(j => j.id === activeJobId)?.status === 'completed'}
-            onDownloadZip={handleDownloadZip}
-            balance={balance}
-            disabled={false}
-          />
-        </main>
-
-        <div className={`${mobileTab === 'results' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[280px] shrink-0 border-l border-[#2a2a2a] overflow-y-auto`}>
-          <ResultsPanel jobs={jobs.filter(j => j.type !== 'advanced_edit')} onDownloadAll={handleDownloadAll} />
         </div>
+
       </div>
     </div>
   )
