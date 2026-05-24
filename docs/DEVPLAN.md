@@ -382,23 +382,32 @@ Upload Image
 
 ### UI Layout
 
+Follows the shared 3-column `PanelShell` layout. The canvas preview occupies the right column instead of a job list.
+
 ```
-┌──────────────────┬───────────────────────────┐
-│   Upload Panel   │      Canvas Preview        │
-│                  │                            │
-│  [Upload Image]  │   [Subject on Background]  │
-│                  │                            │
-├──────────────────┤   ┌──────────────────┐     │
-│  Tools           │   │  Background Type │     │
-│                  │   │  ○ Solid Color   │     │
-│  ✂️ Remove BG    │   │  ○ Gradient      │     │
-│  🎨 Replace BG   │   │  ○ AI Generate   │     │
-│  🌫 Blur BG      │   │  ○ Stock Library │     │
-│  ↔️ Expand       │   └──────────────────┘     │
-│                  │                            │
-│                  │   [Apply] [Download]        │
-└──────────────────┴───────────────────────────┘
+┌────────────┬──────────────────────┬──────────────────────────┐
+│  LIBRARY   │   BACKGROUND TOOLS   │    CANVAS PREVIEW        │
+│  ────────  │  ──────────────────  │  ──────────────────────  │
+│            │                      │                          │
+│ [Upload]   │  Background Removal  │  [Subject on Background] │
+│            │  [Remove BG · 1 tok] │                          │
+│  [thumb]   │                      │  (live composite —       │
+│            │  Tool: [Replace]     │   updates in real-time)  │
+│            │        [Blur  ]      │                          │
+│            │        [Expand]      │                          │
+│            │                      │  [↓ Download PNG]        │
+│            │  ── Replace ──       │                          │
+│            │  ○ Transparent       │                          │
+│            │  ○ Solid Color       │                          │
+│            │  ○ Gradient          │                          │
+│            │  ○ AI Generate 🔒    │                          │
+│            │  ○ Stock Library     │                          │
+│            │                      │                          │
+│            │  [Apply · 1 token]   │                          │
+└────────────┴──────────────────────┴──────────────────────────┘
 ```
+
+Mobile tabs: **Library** | **Tools** | **Canvas**
 
 ---
 
@@ -915,65 +924,73 @@ Admins access a protected `/admin` dashboard to:
 ## Development Phases
 
 ### Phase 1 — Foundation *(Weeks 1–2)*
-- [ ] Project setup (React + Vite + Tailwind)
-- [ ] Supabase auth (email/password + Google OAuth)
-- [ ] Registry system scaffolding (panels, actions, models, presets)
-- [ ] Basic dashboard layout driven by panels registry
-- [ ] Vercel deployment pipeline
+- [x] Project setup (React + Vite + Tailwind)
+- [x] Supabase auth (email/password)
+- [x] Registry system scaffolding (panels, actions, models, presets, packages)
+- [x] Basic dashboard layout driven by panels registry
+- [x] Vercel deployment pipeline
 
 ### Phase 2 — Retouching Panel: One Click Enhance *(Weeks 3–5)*
-- [ ] Upload component with drag & drop
-- [ ] Preset card grid with category filter bar
-- [ ] Inline before/after slider on preset card click
-- [ ] Vercel serverless functions for Retouch4me API proxy
-- [ ] Job polling and status tracking
-- [ ] Before/after result viewer
-- [ ] Single image download
-- [ ] Admin preset editor (`/admin/presets`) — upload before/after images, set plugin config
+- [x] Upload component with drag & drop
+- [x] Preset card grid with category filter bar
+- [x] Inline before/after slider on preset card click
+- [x] Vercel serverless functions for Retouch4me API proxy
+- [x] Job polling and status tracking
+- [x] Before/after result viewer
+- [x] Single image download
+- [x] Admin preset editor (`/admin/presets`) — upload before/after images, set plugin config
 
 ### Phase 3 — Advanced Edit *(Weeks 6–8)*
-- [ ] Side-by-side original + edited image panel
-- [ ] Plugin checkbox + Alpha/Scale controls
-- [ ] Start Editing → sends image + plugin config → receives layered ZIP
-- [ ] JSZip extraction of returned layer PNGs
-- [ ] CSS blend mode live compositing (opacity sliders drive layer opacity)
-- [ ] Sharp server-side compositing for final download
+- [x] Plugin checkbox + intensity mode controls (Subtle / Normal / Extreme)
+- [x] Start Editing → sends image + plugin config → receives layered ZIP
+- [x] JSZip-based ZIP download of layer output
+- [x] Layer opacity sliders with CSS blend mode compositing (`LayerControls.jsx`)
+- [x] ZIP download for Photoshop-compatible layered output
+- [ ] Sharp server-side compositing for final flat download
 - [ ] Save as Preset from current layer state
 - [ ] Saved preset immediately available as batch preset
 
 ### Phase 4 — Batch Processing *(Weeks 9–10)*
-- [ ] Multi-file upload
-- [ ] Batch job queue management
-- [ ] Concurrent polling per image
-- [ ] Progress tracking UI
-- [ ] ZIP download of all results
+- [x] Multi-file upload
+- [x] Batch job queue management
+- [x] Concurrent polling per image (Promise.allSettled)
+- [x] Per-image progress + status indicators
+- [x] ZIP download of all completed results (JSZip)
 
 ### Phase 5 — Background Panel *(Weeks 11–13)*
-- [ ] Background removal via Replicate
-- [ ] Solid/gradient background replacement
-- [ ] AI background generation with text prompt
-- [ ] Stock background library
-- [ ] Canvas compositing preview
-- [ ] Export pipeline
+- [x] Background removal via Replicate (`cjwbw/rembg`)
+- [x] Solid color + gradient background replacement (client-side canvas)
+- [x] AI background generation with text prompt (Replicate SDXL)
+- [x] Stock background library (Supabase `backgrounds` bucket)
+- [x] Canvas compositing preview (live, real-time)
+- [x] Background blur (blur amount slider)
+- [x] Smart background expand with AI inpainting
+- [x] PNG export with transparency
 
 ### Phase 6 — Token System, Packages & Admin *(Week 14)*
-- [ ] Package registry (`packages.js`) with all five tiers
-- [ ] Access control library (`access.js`) — `canUsePanel`, `canUseAction`, `getBatchLimit`
-- [ ] Token voucher generation tied to specific package (admin dashboard)
-- [ ] Token redemption flow — applies both package and tokens on redeem
-- [ ] Package upgrade logic — tokens added, access unlocked immediately
-- [ ] Token balance display in navbar
-- [ ] Per-operation token deduction
-- [ ] Locked panel and action UI states with upgrade prompts
-- [ ] Low balance warnings
-- [ ] Admin dashboard (generate, export, track codes, manage users)
-- [ ] CSV export of token codes for printing
+- [x] Package registry (`packages.js`) with all five tiers
+- [x] Access control library (`access.js`) — `canUsePanel`, `canUseAction`, `getBatchLimit`
+- [x] Token voucher generation tied to specific package (admin dashboard)
+- [x] Token redemption flow — applies both package and tokens on redeem
+- [x] Package upgrade logic — tokens added, access unlocked immediately
+- [x] Token balance display in navbar
+- [x] Per-operation token deduction with automatic refund on failure
+- [x] Locked action UI states with upgrade prompts
+- [x] Admin dashboard (generate, export, track codes, manage users)
+- [x] CSV export of token codes for printing
+
+### Phase 6b — Modular Panel Architecture *(Post-Phase 6 refactor)*
+- [x] `PanelShell` shared 3-column layout wrapper (Library | Tools | Results)
+- [x] `LibraryPanel` shared upload + image grid — `mode="multi"` or `mode="single"`
+- [x] `ResultsPanel` shared job-list results — generic, works for any panel
+- [x] Both active panels (Retouch, Background) migrated to use `PanelShell`
+- [x] Adding a new panel now only requires implementing the center tools section
 
 ### Phase 7 — Polish & Launch *(Weeks 15–16)*
-- [ ] Mobile responsive UI
-- [ ] Error handling and edge cases
-- [ ] Loading states and animations
-- [ ] Onboarding flow for new users
+- [x] Mobile responsive UI (3-column → tab-based on mobile)
+- [x] Error handling with token refund on failure
+- [x] Loading/processing states and progress bars
+- [x] Onboarding modal for new users
 - [ ] Beta testing
 - [ ] Production launch
 
@@ -1366,7 +1383,7 @@ The landing page every user sees after login. Inspired by OpenArt's hero + card 
 
 ### Panel Page Layout — 3 Column
 
-Used by all active panels (Retouch, Background, future panels). Same shell, different center content.
+**Implemented as `src/components/shared/PanelShell.jsx`.** Used by all active panels (Retouch, Background, future panels). Same shell, different center content. New panels only need to implement the center tools column — Library and Results are provided automatically.
 
 ```
 ┌────────────┬──────────────────────┬────────────┐
@@ -1658,74 +1675,59 @@ smalltouch-studio/
 │   │   ├── panels.js                 ← all panels registered here
 │   │   ├── actions.js                ← all actions + token costs
 │   │   ├── models.js                 ← all AI models + providers
-│   │   ├── presets.js                ← all system presets
+│   │   ├── presets.js                ← system preset definitions
 │   │   └── packages.js               ← all token packages + access rules
 │   ├── components/
 │   │   ├── layout/
-│   │   │   ├── Dashboard.jsx         ← reads panels + packages registry
 │   │   │   ├── Navbar.jsx
-│   │   │   ├── PanelNav.jsx
-│   │   │   └── TokenBalance.jsx
+│   │   │   ├── BottomNav.jsx         ← mobile bottom navigation
+│   │   │   ├── ProtectedRoute.jsx
+│   │   │   └── AdminRoute.jsx
 │   │   ├── retouch/
-│   │   │   ├── UploadPanel.jsx
-│   │   │   ├── QuickEnhance.jsx      ← reads presets registry
-│   │   │   ├── PresetBuilder.jsx
-│   │   │   ├── LayerControls.jsx
-│   │   │   ├── BatchProcessor.jsx
-│   │   │   └── OutputPanel.jsx
+│   │   │   ├── QuickEnhance.jsx      ← preset card grid + category filter
+│   │   │   ├── AdvancedEdit.jsx      ← plugin checkboxes + intensity + ZIP download
+│   │   │   ├── LayerControls.jsx     ← per-layer opacity sliders
+│   │   │   └── PlaygroundPanel.jsx   ← image preview + batch queue + process button
 │   │   ├── background/
-│   │   │   ├── BackgroundUpload.jsx
-│   │   │   ├── BackgroundTools.jsx   ← reads actions registry
-│   │   │   ├── CanvasPreview.jsx
-│   │   │   └── BackgroundOutput.jsx
+│   │   │   ├── BackgroundTools.jsx   ← remove/replace/blur/expand controls
+│   │   │   └── CanvasPreview.jsx     ← live canvas composition + PNG export
 │   │   └── shared/
+│   │       ├── PanelShell.jsx        ← 3-column layout (Library|Tools|Results)
+│   │       ├── LibraryPanel.jsx      ← shared upload + image grid (mode=multi|single)
+│   │       ├── ResultsPanel.jsx      ← shared job-list results panel
 │   │       ├── BeforeAfterSlider.jsx
 │   │       ├── ProgressBar.jsx
-│   │       ├── TokenBalance.jsx
-│   │       ├── TokenCostBadge.jsx    ← reads tokenCost from actions registry
-│   │       ├── LowTokenWarning.jsx
-│   │       ├── LockedOverlay.jsx     ← shown on locked panels/actions
-│   │       ├── UpgradePrompt.jsx     ← shows required package to unlock
-│   │       └── PresetCard.jsx        ← reads presets registry
+│   │       ├── TokenCostBadge.jsx
+│   │       ├── Skeleton.jsx
+│   │       └── OnboardingModal.jsx
 │   ├── pages/
-│   │   ├── index.jsx
-│   │   ├── dashboard.jsx
-│   │   ├── retouch.jsx
-│   │   ├── background.jsx
-│   │   ├── tokens.jsx                ← redeem voucher codes
-│   │   ├── history.jsx               ← shared job history all panels
-│   │   ├── admin/
-│   │   │   ├── index.jsx             ← admin dashboard
-│   │   │   ├── presets.jsx           ← preset editor: upload b/a images, set plugin config
-│   │   │   ├── generate.jsx          ← generate token codes per package
-│   │   │   └── users.jsx             ← user packages + token balances
-│   │   └── auth/
-│   │       ├── login.jsx
-│   │       └── signup.jsx
-│   ├── handlers/                     ← action handler functions
-│   │   ├── quickEnhanceHandler.js
-│   │   ├── advancedRetouchHandler.js
-│   │   ├── batchRetouchHandler.js
-│   │   ├── bgRemoveHandler.js
-│   │   ├── bgReplaceHandler.js
-│   │   ├── bgAiGenerateHandler.js
-│   │   ├── bgBlurHandler.js
-│   │   └── bgExpandHandler.js
+│   │   ├── DashboardPage.jsx         ← panel cards + featured presets
+│   │   ├── RetouchPage.jsx           ← uses PanelShell + retouch tools
+│   │   ├── BackgroundPage.jsx        ← uses PanelShell + background tools
+│   │   ├── TokensPage.jsx            ← redeem voucher codes
+│   │   ├── HelpPage.jsx              ← in-app help per feature
+│   │   ├── HistoryPage.jsx           ← shared job history across all panels
+│   │   ├── LoginPage.jsx
+│   │   ├── SignupPage.jsx
+│   │   └── admin/
+│   │       ├── AdminPage.jsx         ← admin dashboard (users, codes)
+│   │       └── PresetsEditorPage.jsx ← preset editor: upload b/a images, plugin config
+│   ├── contexts/
+│   │   ├── AuthContext.js
+│   │   ├── AuthProvider.jsx
+│   │   └── ToastContext.jsx
+│   ├── hooks/
+│   │   ├── useRetouch.js             ← quick enhance + advanced edit jobs
+│   │   ├── useBackground.js          ← Replicate polling
+│   │   ├── useAuth.js
+│   │   └── useTokens.js
 │   ├── lib/
-│   │   ├── providers/                ← one file per AI provider
-│   │   │   ├── retouch4me.js
-│   │   │   └── replicate.js
 │   │   ├── access.js                 ← canUsePanel, canUseAction, getBatchLimit
 │   │   ├── supabase.js
-│   │   ├── storage.js                ← shared input/output helpers
-│   │   └── compositing.js
-│   ├── hooks/
-│   │   ├── useRetouch.js
-│   │   ├── useBackground.js
-│   │   ├── usePresets.js
-│   │   ├── useBatch.js
-│   │   └── useTokens.js
-│   └── styles/
+│   │   ├── storage.js                ← shared input/output upload helpers
+│   │   └── uploadStore.js            ← IndexedDB session persistence
+│   ├── App.jsx
+│   └── main.jsx
 ├── api/
 │   ├── retouch/
 │   │   ├── start.js
@@ -1733,15 +1735,22 @@ smalltouch-studio/
 │   │   └── download.js
 │   ├── background/
 │   │   ├── remove.js
-│   │   └── replace.js
+│   │   ├── generate.js
+│   │   ├── expand.js
+│   │   └── status.js
 │   ├── tokens/
 │   │   ├── redeem.js                 ← validates code, applies package + tokens
 │   │   └── generate.js               ← admin: generate codes per package
-│   └── composite.js
+│   └── admin/
+│       └── users.js
+├── docs/
+│   ├── DEVPLAN.md                    ← this file
+│   ├── DEVELOPMENT_RULES.md
+│   └── api/                          ← schema docs per endpoint
 ├── .env.local
 ├── vercel.json
 ├── package.json
-└── README.md
+└── vite.config.js
 ```
 
 ---

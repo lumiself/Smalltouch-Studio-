@@ -9,21 +9,14 @@ import { useToast } from '../contexts/ToastContext'
 import { canUseAction } from '../lib/access'
 import { saveUpload, loadUpload, clearUpload } from '../lib/uploadStore'
 import { getOutputUrl } from '../lib/storage'
-import LibraryPanel from '../components/retouch/LibraryPanel'
+import PanelShell from '../components/shared/PanelShell'
 import QuickEnhance from '../components/retouch/QuickEnhance'
 import AdvancedEdit from '../components/retouch/AdvancedEdit'
-import ResultsPanel from '../components/retouch/ResultsPanel'
 import PlaygroundPanel from '../components/retouch/PlaygroundPanel'
 
-const MOBILE_TABS = [
-  { id: 'library', label: 'Library' },
-  { id: 'tools',   label: 'Tools'   },
-  { id: 'results', label: 'Results' },
-]
-
 const TOOL_NAV = [
-  { id: 'quick-enhance',  label: 'Enhance',  Icon: Zap              },
-  { id: 'advanced-edit',  label: 'Advanced', Icon: SlidersHorizontal },
+  { id: 'quick-enhance', label: 'Enhance',  Icon: Zap              },
+  { id: 'advanced-edit', label: 'Advanced', Icon: SlidersHorizontal },
 ]
 
 export default function RetouchPage() {
@@ -86,7 +79,7 @@ export default function RetouchPage() {
     }))
     setImages(prev => [...prev, ...newImages])
     if (!selectedImage) setSelectedImage(newImages[0])
-    if (newImages.length) setMobileTab('tools')
+    setMobileTab('tools')
   }
 
   const handleQuickEnhance = useCallback(async (preset) => {
@@ -193,131 +186,91 @@ export default function RetouchPage() {
   }
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden min-h-0">
-
-      {/* Mobile top tabs: Library / Tools / Results */}
-      <div className="md:hidden flex border-b border-[#2a2a2a] shrink-0 bg-[#1a1a1a]">
-        {MOBILE_TABS.map(tab => (
+    <PanelShell
+      images={images}
+      selectedImage={selectedImage}
+      onSelect={img => { setSelectedImage(img); setActiveJobId(null) }}
+      onUpload={handleUpload}
+      libraryMode="multi"
+      batchQueue={batchQueue}
+      onAddToBatch={img => setBatchQueue(prev =>
+        prev.find(i => i.id === img.id) ? prev : [...prev, img]
+      )}
+      jobs={jobs.filter(j => j.type !== 'advanced_edit')}
+      onDownloadAll={handleDownloadAll}
+      mobileTab={mobileTab}
+      onMobileTabChange={setMobileTab}
+    >
+      {/* Mobile horizontal tool switcher */}
+      <div className="md:hidden flex shrink-0 border-b border-[#2a2a2a] bg-[#161616]">
+        {TOOL_NAV.map(({ id, label, Icon }) => (
           <button
-            key={tab.id}
-            onClick={() => setMobileTab(tab.id)}
-            className={`flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
-              mobileTab === tab.id
+            key={id}
+            onClick={() => setActiveTool(id)}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
+              activeTool === id
                 ? 'text-[#a855f7] border-[#a855f7]'
                 : 'text-[#555] border-transparent hover:text-[#a3a3a3]'
             }`}
           >
-            {tab.label}
-            {tab.id === 'results' && jobs.length > 0 && (
-              <span className="ml-1 text-[9px] bg-[#a855f7]/20 text-[#a855f7] px-1 rounded-full">
-                {jobs.length}
-              </span>
-            )}
+            <Icon size={12} />
+            {label}
           </button>
         ))}
       </div>
 
-      {/* Three-column layout */}
       <div className="flex flex-1 overflow-hidden min-h-0">
+        {/* Desktop vertical tool nav */}
+        <nav className="hidden md:flex flex-col w-[72px] shrink-0 border-r border-[#2a2a2a] bg-[#161616] py-3 gap-1">
+          {TOOL_NAV.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTool(id)}
+              className={`flex flex-col items-center gap-1.5 py-3 mx-1.5 rounded-lg transition-colors ${
+                activeTool === id
+                  ? 'bg-[#a855f7]/15 text-[#a855f7]'
+                  : 'text-[#555] hover:text-[#a3a3a3] hover:bg-[#242424]'
+              }`}
+            >
+              <Icon size={16} />
+              <span className="text-[10px] font-medium leading-tight text-center">{label}</span>
+            </button>
+          ))}
+        </nav>
 
-        {/* ── Library ── */}
-        <div className={`${mobileTab === 'library' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[220px] shrink-0 border-r border-[#2a2a2a] overflow-hidden`}>
-          <LibraryPanel
-            images={images}
-            selectedImage={selectedImage}
-            onSelect={img => { setSelectedImage(img); setActiveJobId(null); setMobileTab('tools') }}
-            onUpload={handleUpload}
-            batchQueue={batchQueue}
-            onAddToBatch={img => setBatchQueue(prev => prev.find(i => i.id === img.id) ? prev : [...prev, img])}
-          />
+        {/* Tool content + playground */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          {activeTool === 'quick-enhance' && (
+            <QuickEnhance
+              selectedPreset={activePreset}
+              onPresetSelect={setActivePreset}
+            />
+          )}
+          {activeTool === 'advanced-edit' && (
+            <AdvancedEdit
+              selectedImage={selectedImage}
+              onStartEditing={handleAdvancedEdit}
+              processing={advancedProcessing}
+              jobComplete={!!activeJobId && jobs.find(j => j.id === activeJobId)?.status === 'completed'}
+              onDownloadZip={handleDownloadZip}
+              balance={balance}
+            />
+          )}
+          {activeTool === 'quick-enhance' && (
+            <PlaygroundPanel
+              selectedImage={selectedImage}
+              selectedPreset={activePreset}
+              batchQueue={batchQueue}
+              batchStatuses={batchStatuses}
+              batchRunning={batchRunning}
+              balance={balance}
+              onRemoveFromBatch={id => setBatchQueue(prev => prev.filter(i => i.id !== id))}
+              onStartBatch={handleStartBatch}
+              onEnhance={handleQuickEnhance}
+            />
+          )}
         </div>
-
-        {/* ── Center: tool nav + tool content + playground ── */}
-        <div className={`${mobileTab === 'tools' ? 'flex' : 'hidden'} md:flex flex-1 flex-col overflow-hidden min-h-0`}>
-
-          {/* Mobile-only horizontal tool switcher */}
-          <div className="md:hidden flex shrink-0 border-b border-[#2a2a2a] bg-[#161616]">
-            {TOOL_NAV.map(({ id, label, Icon }) => (
-              <button
-                key={id}
-                onClick={() => setActiveTool(id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
-                  activeTool === id
-                    ? 'text-[#a855f7] border-[#a855f7]'
-                    : 'text-[#555] border-transparent hover:text-[#a3a3a3]'
-                }`}
-              >
-                <Icon size={12} />
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {/* Tool area */}
-          <div className="flex flex-1 overflow-hidden min-h-0">
-
-            {/* Vertical nav — desktop only */}
-            <nav className="hidden md:flex flex-col w-[72px] shrink-0 border-r border-[#2a2a2a] bg-[#161616] py-3 gap-1">
-              {TOOL_NAV.map(({ id, label, Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveTool(id)}
-                  className={`flex flex-col items-center gap-1.5 py-3 mx-1.5 rounded-lg transition-colors ${
-                    activeTool === id
-                      ? 'bg-[#a855f7]/15 text-[#a855f7]'
-                      : 'text-[#555] hover:text-[#a3a3a3] hover:bg-[#242424]'
-                  }`}
-                >
-                  <Icon size={16} />
-                  <span className="text-[10px] font-medium leading-tight text-center">{label}</span>
-                </button>
-              ))}
-            </nav>
-
-            {/* Active tool content + playground scrolling together */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              {activeTool === 'quick-enhance' && (
-                <QuickEnhance
-                  selectedPreset={activePreset}
-                  onPresetSelect={setActivePreset}
-                />
-              )}
-              {activeTool === 'advanced-edit' && (
-                <AdvancedEdit
-                  selectedImage={selectedImage}
-                  onStartEditing={handleAdvancedEdit}
-                  processing={advancedProcessing}
-                  jobComplete={!!activeJobId && jobs.find(j => j.id === activeJobId)?.status === 'completed'}
-                  onDownloadZip={handleDownloadZip}
-                  balance={balance}
-                />
-              )}
-              {activeTool === 'quick-enhance' && (
-                <PlaygroundPanel
-                  selectedImage={selectedImage}
-                  selectedPreset={activePreset}
-                  batchQueue={batchQueue}
-                  batchStatuses={batchStatuses}
-                  batchRunning={batchRunning}
-                  balance={balance}
-                  onRemoveFromBatch={id => setBatchQueue(prev => prev.filter(i => i.id !== id))}
-                  onStartBatch={handleStartBatch}
-                  onEnhance={handleQuickEnhance}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Results ── */}
-        <div className={`${mobileTab === 'results' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[260px] shrink-0 border-l border-[#2a2a2a] overflow-hidden`}>
-          <ResultsPanel
-            jobs={jobs.filter(j => j.type !== 'advanced_edit')}
-            onDownloadAll={handleDownloadAll}
-          />
-        </div>
-
       </div>
-    </div>
+    </PanelShell>
   )
 }
