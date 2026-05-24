@@ -98,7 +98,7 @@ export default function PlaygroundPanel({
                 />
                 {!batchRunning && (
                   <button
-                    onClick={() => onRemoveFromBatch(item.id)}
+                    onClick={e => { e.stopPropagation(); onRemoveFromBatch(item.id) }}
                     className="absolute top-0 right-0 w-4 h-4 bg-black/70 rounded-bl flex items-center justify-center opacity-100 md:opacity-0 md:group-hover/thumb:opacity-100 transition-opacity"
                   >
                     <X size={8} className="text-white" />
