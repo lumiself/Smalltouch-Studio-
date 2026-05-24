@@ -1,5 +1,4 @@
 import { X, Play, Zap } from 'lucide-react'
-import BeforeAfterSlider from '../shared/BeforeAfterSlider'
 import TokenCostBadge from '../shared/TokenCostBadge'
 
 function statusDotClass(status) {
@@ -28,15 +27,9 @@ export default function PlaygroundPanel({
   return (
     <div className="shrink-0 border-t border-[#2a2a2a] flex flex-col h-[260px] md:h-[290px]">
 
-      {/* Large preview — before/after when preset selected, plain image otherwise */}
+      {/* Large preview — always shows the selected image */}
       <div className="flex-1 bg-[#0d0d0d] relative overflow-hidden min-h-0">
-        {selectedPreset ? (
-          <BeforeAfterSlider
-            beforeSrc={selectedPreset.beforeImageUrl || selectedImage?.preview}
-            afterSrc={selectedPreset.afterImageUrl || selectedImage?.preview}
-            className="w-full h-full"
-          />
-        ) : selectedImage ? (
+        {selectedImage ? (
           <img
             src={selectedImage.preview}
             alt="Preview"
@@ -44,7 +37,7 @@ export default function PlaygroundPanel({
           />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <p className="text-[#2a2a2a] text-xs">Select an image and a preset</p>
+            <p className="text-[#2a2a2a] text-xs">Select an image to preview</p>
           </div>
         )}
 

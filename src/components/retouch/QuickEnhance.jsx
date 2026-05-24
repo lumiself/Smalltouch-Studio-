@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { X } from 'lucide-react'
 import { CATEGORIES } from '../../registry/presets'
 import { supabase } from '../../lib/supabase'
 import TokenCostBadge from '../shared/TokenCostBadge'
+import BeforeAfterSlider from '../shared/BeforeAfterSlider'
 
 function dbToPreset(row) {
   return {
@@ -20,6 +22,7 @@ function dbToPreset(row) {
 
 export default function QuickEnhance({ selectedPreset, onPresetSelect }) {
   const [activeCategory, setActiveCategory] = useState('All')
+  const [previewPreset, setPreviewPreset] = useState(null)
   const [dbPresets, setDbPresets] = useState([])
   const [presetsLoaded, setPresetsLoaded] = useState(false)
 
@@ -41,8 +44,12 @@ export default function QuickEnhance({ selectedPreset, onPresetSelect }) {
       : dbPresets.filter(p => p.categories.includes(activeCategory))
 
   function handleCardClick(preset) {
-    // Toggle off if already selected, otherwise select
+    setPreviewPreset(prev => prev?.id === preset.id ? null : preset)
+  }
+
+  function handleSelect(preset) {
     onPresetSelect(selectedPreset?.id === preset.id ? null : preset)
+    setPreviewPreset(null)
   }
 
   return (
@@ -64,6 +71,46 @@ export default function QuickEnhance({ selectedPreset, onPresetSelect }) {
           </button>
         ))}
       </div>
+
+      {previewPreset && (
+        <div className="bg-[#242424] rounded-xl p-3 border border-[#a855f7]/40 space-y-3">
+          <BeforeAfterSlider
+            beforeSrc={previewPreset.beforeImageUrl}
+            afterSrc={previewPreset.afterImageUrl}
+            className="w-full h-44"
+          />
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-[#f5f5f5] text-sm font-medium">{previewPreset.name}</p>
+              <p className="text-[#a3a3a3] text-xs">{previewPreset.description}</p>
+              <div className="flex gap-1 mt-1">
+                {previewPreset.categories.map(c => (
+                  <span key={c} className="text-[10px] text-[#a3a3a3] bg-[#1a1a1a] px-1.5 py-0.5 rounded">{c}</span>
+                ))}
+              </div>
+            </div>
+            <TokenCostBadge cost={previewPreset.tokenCost} />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleSelect(previewPreset)}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectedPreset?.id === previewPreset.id
+                  ? 'bg-[#7c3aed] text-white'
+                  : 'bg-[#a855f7] hover:bg-[#7c3aed] text-white'
+              }`}
+            >
+              {selectedPreset?.id === previewPreset.id ? 'Deselect' : 'Select Preset'}
+            </button>
+            <button
+              onClick={() => setPreviewPreset(null)}
+              className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-[#2a2a2a] text-[#a3a3a3] transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {presetsLoaded && visiblePresets.length === 0 ? (
         <p className="text-[#a3a3a3] text-xs text-center py-8">
