@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useState, startTransition } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Sparkles } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+
+function yieldToMain() {
+  return new Promise(r => setTimeout(r, 0))
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -14,25 +18,27 @@ export default function LoginPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setError('')
+    startTransition(() => setError(''))
     setLoading(true)
+    await yieldToMain()
     try {
       await signIn(email, password)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.message || 'Login failed')
+      startTransition(() => setError(err.message || 'Login failed'))
     } finally {
       setLoading(false)
     }
   }
 
   async function handleGoogle() {
-    setError('')
+    startTransition(() => setError(''))
     setGoogleLoading(true)
+    await yieldToMain()
     try {
       await signInWithGoogle()
     } catch (err) {
-      setError(err.message || 'Google sign-in failed')
+      startTransition(() => setError(err.message || 'Google sign-in failed'))
       setGoogleLoading(false)
     }
   }
