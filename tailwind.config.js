@@ -18,6 +18,10 @@ export default {
         'warning': '#f59e0b',
         'error': '#ef4444',
         'border-color': '#2a2a2a',
+        'bauhaus-red': '#CC2200',
+        'bauhaus-yellow': '#F5C400',
+        'bauhaus-blue': '#1B3A7A',
+        'bauhaus-cream': '#F8F4EC',
       },
       fontFamily: {
         'display': ['Syne', 'sans-serif'],
