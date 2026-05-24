@@ -25,7 +25,7 @@ export default function ResultsPanel({ jobs, onDownloadAll }) {
   }
 
   return (
-    <aside className="w-72 shrink-0 bg-[#1a1a1a] border-l border-[#2a2a2a] flex flex-col overflow-hidden">
+    <aside className="w-full md:w-72 shrink-0 bg-[#1a1a1a] border-l border-[#2a2a2a] flex flex-col overflow-hidden">
       <div className="p-3 border-b border-[#2a2a2a] flex items-center justify-between">
         <h3 className="text-[#f5f5f5] text-sm font-medium">Results {jobs.length > 0 && `(${jobs.length})`}</h3>
         {completed.length > 1 && (

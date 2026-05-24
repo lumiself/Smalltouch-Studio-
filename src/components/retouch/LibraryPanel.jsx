@@ -29,7 +29,7 @@ export default function LibraryPanel({
   const totalCost = activePreset ? batchQueue.length * activePreset.tokenCost : 0
 
   return (
-    <aside className="w-60 shrink-0 bg-[#1a1a1a] border-r border-[#2a2a2a] flex flex-col overflow-hidden">
+    <aside className="w-full md:w-60 shrink-0 bg-[#1a1a1a] border-r border-[#2a2a2a] flex flex-col overflow-hidden">
       <div className="p-3 border-b border-[#2a2a2a]">
         <button
           onClick={() => fileInputRef.current?.click()}
