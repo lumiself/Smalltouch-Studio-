@@ -290,7 +290,6 @@ export default function RetouchPage() {
                   jobComplete={!!activeJobId && jobs.find(j => j.id === activeJobId)?.status === 'completed'}
                   onDownloadZip={handleDownloadZip}
                   balance={balance}
-                  disabled={false}
                 />
               )}
               {activeTool === 'quick-enhance' && (
