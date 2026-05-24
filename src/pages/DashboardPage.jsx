@@ -12,10 +12,11 @@ const PANEL_COLORS = ['#CC2200', '#F5C400', '#1B3A7A', '#f5f5f5']
 
 function useRevealOnScroll(keys) {
   const [visible, setVisible] = useState(() => Object.fromEntries(keys.map(k => [k, false])))
-  const refs = useRef({})
+  const observerRef = useRef(null)
+  const pendingRef = useRef([])
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
+    observerRef.current = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
@@ -26,15 +27,19 @@ function useRevealOnScroll(keys) {
       },
       { threshold: 0.08 }
     )
-
-    Object.entries(refs.current).forEach(([, el]) => { if (el) observer.observe(el) })
-    return () => observer.disconnect()
+    // Observe elements that were registered before the observer was ready
+    pendingRef.current.forEach(el => observerRef.current.observe(el))
+    pendingRef.current = []
+    return () => observerRef.current.disconnect()
   }, [])
 
   const setRef = key => el => {
-    if (el) {
-      el.dataset.revealKey = key
-      refs.current[key] = el
+    if (!el) return
+    el.dataset.revealKey = key
+    if (observerRef.current) {
+      observerRef.current.observe(el)
+    } else {
+      pendingRef.current.push(el)
     }
   }
 
