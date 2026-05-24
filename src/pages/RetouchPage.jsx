@@ -293,17 +293,19 @@ export default function RetouchPage() {
                   disabled={false}
                 />
               )}
-              <PlaygroundPanel
-                selectedImage={selectedImage}
-                selectedPreset={activePreset}
-                batchQueue={batchQueue}
-                batchStatuses={batchStatuses}
-                batchRunning={batchRunning}
-                balance={balance}
-                onRemoveFromBatch={id => setBatchQueue(prev => prev.filter(i => i.id !== id))}
-                onStartBatch={handleStartBatch}
-                onEnhance={handleQuickEnhance}
-              />
+              {activeTool === 'quick-enhance' && (
+                <PlaygroundPanel
+                  selectedImage={selectedImage}
+                  selectedPreset={activePreset}
+                  batchQueue={batchQueue}
+                  batchStatuses={batchStatuses}
+                  batchRunning={batchRunning}
+                  balance={balance}
+                  onRemoveFromBatch={id => setBatchQueue(prev => prev.filter(i => i.id !== id))}
+                  onStartBatch={handleStartBatch}
+                  onEnhance={handleQuickEnhance}
+                />
+              )}
             </div>
           </div>
         </div>

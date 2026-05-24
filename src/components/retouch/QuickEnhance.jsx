@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { CATEGORIES } from '../../registry/presets'
 import { supabase } from '../../lib/supabase'
@@ -23,6 +23,7 @@ function dbToPreset(row) {
 export default function QuickEnhance({ selectedPreset, onPresetSelect }) {
   const [activeCategory, setActiveCategory] = useState('All')
   const [previewPreset, setPreviewPreset] = useState(null)
+  const modalRef = useRef(null)
   const [dbPresets, setDbPresets] = useState([])
   const [presetsLoaded, setPresetsLoaded] = useState(false)
 
@@ -42,6 +43,12 @@ export default function QuickEnhance({ selectedPreset, onPresetSelect }) {
     activeCategory === 'All'
       ? dbPresets
       : dbPresets.filter(p => p.categories.includes(activeCategory))
+
+  useEffect(() => {
+    if (previewPreset && modalRef.current) {
+      modalRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [previewPreset])
 
   function handleCardClick(preset) {
     setPreviewPreset(prev => prev?.id === preset.id ? null : preset)
@@ -73,7 +80,7 @@ export default function QuickEnhance({ selectedPreset, onPresetSelect }) {
       </div>
 
       {previewPreset && (
-        <div className="bg-[#242424] rounded-xl p-3 border border-[#a855f7]/40 space-y-3">
+        <div ref={modalRef} className="bg-[#242424] rounded-xl p-3 border border-[#a855f7]/40 space-y-3">
           <BeforeAfterSlider
             beforeSrc={previewPreset.beforeImageUrl}
             afterSrc={previewPreset.afterImageUrl}
