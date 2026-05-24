@@ -47,7 +47,7 @@ export default function BackgroundPage() {
     } finally {
       setProcessing(false)
     }
-  }, [user, selectedImage, profile, deductTokens, refundTokens, runFluxPreset, navigate, toast])
+  }, [user, selectedImage, profile, deductTokens, refundTokens, runReplace, navigate, toast])
 
   return (
     <PanelShell mobileTab={mobileTab} onMobileTabChange={setMobileTab}>
