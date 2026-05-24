@@ -43,9 +43,9 @@ export default function BgApplyPanel({ selectedImage, selectedPreset, processing
         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
       >
         {processing ? (
-          <><Loader2 size={14} className="animate-spin" /> Generating…</>
+          <><Loader2 size={14} className="animate-spin" /> Replacing…</>
         ) : (
-          <><Wand2 size={14} /> Generate Background</>
+          <><Wand2 size={14} /> Replace Background</>
         )}
       </button>
 

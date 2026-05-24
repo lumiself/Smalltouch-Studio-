@@ -47,6 +47,50 @@ function pollJob(jobId, updateJob) {
 
 export function useBackground({ addJob, updateJob }) {
 
+  const runReplace = useCallback(async ({ userId, file, preset }) => {
+    const jobId = crypto.randomUUID()
+    addJob({
+      id: jobId,
+      type: 'bg_replace',
+      panel: 'background',
+      presetName: preset.name,
+      status: 'uploading',
+      progress: 0,
+      result: null,
+    })
+
+    try {
+      updateJob(jobId, { status: 'uploading' })
+      const inputPath = await uploadInput(userId, jobId, file)
+
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      updateJob(jobId, { status: 'submitting' })
+      const startRes = await fetch('/api/background/replace', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId, inputPath, preset: preset.payload, tokenCost: preset.tokenCost }),
+      })
+
+      if (!startRes.ok) {
+        const errData = await startRes.json().catch(() => ({}))
+        throw new Error(errData.error || `Request failed (${startRes.status})`)
+      }
+
+      // Poll Supabase jobs table — webhook chaining handles the 3 steps
+      updateJob(jobId, { status: 'processing' })
+      const outputPath = await pollJob(jobId, updateJob)
+
+      const resultUrl = await getOutputUrl(outputPath)
+      updateJob(jobId, { status: 'completed', progress: 100, result: { url: resultUrl, outputPath }, originalFile: file })
+      return { jobId, resultUrl }
+    } catch (err) {
+      updateJob(jobId, { status: 'failed', error: err.message })
+      throw err
+    }
+  }, [addJob, updateJob])
+
   const runFluxPreset = useCallback(async ({ userId, file, preset }) => {
     const jobId = crypto.randomUUID()
     addJob({
@@ -105,5 +149,5 @@ export function useBackground({ addJob, updateJob }) {
     }
   }, [addJob, updateJob])
 
-  return { runFluxPreset }
+  return { runReplace, runFluxPreset }
 }

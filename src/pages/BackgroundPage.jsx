@@ -19,7 +19,7 @@ export default function BackgroundPage() {
   const { user, profile } = useAuth()
   const { balance, deductTokens, refundTokens } = useTokens()
   const { selectedImage, addJob, updateJob } = useLibrary()
-  const { runFluxPreset } = useBackground({ addJob, updateJob })
+  const { runReplace } = useBackground({ addJob, updateJob })
   const toast = useToast()
   const navigate = useNavigate()
 
@@ -30,20 +30,20 @@ export default function BackgroundPage() {
 
   const handleApply = useCallback(async (preset) => {
     if (!user || !selectedImage || !preset) return
-    if (!canUseAction(profile, 'bg_flux_preset')) { navigate('/tokens'); return }
+    if (!canUseAction(profile, 'bg_replace')) { navigate('/tokens'); return }
 
     setProcessing(true)
     let deducted = false
     try {
-      await deductTokens(user.id, preset.tokenCost, crypto.randomUUID(), 'bg_flux_preset')
+      await deductTokens(user.id, preset.tokenCost, crypto.randomUUID(), 'bg_replace')
       deducted = true
-      await runFluxPreset({ userId: user.id, file: selectedImage.file, preset })
+      await runReplace({ userId: user.id, file: selectedImage.file, preset })
       setMobileTab('results')
     } catch (err) {
       if (deducted) {
         try { await refundTokens(user.id, preset.tokenCost) } catch {}
       }
-      toast.error(err.message || 'Background generation failed')
+      toast.error(err.message || 'Background replacement failed')
     } finally {
       setProcessing(false)
     }

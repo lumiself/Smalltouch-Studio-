@@ -250,17 +250,23 @@ There are three tools:
     content: `
 **What it does**
 
-Background Presets let you transform the background of a portrait or subject photo by selecting a scene from the preset library. The AI — Flux-2-Max, a top-tier image generation model — replaces or reimagines the background based on a curated prompt built into each preset. Your subject stays in the photo.
+Background Presets give you a one-click background replacement using a three-step AI pipeline:
+
+1. **Remove background** — the subject is automatically cut out with AI (rembg model)
+2. **Generate scene** — Flux-2-Max creates a photorealistic background from the preset's scene description
+3. **Composite** — the subject is placed back over the new background at the correct scale
+
+The result is a clean, properly composited photo with the original subject on an AI-generated background scene.
 
 **How to use it**
-1. Upload your image using the Upload button in the left Library panel
+1. Upload your photo using the Upload button in the left Library panel
 2. Go to **Background Studio → Presets** tab
-3. Browse the preset grid and click any card to see a before/after preview
-4. Click **Select Preset** to mark it active
-5. Scroll down to the **Apply Background** section
-6. Click **Generate Background** — costs 2 tokens
-7. Wait 20–60 seconds while Flux-2-Max generates the new background
-8. The result appears in the Results panel on the right
+3. Browse the preset grid — use the category filters to narrow by scene type
+4. Click a card to see a before/after preview, then **Select Preset**
+5. Confirm your image is shown in the Apply Background section below
+6. Click **Replace Background** — costs 2 tokens
+7. Wait 30–90 seconds while all three steps run (removal → generation → composite)
+8. The final result appears in the Results panel on the right
 9. Download your result
 
 **Preset categories**
@@ -277,21 +283,22 @@ Background Presets let you transform the background of a portrait or subject pho
 
 **Token cost**
 
-2 tokens per generation. Deducted before the job starts. Refunded automatically if the generation fails.
+2 tokens per replacement. Deducted before the pipeline starts. Refunded automatically if any step fails.
 
 **Expected output**
 
-A flat image (WebP) with the original subject composited over a newly generated background. The result matches the aspect ratio of your input image.
+A JPEG with the original subject composited over an AI-generated background. The background is scaled to match the subject's exact pixel dimensions.
 
 **Minimum package**
 
-Standard or above. Background Presets use the Flux-2-Max generative model and require a Standard, Pro, or Studio package.
+Standard or above.
 
 **Common issues**
-- *Generate Background is greyed out* — make sure you have selected both an image and a preset
-- *Not enough tokens* — redeem a voucher code on the Tokens page; each generation costs 2 tokens
-- *Result looks odd* — the model conditions on your subject from the input image; portrait-style photos with a clear, well-lit subject work best
-- *Generation took too long* — Flux-2-Max typically takes 20–60 seconds; if you see a timeout error, try again
+- *Replace Background is greyed out* — select both an image and a preset first
+- *Not enough tokens* — redeem a voucher on the Tokens page; each replacement costs 2 tokens
+- *Subject edges look rough* — the rembg model works best on photos with clear contrast between subject and background; avoid very busy or low-contrast backgrounds
+- *Background doesn't match the scene* — try a different preset in the same category, or ask your admin to adjust the preset prompt
+- *Job failed* — your token is refunded; if it happens repeatedly, the image may be too large or the background too complex for automatic removal
     `,
   },
   {

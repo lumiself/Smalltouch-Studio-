@@ -129,6 +129,65 @@ export default async function handler(req, res) {
     }
   }
 
+  // POST /api/background/replace  — step 1 of 3: start rembg, insert job
+  if (subpath === 'replace') {
+    const { jobId, inputPath, preset, tokenCost } = body
+    if (!jobId || !inputPath || !preset?.prompt) {
+      return res.status(400).json({ error: 'Missing jobId, inputPath, or preset.prompt' })
+    }
+
+    const webhookBase = process.env.WEBHOOK_BASE ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+    if (!webhookBase) {
+      return res.status(500).json({ error: 'WEBHOOK_BASE is not configured' })
+    }
+
+    try {
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('inputs')
+        .createSignedUrl(inputPath, 300)
+      if (signedError || !signedData?.signedUrl) {
+        return res.status(500).json({ error: 'Failed to create signed URL' })
+      }
+
+      // Step 1: remove background
+      const rembgRes = await fetch(`${REPLICATE_BASE}/predictions`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'cjwbw/rembg',
+          input: { image: signedData.signedUrl },
+          webhook: `${webhookBase}/api/webhook/replicate?jobId=${jobId}`,
+          webhook_events_filter: ['completed'],
+        }),
+      })
+      const rembgData = await rembgRes.json()
+      if (!rembgRes.ok) {
+        return res.status(500).json({ error: rembgData.detail || 'Replicate error' })
+      }
+
+      await supabase.from('jobs').insert({
+        id: jobId,
+        user_id: user.id,
+        panel: 'background',
+        operation: 'bg_replace',
+        status: 'processing',
+        external_job_id: rembgData.id,
+        input_path: inputPath,
+        tokens_used: tokenCost ?? 2,
+        metadata: { step: 1, preset },
+      })
+
+      return res.status(200).json({ jobId })
+    } catch (err) {
+      console.error('background/replace error:', err)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+
   // POST /api/background/flux-preset
   if (subpath === 'flux-preset') {
     const { jobId, inputPath, preset, tokenCost } = body
