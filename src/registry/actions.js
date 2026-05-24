@@ -55,6 +55,13 @@ export const actions = [
     tokenCost: 2,
     outputType: "flat",
   },
+  {
+    id: "bg_flux_preset",
+    panel: "background",
+    name: "Background Preset",
+    tokenCost: 2,
+    outputType: "flat",
+  },
 ]
 
 export function getAction(id) {

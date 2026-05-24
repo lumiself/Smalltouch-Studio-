@@ -1,12 +1,13 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Sparkles, History, Coins } from 'lucide-react'
+import { Home, Sparkles, History, Coins, Image } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
 const NAV_ITEMS = [
-  { path: '/dashboard', icon: Home,     label: 'Home'    },
-  { path: '/retouch',   icon: Sparkles, label: 'Retouch' },
-  { path: '/history',   icon: History,  label: 'History' },
-  { path: '/tokens',    icon: Coins,    label: 'Tokens'  },
+  { path: '/dashboard',  icon: Home,     label: 'Home'    },
+  { path: '/retouch',    icon: Sparkles, label: 'Retouch' },
+  { path: '/background', icon: Image,    label: 'BG'      },
+  { path: '/history',    icon: History,  label: 'History' },
+  { path: '/tokens',     icon: Coins,    label: 'Tokens'  },
 ]
 
 export default function BottomNav() {

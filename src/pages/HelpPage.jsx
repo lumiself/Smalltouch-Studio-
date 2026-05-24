@@ -211,6 +211,7 @@ A warning appears in the top bar when your balance drops below 5 tokens.
 | Batch Retouch (per image) | 1 |
 | Background Removal | 1 |
 | Background Blur | 1 |
+| Background Preset (Flux-2-Max) | 2 |
 | AI Background Generation | 2 |
 | Smart Background Expand | 2 |
     `,
@@ -241,6 +242,56 @@ There are three tools:
 - AI Background Generation: 2 tokens
 - Blur Background: 1 token
 - Smart Expand: 2 tokens
+    `,
+  },
+  {
+    id: 'background-presets',
+    title: 'Background Presets (Flux-2-Max)',
+    content: `
+**What it does**
+
+Background Presets let you transform the background of a portrait or subject photo by selecting a scene from the preset library. The AI — Flux-2-Max, a top-tier image generation model — replaces or reimagines the background based on a curated prompt built into each preset. Your subject stays in the photo.
+
+**How to use it**
+1. Upload your image using the Upload button in the left Library panel
+2. Go to **Background Studio → Presets** tab
+3. Browse the preset grid and click any card to see a before/after preview
+4. Click **Select Preset** to mark it active
+5. Scroll down to the **Apply Background** section
+6. Click **Generate Background** — costs 2 tokens
+7. Wait 20–60 seconds while Flux-2-Max generates the new background
+8. The result appears in the Results panel on the right
+9. Download your result
+
+**Preset categories**
+| Category | Best for |
+|----------|----------|
+| Studio | Professional headshots, clean studio setups, neutral backdrops |
+| Outdoor | Natural scenes, gardens, parks, open landscapes |
+| Seated | Chair, stool, and sofa setups for formal portraits |
+| Standing | Full-body standing portraits in a variety of environments |
+| Birthday | Celebration scenes with festive, colorful backgrounds |
+| Portrait | Classic portrait environments suited to any subject |
+| Group | Wider backgrounds suited to multiple people in frame |
+| Baby | Soft, safe, pastel-toned backgrounds for infant and toddler photos |
+
+**Token cost**
+
+2 tokens per generation. Deducted before the job starts. Refunded automatically if the generation fails.
+
+**Expected output**
+
+A flat image (WebP) with the original subject composited over a newly generated background. The result matches the aspect ratio of your input image.
+
+**Minimum package**
+
+Standard or above. Background Presets use the Flux-2-Max generative model and require a Standard, Pro, or Studio package.
+
+**Common issues**
+- *Generate Background is greyed out* — make sure you have selected both an image and a preset
+- *Not enough tokens* — redeem a voucher code on the Tokens page; each generation costs 2 tokens
+- *Result looks odd* — the model conditions on your subject from the input image; portrait-style photos with a clear, well-lit subject work best
+- *Generation took too long* — Flux-2-Max typically takes 20–60 seconds; if you see a timeout error, try again
     `,
   },
   {
@@ -407,20 +458,26 @@ Visit /admin/presets or click the Presets link at the top of the Admin dashboard
 
 **How to create a preset**
 1. Click **New Preset** in the top-right corner
-2. Fill in the required fields:
-   - **Key** — a short unique identifier (e.g. \`natural\`, \`glam\`). Cannot be changed after creation.
+2. Select the **Panel** — Retouch Studio or Background Studio
+3. Fill in the required fields:
+   - **Key** — a short unique identifier (e.g. \`studio_gray\`). Cannot be changed after creation.
    - **Name** — the display name shown to users
    - **Icon** — an emoji that represents the preset
    - **Description** — one-line description shown in the preview panel
-3. Select one or more categories from Portrait, Beauty, Editorial, E-commerce, Color
-4. Set the token cost (default: 1)
-5. Enter the Payload JSON — this is the AI processing configuration sent to the retouching service
-6. Optionally add before/after image URLs for the preview slider
-7. Click **Save**
+4. Select one or more categories (categories depend on the selected panel — see below)
+5. Set the token cost (default: 1 for Retouch, 2 for Background)
+6. Enter the Payload JSON — format depends on the panel
+7. Optionally add before/after image URLs for the preview slider
+8. Click **Save**
 
-**Payload format**
+**Categories by panel**
 
-The payload is sent directly to the retouching service. Example structure:
+*Retouch Studio:* Portrait, Beauty, Editorial, E-commerce, Color
+
+*Background Studio:* Studio, Outdoor, Seated, Standing, Birthday, Portrait, Group, Baby
+
+**Payload format — Retouch Studio**
+
 \`\`\`json
 {
   "mode": "professional",
@@ -431,7 +488,26 @@ The payload is sent directly to the retouching service. Example structure:
 }
 \`\`\`
 
-See the **Plugin Reference** section in this help page for the available plugin names. Scale, Alpha1, and Alpha2 are intensity parameters; values typically range from 0 to 1.
+See the **Plugin Reference** section for available plugin names and parameters.
+
+**Payload format — Background Studio (Flux-2-Max)**
+
+\`\`\`json
+{
+  "prompt": "professional studio background, soft grey seamless paper, diffused lighting",
+  "aspect_ratio": "match_input_image",
+  "resolution": "1 MP",
+  "output_format": "webp",
+  "safety_tolerance": 2
+}
+\`\`\`
+
+Only \`prompt\` is required. All other fields are optional and fall back to the defaults shown above.
+
+Write descriptive, scene-setting prompts. Include lighting, colors, materials, and mood. Examples:
+- "bright outdoor garden, golden hour sunlight, soft bokeh"
+- "minimalist white studio, clean backdrop, diffused soft box lighting"
+- "birthday party, colorful balloons, festive confetti background"
 
 **Before/after images**
 

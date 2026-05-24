@@ -12,6 +12,7 @@ const LoginPage        = lazy(() => import('./pages/LoginPage'))
 const SignupPage       = lazy(() => import('./pages/SignupPage'))
 const DashboardPage    = lazy(() => import('./pages/DashboardPage'))
 const RetouchPage      = lazy(() => import('./pages/RetouchPage'))
+const BackgroundPage   = lazy(() => import('./pages/BackgroundPage'))
 const TokensPage       = lazy(() => import('./pages/TokensPage'))
 const HelpPage         = lazy(() => import('./pages/HelpPage'))
 const HistoryPage      = lazy(() => import('./pages/HistoryPage'))
@@ -58,6 +59,11 @@ export default function App() {
               <Route path="/retouch" element={
                 <ProtectedRoute>
                   <AppLayout><RetouchPage /></AppLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/background" element={
+                <ProtectedRoute>
+                  <AppLayout><BackgroundPage /></AppLayout>
                 </ProtectedRoute>
               } />
               <Route path="/tokens" element={

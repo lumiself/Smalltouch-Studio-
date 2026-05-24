@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
 const REPLICATE_BASE = 'https://api.replicate.com/v1'
+const FLUX_2_MAX_ENDPOINT = 'https://api.replicate.com/v1/models/black-forest-labs/flux-2-max/predictions'
 
 function supabaseClient() {
   return createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -124,6 +125,48 @@ export default async function handler(req, res) {
       return res.status(200).json({ predictionId: replicateData.id })
     } catch (err) {
       console.error('background/expand error:', err)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+
+  // POST /api/background/flux-preset
+  if (subpath === 'flux-preset') {
+    const { inputPath, preset } = body
+    if (!inputPath || !preset?.prompt) {
+      return res.status(400).json({ error: 'Missing inputPath or preset.prompt' })
+    }
+    try {
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('inputs')
+        .createSignedUrl(inputPath, 300)
+      if (signedError || !signedData?.signedUrl) {
+        return res.status(500).json({ error: 'Failed to create signed URL' })
+      }
+
+      const input = {
+        prompt: preset.prompt,
+        input_images: [signedData.signedUrl],
+        aspect_ratio: preset.aspect_ratio ?? 'match_input_image',
+        resolution: preset.resolution ?? '1 MP',
+        output_format: preset.output_format ?? 'webp',
+        safety_tolerance: preset.safety_tolerance ?? 2,
+      }
+
+      const replicateRes = await fetch(FLUX_2_MAX_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ input }),
+      })
+      const replicateData = await replicateRes.json()
+      if (!replicateRes.ok) {
+        return res.status(500).json({ error: replicateData.detail || replicateData.error || 'Replicate error' })
+      }
+      return res.status(200).json({ predictionId: replicateData.id })
+    } catch (err) {
+      console.error('background/flux-preset error:', err)
       return res.status(500).json({ error: 'Internal server error' })
     }
   }

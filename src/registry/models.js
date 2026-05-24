@@ -27,4 +27,11 @@ export const models = [
     actions: ["bg_expand"],
     version: "latest",
   },
+  {
+    id: "flux_2_max",
+    provider: "replicate",
+    model: "black-forest-labs/flux-2-max",
+    actions: ["bg_flux_preset"],
+    endpoint: "https://api.replicate.com/v1/models/black-forest-labs/flux-2-max/predictions",
+  },
 ]
