@@ -1,35 +1,38 @@
-import { Download, RefreshCw, CheckCircle, Clock, XCircle } from 'lucide-react'
-import ProgressBar from '../shared/ProgressBar'
-import BeforeAfterSlider from '../shared/BeforeAfterSlider'
+import { Download, CheckCircle, Clock, XCircle } from 'lucide-react'
+import ProgressBar from './ProgressBar'
+import BeforeAfterSlider from './BeforeAfterSlider'
 
 const STATUS_ICONS = {
-  completed: <CheckCircle size={14} className="text-[#22c55e]" />,
-  processing: <Clock size={14} className="text-[#f59e0b]" />,
-  uploading: <Clock size={14} className="text-[#f59e0b]" />,
-  submitting: <Clock size={14} className="text-[#f59e0b]" />,
+  completed:   <CheckCircle size={14} className="text-[#22c55e]" />,
+  processing:  <Clock size={14} className="text-[#f59e0b]" />,
+  uploading:   <Clock size={14} className="text-[#f59e0b]" />,
+  submitting:  <Clock size={14} className="text-[#f59e0b]" />,
   downloading: <Clock size={14} className="text-[#f59e0b]" />,
-  failed: <XCircle size={14} className="text-[#ef4444]" />,
+  failed:      <XCircle size={14} className="text-[#ef4444]" />,
 }
 
-export default function ResultsPanel({ jobs, onDownloadAll }) {
+export default function ResultsPanel({ jobs = [], onDownloadAll }) {
   const completed = jobs.filter(j => j.status === 'completed')
-  const active = jobs.filter(j => !['completed', 'failed'].includes(j.status))
-  const failed = jobs.filter(j => j.status === 'failed')
 
   async function downloadResult(job) {
     if (!job.result?.url) return
     const a = document.createElement('a')
     a.href = job.result.url
-    a.download = `retouched_${job.id.slice(0, 8)}.jpg`
+    a.download = `result_${job.id.slice(0, 8)}.jpg`
     a.click()
   }
 
   return (
-    <aside className="w-full md:w-72 shrink-0 bg-[#1a1a1a] border-l border-[#2a2a2a] flex flex-col overflow-hidden">
-      <div className="p-3 border-b border-[#2a2a2a] flex items-center justify-between">
-        <h3 className="text-[#f5f5f5] text-sm font-medium">Results {jobs.length > 0 && `(${jobs.length})`}</h3>
+    <aside className="w-full shrink-0 bg-[#1a1a1a] flex flex-col overflow-hidden h-full">
+      <div className="p-3 border-b border-[#2a2a2a] flex items-center justify-between shrink-0">
+        <h3 className="text-[#f5f5f5] text-sm font-medium">
+          Results{jobs.length > 0 ? ` (${jobs.length})` : ''}
+        </h3>
         {completed.length > 1 && (
-          <button onClick={onDownloadAll} className="flex items-center gap-1 text-xs text-[#a855f7] hover:text-[#7c3aed] transition-colors">
+          <button
+            onClick={onDownloadAll}
+            className="flex items-center gap-1 text-xs text-[#a855f7] hover:text-[#7c3aed] transition-colors"
+          >
             <Download size={12} />
             All
           </button>
@@ -44,9 +47,9 @@ export default function ResultsPanel({ jobs, onDownloadAll }) {
         {[...jobs].reverse().map(job => (
           <div key={job.id} className="bg-[#242424] rounded-xl overflow-hidden">
             <div className="p-2.5 flex items-center gap-2">
-              {STATUS_ICONS[job.status] || <Clock size={14} className="text-[#a3a3a3]" />}
+              {STATUS_ICONS[job.status] ?? <Clock size={14} className="text-[#a3a3a3]" />}
               <span className="text-[#f5f5f5] text-xs font-medium flex-1 truncate">
-                {job.presetName || (job.type === 'advanced_edit' ? 'Advanced Edit' : job.id.slice(0, 8))}
+                {job.presetName || job.id.slice(0, 8)}
               </span>
             </div>
 

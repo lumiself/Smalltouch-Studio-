@@ -8,6 +8,7 @@ import { useToast } from '../contexts/ToastContext'
 import { canUseAction } from '../lib/access'
 import { uploadInput } from '../lib/storage'
 import { saveUpload, loadUpload, clearUpload } from '../lib/uploadStore'
+import PanelShell from '../components/shared/PanelShell'
 import BackgroundTools from '../components/background/BackgroundTools'
 import CanvasPreview from '../components/background/CanvasPreview'
 
@@ -74,7 +75,9 @@ export default function BackgroundPage() {
     }
   }, [file, inputPath, storeKey, restored])
 
-  const handleUpload = useCallback(async (uploadedFile) => {
+  // Library calls onUpload(files[]) — Background only uses the first file
+  const handleUpload = useCallback(async (files) => {
+    const uploadedFile = files[0]
     const url = URL.createObjectURL(uploadedFile)
     setFile(uploadedFile)
     setOriginalUrl(url)
@@ -128,7 +131,7 @@ export default function BackgroundPage() {
       const output = await pollBgStatus(data.predictionId, jobId, null)
       setSubjectUrl(output)
       setStep('removed')
-      setMobileTab('canvas')
+      setMobileTab('results')
     } catch (err) {
       if (deducted) {
         try { await refundTokens(user.id, 1) } catch {}
@@ -187,11 +190,11 @@ export default function BackgroundPage() {
     if (!subjectUrl || !user) return
 
     const actionMap = {
-      solid: { action: 'bg_replace_solid', tokens: 1 },
-      gradient: { action: 'bg_replace_solid', tokens: 1 },
+      solid:       { action: 'bg_replace_solid', tokens: 1 },
+      gradient:    { action: 'bg_replace_solid', tokens: 1 },
       transparent: { action: 'bg_replace_solid', tokens: 1 },
-      stock: { action: 'bg_replace_solid', tokens: 1 },
-      blur: { action: 'bg_blur', tokens: 1 },
+      stock:       { action: 'bg_replace_solid', tokens: 1 },
+      blur:        { action: 'bg_blur',          tokens: 1 },
     }
 
     const config = actionMap[type]
@@ -250,7 +253,7 @@ export default function BackgroundPage() {
 
       const output = await pollBgStatus(data.predictionId, jobId, null)
       setExpandResult(output)
-      setMobileTab('canvas')
+      setMobileTab('results')
     } catch (err) {
       if (deducted) {
         try { await refundTokens(user.id, 2) } catch {}
@@ -262,13 +265,16 @@ export default function BackgroundPage() {
   }, [subjectUrl, user, profile, expandPadding, expandPrompt, deductTokens, refundTokens, pollBgStatus, navigate, toast])
 
   const handleDownload = useCallback(() => {
-    if (downloadRef.current) {
-      downloadRef.current()
-    }
+    if (downloadRef.current) downloadRef.current()
   }, [])
 
+  // Build library images array from the single uploaded file
+  const libraryImages = file
+    ? [{ id: 'bg-current', file, preview: originalUrl }]
+    : []
+
   const bgToolsProps = {
-    file, originalUrl, step, removing, subjectUrl,
+    step, removing, subjectUrl,
     activeTool, onToolChange: setActiveTool,
     bgType, onBgTypeChange: setBgType,
     bgColor, onBgColorChange: setBgColor,
@@ -282,52 +288,42 @@ export default function BackgroundPage() {
     expandPadding, onExpandPaddingChange: setExpandPadding,
     expanding, onExpand: handleExpand,
     stockBgUrl, onStockBgSelect: setStockBgUrl,
-    onUpload: handleUpload, onRemoveBg: handleRemoveBg,
+    onRemoveBg: handleRemoveBg,
     onApply: handleApply, onDownload: handleDownload,
     balance,
   }
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden min-h-0">
-      {/* Mobile tab switcher */}
-      <div className="md:hidden flex border-b border-[#2a2a2a] shrink-0 bg-[#1a1a1a]">
-        {[{ id: 'tools', label: 'Tools' }, { id: 'canvas', label: 'Canvas' }].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setMobileTab(tab.id)}
-            className={`flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
-              mobileTab === tab.id
-                ? 'text-[#a855f7] border-[#a855f7]'
-                : 'text-[#555] border-transparent hover:text-[#a3a3a3]'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex flex-1 overflow-hidden min-h-0">
-        <div className={`${mobileTab === 'tools' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[280px] shrink-0 border-r border-[#2a2a2a] overflow-y-auto`}>
-          <BackgroundTools {...bgToolsProps} />
-        </div>
-        <div className={`${mobileTab === 'canvas' ? 'flex' : 'hidden'} md:flex flex-col flex-1 overflow-hidden`}>
-          <CanvasPreview
-            originalUrl={originalUrl}
-            subjectUrl={subjectUrl}
-            bgType={bgType}
-            bgColor={bgColor}
-            gradientStart={gradientStart}
-            gradientEnd={gradientEnd}
-            gradientAngle={gradientAngle}
-            blurAmount={blurAmount}
-            aiBgUrl={aiBgUrl}
-            stockBgUrl={stockBgUrl}
-            expandResult={expandResult}
-            onDownloadReady={(fn) => { downloadRef.current = fn }}
-          />
-        </div>
-      </div>
-    </div>
+    <PanelShell
+      images={libraryImages}
+      selectedImage={libraryImages[0] ?? null}
+      onSelect={() => {}}
+      onUpload={handleUpload}
+      libraryMode="single"
+      toolsClassName="w-full md:w-[280px] shrink-0 border-r border-[#2a2a2a] overflow-y-auto"
+      resultsClassName="flex-1"
+      resultsSlot={
+        <CanvasPreview
+          originalUrl={originalUrl}
+          subjectUrl={subjectUrl}
+          bgType={bgType}
+          bgColor={bgColor}
+          gradientStart={gradientStart}
+          gradientEnd={gradientEnd}
+          gradientAngle={gradientAngle}
+          blurAmount={blurAmount}
+          aiBgUrl={aiBgUrl}
+          stockBgUrl={stockBgUrl}
+          expandResult={expandResult}
+          onDownloadReady={(fn) => { downloadRef.current = fn }}
+        />
+      }
+      resultsLabel="Canvas"
+      mobileTab={mobileTab}
+      onMobileTabChange={setMobileTab}
+    >
+      <BackgroundTools {...bgToolsProps} />
+    </PanelShell>
   )
 }
 

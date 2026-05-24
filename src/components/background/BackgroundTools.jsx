@@ -1,12 +1,10 @@
-import { useRef, useState, useEffect } from 'react'
-import { Upload, Loader2, CheckCircle2, Download, Lock } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Loader2, CheckCircle2, Download, Lock } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { canUseAction, getRequiredPackageForAction } from '../../lib/access'
 
 export default function BackgroundTools({
-  file,
-  originalUrl,
   step,
   removing,
   subjectUrl,
@@ -37,7 +35,6 @@ export default function BackgroundTools({
   onExpand,
   stockBgUrl,
   onStockBgSelect,
-  onUpload,
   onRemoveBg,
   onApply,
   onDownload,
@@ -49,7 +46,6 @@ export default function BackgroundTools({
   const aiGeneratePkg = getRequiredPackageForAction('bg_ai_generate')
   const expandPkg = getRequiredPackageForAction('bg_expand')
 
-  const fileInputRef = useRef(null)
   const [stockImages, setStockImages] = useState([])
 
   useEffect(() => {
@@ -67,39 +63,8 @@ export default function BackgroundTools({
     load()
   }, [])
 
-  function handleFileChange(e) {
-    const f = e.target.files?.[0]
-    if (f) onUpload(f)
-    e.target.value = ''
-  }
-
   return (
     <div className="p-4 space-y-5">
-      <div>
-        <p className="text-[#a3a3a3] text-xs font-medium uppercase tracking-wider mb-2">Upload Image</p>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border border-dashed border-[#3a3a3a] text-[#a3a3a3] hover:border-[#a855f7] hover:text-[#a855f7] transition-colors text-sm"
-        >
-          <Upload size={15} />
-          {file ? 'Replace Image' : 'Upload Image'}
-        </button>
-        {originalUrl && (
-          <div className="mt-2 rounded-lg overflow-hidden border border-[#2a2a2a]">
-            <img src={originalUrl} alt="Original" className="w-full h-28 object-cover" />
-          </div>
-        )}
-      </div>
-
-      <div className="border-t border-[#2a2a2a]" />
-
       <div>
         <p className="text-[#a3a3a3] text-xs font-medium uppercase tracking-wider mb-2">Background Removal</p>
         {step === 'idle' && (
