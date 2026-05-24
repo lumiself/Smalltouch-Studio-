@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { X, Play, Zap } from 'lucide-react'
 import TokenCostBadge from '../shared/TokenCostBadge'
 
@@ -19,7 +20,21 @@ export default function PlaygroundPanel({
   onStartBatch,
   onEnhance,
 }) {
+  const [focusedItemId, setFocusedItemId] = useState(null)
+
   const hasBatch = batchQueue.length > 0
+
+  // Keep focusedItemId valid as items are removed
+  useEffect(() => {
+    if (focusedItemId && !batchQueue.find(i => i.id === focusedItemId)) {
+      setFocusedItemId(null)
+    }
+  }, [batchQueue, focusedItemId])
+
+  // Preview shows the focused filmstrip item, falling back to library selection
+  const focusedItem = batchQueue.find(i => i.id === focusedItemId) ?? (hasBatch ? batchQueue[0] : null)
+  const previewImage = focusedItem ?? selectedImage
+
   const totalCost = selectedPreset ? batchQueue.length * selectedPreset.tokenCost : 0
   const canAfford = selectedPreset ? balance >= selectedPreset.tokenCost : false
   const canEnhance = !!(selectedImage && selectedPreset && canAfford && !batchRunning)
@@ -27,11 +42,11 @@ export default function PlaygroundPanel({
   return (
     <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
 
-      {/* Large preview — always shows the selected image */}
+      {/* Large preview — shows focused filmstrip item, falls back to library selection */}
       <div className="h-52 bg-[#0d0d0d] relative overflow-hidden">
-        {selectedImage ? (
+        {previewImage ? (
           <img
-            src={selectedImage.preview}
+            src={previewImage.preview}
             alt="Preview"
             className="w-full h-full object-contain"
           />
@@ -72,7 +87,10 @@ export default function PlaygroundPanel({
             {batchQueue.map(item => (
               <div
                 key={item.id}
-                className="relative shrink-0 w-12 h-12 rounded overflow-hidden group/thumb"
+                onClick={() => setFocusedItemId(item.id)}
+                className={`relative shrink-0 w-12 h-12 rounded overflow-hidden group/thumb cursor-pointer ring-2 transition-all ${
+                  focusedItem?.id === item.id ? 'ring-[#a855f7]' : 'ring-transparent'
+                }`}
               >
                 <img src={item.preview} alt={item.name} className="w-full h-full object-cover" />
                 <span
