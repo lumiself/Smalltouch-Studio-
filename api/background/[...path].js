@@ -197,5 +197,71 @@ export default async function handler(req, res) {
     }
   }
 
+  // POST /api/background/replace — single Flux-2-Max call: subject photo as input_images + preset prompt → new background
+  if (subpath === 'replace') {
+    const { jobId, inputPath, preset, tokenCost } = body
+    if (!jobId || !inputPath || !preset?.prompt) {
+      return res.status(400).json({ error: 'Missing jobId, inputPath, or preset.prompt' })
+    }
+
+    const webhookBase = process.env.WEBHOOK_BASE ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+    if (!webhookBase) {
+      return res.status(500).json({ error: 'WEBHOOK_BASE is not configured — set it in Vercel environment variables' })
+    }
+
+    try {
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('inputs')
+        .createSignedUrl(inputPath, 300)
+      if (signedError || !signedData?.signedUrl) {
+        return res.status(500).json({ error: 'Failed to create signed URL' })
+      }
+
+      const replicateRes = await fetch(FLUX_2_MAX_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          input: {
+            prompt: preset.prompt,
+            input_images: [signedData.signedUrl],
+            aspect_ratio: preset.aspect_ratio ?? 'match_input_image',
+            resolution: preset.resolution ?? '1 MP',
+            output_format: preset.output_format ?? 'webp',
+            safety_tolerance: preset.safety_tolerance ?? 2,
+          },
+          webhook: `${webhookBase}/api/webhook/replicate?jobId=${jobId}`,
+          webhook_events_filter: ['completed'],
+        }),
+      })
+      const replicateData = await replicateRes.json()
+      if (!replicateRes.ok) {
+        return res.status(500).json({ error: replicateData.detail || replicateData.error || 'Replicate error' })
+      }
+
+      const { error: insertError } = await supabase.from('jobs').insert({
+        id: jobId,
+        user_id: user.id,
+        panel: 'background',
+        operation: 'bg_replace',
+        status: 'processing',
+        external_job_id: replicateData.id,
+        input_path: inputPath,
+        tokens_used: tokenCost ?? 2,
+      })
+      if (insertError) {
+        console.error('replace job insert error:', insertError)
+      }
+
+      return res.status(200).json({ jobId })
+    } catch (err) {
+      console.error('background/replace error:', err)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+
   return res.status(404).json({ error: 'Not found' })
 }
