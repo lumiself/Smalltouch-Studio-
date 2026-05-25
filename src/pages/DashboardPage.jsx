@@ -104,21 +104,21 @@ export default function DashboardPage() {
 
             <h1 className="hero-reveal-delayed font-display font-extrabold leading-none tracking-tight">
               <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] text-[#f5f5f5]">
-                VISUAL
+                LET AI
               </span>
               <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] text-bauhaus-yellow -mt-1">
-                MASTERY
+                HANDLE
               </span>
               <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] text-[#f5f5f5] -mt-1">
-                TOOLS.
+                THE REST.
               </span>
             </h1>
 
             <p className="hero-reveal-delayed-2 text-[#a3a3a3] text-sm md:text-base mt-8 max-w-sm leading-relaxed">
               {firstName
                 ? `Welcome back, ${firstName}.`
-                : 'Machine intelligence for the discerning image-maker.'}{' '}
-              Every process measurable. Every output precise.
+                : 'AI-powered tools that take the repetitive work off your plate.'}{' '}
+              Spend your time on what only you can do.
             </p>
 
             <div className="hero-reveal-delayed-2 flex flex-wrap items-center gap-5 mt-8">
