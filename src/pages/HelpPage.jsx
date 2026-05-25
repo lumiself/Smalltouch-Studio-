@@ -121,7 +121,6 @@ Applies a saved preset to multiple images at once. Each image is processed indep
 **Batch limits by package**
 | Package | Max batch size |
 |---------|---------------|
-| Starter | 5 images |
 | Basic | 20 images |
 | Standard | 50 images |
 | Pro | 200 images |
@@ -189,13 +188,12 @@ Voucher codes follow this format: SMTCH-XXXX-XXXX
 
 **Packages**
 
-| Package | Price | Tokens | Retouch | Background |
-|---------|-------|--------|---------|------------|
-| Starter | $2 | 10 | Quick Enhance + Batch | — |
-| Basic | $8 | 50 | Full access | Remove + Blur |
-| Standard | $15 | 100 | Full access | Full access |
-| Pro | $40 | 300 | Full access | Full access |
-| Studio | $120 | 1000 | Full access | Full access + future panels |
+| Package | Price | Tokens | All Tools |
+|---------|-------|--------|-----------|
+| Basic | $5 | 500 | Full access |
+| Standard | $15 | 1500 | Full access |
+| Pro | $40 | 4000 | Full access |
+| Studio | $120 | 12000 | Full access + future panels |
 
 When you redeem a higher-tier voucher, your existing token balance is kept and the new tokens are added on top.
 
@@ -285,7 +283,7 @@ A flat image (WebP) with the original subject composited over a newly generated 
 
 **Minimum package**
 
-Standard or above. Background Presets use the Flux-2-Max generative model and require a Standard, Pro, or Studio package.
+Basic or above. Background Presets use the Flux-2-Max generative model and are available on all packages.
 
 **Common issues**
 - *Generate Background is greyed out* — make sure you have selected both an image and a preset
@@ -424,7 +422,7 @@ The admin dashboard at **/admin** lets you generate and manage token voucher cod
 
 **Generate tab — creating voucher codes**
 
-1. Select the package tier for the batch of codes (Starter, Basic, Standard, Pro, or Studio)
+1. Select the package tier for the batch of codes (Basic, Standard, Pro, or Studio)
 2. Enter the quantity of codes to generate (up to 500 at a time)
 3. Click **Generate** — codes are created instantly in the database
 4. Download the generated codes as a CSV file for printing
@@ -547,8 +545,8 @@ JPEG, JPG, and PNG files are accepted.
 
 | Package | Max file size |
 |---------|--------------|
-| Starter | 10 MB |
-| Basic and above | 50–100 MB |
+| Basic | 50 MB |
+| Standard and above | 100 MB |
 
 **Resolution limits**
 
