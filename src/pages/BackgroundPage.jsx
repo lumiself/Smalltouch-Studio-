@@ -18,7 +18,7 @@ const TOOL_NAV = [
 export default function BackgroundPage() {
   const { user, profile } = useAuth()
   const { balance, deductTokens, refundTokens } = useTokens()
-  const { selectedImage, addJob, updateJob } = useLibrary()
+  const { selectedImage, batchQueue, removeFromBatch, addJob, updateJob } = useLibrary()
   const { runReplace } = useBackground({ addJob, updateJob })
   const toast = useToast()
   const navigate = useNavigate()
@@ -26,6 +26,8 @@ export default function BackgroundPage() {
   const [activeTool, setActiveTool] = useState('presets')
   const [activePreset, setActivePreset] = useState(null)
   const [processing, setProcessing] = useState(false)
+  const [batchRunning, setBatchRunning] = useState(false)
+  const [batchStatuses, setBatchStatuses] = useState({})
   const [mobileTab, setMobileTab] = useState('tools')
 
   const handleApply = useCallback(async (preset) => {
@@ -48,6 +50,36 @@ export default function BackgroundPage() {
       setProcessing(false)
     }
   }, [user, selectedImage, profile, deductTokens, refundTokens, runReplace, navigate, toast])
+
+  const handleStartBatch = useCallback(async () => {
+    if (!activePreset || batchQueue.length === 0 || batchRunning) return
+    if (!canUseAction(profile, 'bg_replace')) { navigate('/tokens'); return }
+
+    setBatchRunning(true)
+    setBatchStatuses(Object.fromEntries(batchQueue.map(img => [img.id, 'pending'])))
+
+    const runItem = async (img) => {
+      setBatchStatuses(prev => ({ ...prev, [img.id]: 'processing' }))
+      let deducted = false
+      try {
+        await deductTokens(user.id, activePreset.tokenCost, crypto.randomUUID(), 'bg_replace')
+        deducted = true
+        await runReplace({ userId: user.id, file: img.file, preset: activePreset })
+        setBatchStatuses(prev => ({ ...prev, [img.id]: 'completed' }))
+      } catch (err) {
+        if (deducted) {
+          try { await refundTokens(user.id, activePreset.tokenCost) } catch {}
+        }
+        setBatchStatuses(prev => ({ ...prev, [img.id]: 'failed' }))
+        toast.error(`Failed: ${img.name}`)
+      }
+    }
+
+    await Promise.allSettled(batchQueue.map(runItem))
+    setBatchRunning(false)
+    toast.success('Batch complete')
+    setMobileTab('results')
+  }, [activePreset, batchQueue, batchRunning, profile, user, deductTokens, refundTokens, runReplace, navigate, toast])
 
   return (
     <PanelShell mobileTab={mobileTab} onMobileTabChange={setMobileTab}>
@@ -103,6 +135,11 @@ export default function BackgroundPage() {
                 processing={processing}
                 balance={balance}
                 onApply={handleApply}
+                batchQueue={batchQueue}
+                batchStatuses={batchStatuses}
+                batchRunning={batchRunning}
+                onRemoveFromBatch={removeFromBatch}
+                onStartBatch={handleStartBatch}
               />
             </>
           )}
