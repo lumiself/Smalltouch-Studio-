@@ -20,7 +20,7 @@ create table if not exists public.token_vouchers (
   package_id text not null,
   value integer not null,
   is_used boolean not null default false,
-  used_by uuid references public.users(id),
+  used_by uuid references public.users(id) on delete set null,
   used_at timestamptz,
   created_at timestamptz not null default now()
 );
