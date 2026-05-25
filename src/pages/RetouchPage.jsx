@@ -38,29 +38,39 @@ export default function RetouchPage() {
   const handleQuickEnhance = useCallback(async (preset) => {
     if (!user || !selectedImage) return
     if (!canUseAction(profile, 'quick_enhance')) { navigate('/tokens'); return }
+    let deducted = false
     try {
       await deductTokens(user.id, preset.tokenCost, crypto.randomUUID(), 'quick_enhance')
+      deducted = true
       await runQuickEnhance({ userId: user.id, file: selectedImage.file, preset })
       setMobileTab('results')
     } catch (err) {
+      if (deducted) {
+        try { await refundTokens(user.id, preset.tokenCost) } catch {}
+      }
       toast.error(err.message || 'Enhancement failed')
     }
-  }, [user, selectedImage, profile, deductTokens, runQuickEnhance, navigate, toast])
+  }, [user, selectedImage, profile, deductTokens, refundTokens, runQuickEnhance, navigate, toast])
 
   const handleAdvancedEdit = useCallback(async ({ plugins, intensityMode }) => {
     if (!user || !selectedImage) return
     if (!canUseAction(profile, 'advanced_edit')) { navigate('/tokens'); return }
     setAdvancedProcessing(true)
+    let deducted = false
     try {
       await deductTokens(user.id, 2, crypto.randomUUID(), 'advanced_edit')
+      deducted = true
       const result = await runAdvancedEdit({ userId: user.id, file: selectedImage.file, plugins, intensityMode })
       setActiveJobId(result.jobId)
     } catch (err) {
+      if (deducted) {
+        try { await refundTokens(user.id, 2) } catch {}
+      }
       toast.error(err.message || 'Advanced edit failed')
     } finally {
       setAdvancedProcessing(false)
     }
-  }, [user, selectedImage, profile, deductTokens, runAdvancedEdit, navigate, toast])
+  }, [user, selectedImage, profile, deductTokens, refundTokens, runAdvancedEdit, navigate, toast])
 
   async function handleDownloadZip() {
     const job = jobs.find(j => j.id === activeJobId)

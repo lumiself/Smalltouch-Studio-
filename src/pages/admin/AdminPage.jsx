@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Download, RefreshCw, CheckCircle, XCircle, Loader2, ExternalLink } from 'lucide-react'
+import { Download, RefreshCw, CheckCircle, XCircle, Loader2, ExternalLink, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { packages } from '../../registry/packages'
@@ -305,6 +305,8 @@ function UsersTab() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [updating, setUpdating] = useState(null)
+  const [topupAmounts, setTopupAmounts] = useState({})
+  const [topping, setTopping] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -323,6 +325,29 @@ function UsersTab() {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  async function handleTopup(userId) {
+    const amount = parseInt(topupAmounts[userId] || '', 10)
+    if (!amount || amount <= 0) return
+    setTopping(userId)
+    setError('')
+    try {
+      const headers = await getAuthHeader()
+      const res = await fetch('/api/admin/topup-tokens', {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, amount }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Top up failed')
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, token_balance: (u.token_balance ?? 0) + amount } : u))
+      setTopupAmounts(prev => ({ ...prev, [userId]: '' }))
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setTopping(null)
+    }
+  }
 
   async function handlePackageChange(userId, newPackageId) {
     setUpdating(userId)
@@ -370,6 +395,7 @@ function UsersTab() {
                 <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Email</th>
                 <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Tokens</th>
                 <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Package</th>
+                <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Top Up</th>
                 <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Joined</th>
               </tr>
             </thead>
@@ -398,6 +424,29 @@ function UsersTab() {
                           ))}
                         </select>
                         {updating === u.id && <Loader2 size={12} className="animate-spin text-[#a855f7]" />}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          min={1}
+                          placeholder="amt"
+                          value={topupAmounts[u.id] ?? ''}
+                          onChange={e => setTopupAmounts(prev => ({ ...prev, [u.id]: e.target.value }))}
+                          onKeyDown={e => e.key === 'Enter' && handleTopup(u.id)}
+                          disabled={topping === u.id}
+                          className="w-16 px-2 py-1 bg-[#242424] border border-[#3a3a3a] rounded text-xs text-[#f5f5f5] focus:outline-none focus:border-[#a855f7] transition-colors disabled:opacity-50"
+                        />
+                        <button
+                          onClick={() => handleTopup(u.id)}
+                          disabled={topping === u.id || !topupAmounts[u.id]}
+                          className="flex items-center justify-center w-6 h-6 rounded bg-[#a855f7] hover:bg-[#7c3aed] disabled:opacity-40 transition-colors"
+                        >
+                          {topping === u.id
+                            ? <Loader2 size={11} className="animate-spin text-white" />
+                            : <Plus size={11} className="text-white" />}
+                        </button>
                       </div>
                     </td>
                     <td className="px-4 py-2.5 text-xs text-[#555]">

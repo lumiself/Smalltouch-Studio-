@@ -105,6 +105,21 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true })
   }
 
+  // POST /api/admin/topup-tokens
+  if (subpath === 'topup-tokens') {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+    const { userId, amount } = await parseJsonBody(req)
+    if (!userId || !Number.isInteger(amount) || amount <= 0) {
+      return res.status(400).json({ error: 'Missing or invalid userId or amount' })
+    }
+    const { error: rpcError } = await supabase.rpc('refund_tokens', {
+      p_user_id: userId,
+      p_amount: amount,
+    })
+    if (rpcError) return res.status(500).json({ error: 'Failed to top up tokens' })
+    return res.status(200).json({ success: true })
+  }
+
   // GET/POST/PATCH/DELETE /api/admin/presets
   if (subpath === 'presets') {
     if (req.method === 'GET') {
