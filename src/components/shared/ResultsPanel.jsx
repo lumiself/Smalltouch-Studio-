@@ -1,4 +1,4 @@
-import { Download, CheckCircle, Clock, XCircle } from 'lucide-react'
+import { Download, CheckCircle, Clock, XCircle, RotateCcw } from 'lucide-react'
 import JSZip from 'jszip'
 import ProgressBar from './ProgressBar'
 import BeforeAfterSlider from './BeforeAfterSlider'
@@ -12,7 +12,7 @@ const STATUS_ICONS = {
   failed:      <XCircle size={14} className="text-[#ef4444]" />,
 }
 
-export default function ResultsPanel({ jobs = [] }) {
+export default function ResultsPanel({ jobs = [], onRetry }) {
   const downloadable = jobs.filter(j => j.status === 'completed' && j.result?.url)
 
   async function downloadResult(job) {
@@ -105,8 +105,17 @@ export default function ResultsPanel({ jobs = [] }) {
             )}
 
             {job.status === 'failed' && (
-              <div className="px-2.5 pb-2.5">
+              <div className="px-2.5 pb-2.5 space-y-2">
                 <p className="text-[#ef4444] text-xs">{job.error || 'Processing failed'}</p>
+                {onRetry && (job.externalJobId || (job.originalFile && (job.presetData || job.pluginConfig))) && (
+                  <button
+                    onClick={() => onRetry(job)}
+                    className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-[#ef4444]/10 hover:bg-[#ef4444]/20 text-[#ef4444] text-xs font-medium transition-colors"
+                  >
+                    <RotateCcw size={11} />
+                    {job.externalJobId ? 'Resume' : 'Retry'}
+                  </button>
+                )}
               </div>
             )}
           </div>

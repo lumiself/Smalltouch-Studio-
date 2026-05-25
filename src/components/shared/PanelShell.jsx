@@ -13,6 +13,8 @@ export default function PanelShell({
   // Controlled mobile tab (panels that need programmatic navigation pass these)
   mobileTab: externalTab,
   onMobileTabChange,
+  // Retry handler for failed jobs
+  onRetry,
   // Center tools content
   children,
 }) {
@@ -78,7 +80,7 @@ export default function PanelShell({
 
         {/* ── Results / Output ── */}
         <div className={`${mobileTab === 'results' ? 'flex' : 'hidden'} md:flex flex-col ${resolvedResultsClassName} overflow-hidden`}>
-          {resultsSlot ?? <ResultsPanel jobs={jobs} />}
+          {resultsSlot ?? <ResultsPanel jobs={jobs} onRetry={onRetry} />}
         </div>
 
       </div>
