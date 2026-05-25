@@ -22,10 +22,17 @@ async function readResponse(res) {
 function serverError(parsed, fallback) {
   if (parsed.data?.error) return new Error(parsed.data.error)
   if (parsed.raw?.toLowerCase().includes('a server error')) {
-    return new Error(`Server timed out or crashed (${parsed.status}). Likely Vercel 10s function limit — try a smaller image.`)
+    return new Error(`Server timed out (${parsed.status}). Try a smaller image or retry in a moment.`)
   }
   const snippet = parsed.raw?.trim().slice(0, 200)
   return new Error(snippet ? `${fallback} (${parsed.status}): ${snippet}` : `${fallback} (${parsed.status})`)
+}
+
+function wrapFetchError(err) {
+  if (err?.message === 'Failed to fetch') {
+    return new Error('Network error — check your connection. Your image is saved; use the Retry button to try again.')
+  }
+  return err
 }
 
 // addJob / updateJob come from LibraryContext via the calling component
@@ -54,7 +61,7 @@ export function useRetouch({ addJob, updateJob }) {
           }
         } catch (err) {
           clearInterval(interval)
-          reject(err)
+          reject(wrapFetchError(err))
         }
       }, POLL_INTERVAL_MS)
     })
@@ -62,7 +69,7 @@ export function useRetouch({ addJob, updateJob }) {
 
   const runQuickEnhance = useCallback(async ({ userId, file, preset }) => {
     const jobId = crypto.randomUUID()
-    addJob({ id: jobId, type: 'quick_enhance', panel: 'retouch', presetName: preset.name, status: 'uploading', progress: 0, result: null })
+    addJob({ id: jobId, type: 'quick_enhance', panel: 'retouch', presetName: preset.name, status: 'uploading', progress: 0, result: null, originalFile: file, presetData: preset })
 
     try {
       updateJob(jobId, { status: 'uploading' })
@@ -106,15 +113,16 @@ export function useRetouch({ addJob, updateJob }) {
       updateJob(jobId, { status: 'completed', result: { url: resultUrl, outputPath }, originalFile: file })
       return { jobId, resultUrl }
     } catch (err) {
-      updateJob(jobId, { status: 'failed', error: err.message })
+      const wrapped = wrapFetchError(err)
+      updateJob(jobId, { status: 'failed', error: wrapped.message })
       await supabase.from('jobs').update({ status: 'failed' }).eq('id', jobId)
-      throw err
+      throw wrapped
     }
   }, [addJob, updateJob])
 
   const runAdvancedEdit = useCallback(async ({ userId, file, plugins, intensityMode }) => {
     const jobId = crypto.randomUUID()
-    addJob({ id: jobId, type: 'advanced_edit', panel: 'retouch', status: 'uploading', progress: 0 })
+    addJob({ id: jobId, type: 'advanced_edit', panel: 'retouch', status: 'uploading', progress: 0, originalFile: file, pluginConfig: { plugins, intensityMode } })
 
     try {
       updateJob(jobId, { status: 'uploading' })
@@ -160,9 +168,10 @@ export function useRetouch({ addJob, updateJob }) {
       updateJob(jobId, { status: 'completed', outputPath })
       return { jobId, outputPath }
     } catch (err) {
-      updateJob(jobId, { status: 'failed', error: err.message })
+      const wrapped = wrapFetchError(err)
+      updateJob(jobId, { status: 'failed', error: wrapped.message })
       await supabase.from('jobs').update({ status: 'failed' }).eq('id', jobId)
-      throw err
+      throw wrapped
     }
   }, [addJob, updateJob])
 

@@ -57,7 +57,8 @@ A single flat JPEG with all retouching applied. The before/after slider in the R
 **Common issues**
 - *Enhance Now is greyed out* — select an image from the library first
 - *Not enough tokens* — redeem a voucher code on the Tokens page
-- *Job failed* — your token is refunded automatically; try again
+- *Job failed with a network error* — your token is refunded automatically; click the **Retry** button that appears on the failed job in the Results panel. Your original image is always safe and stays loaded.
+- *"Server timed out"* — try a smaller or lower-resolution image; the processing limit is ~10 seconds per file
     `,
   },
   {
@@ -94,7 +95,8 @@ Each plugin you selected appears as a separate PNG file named after that plugin 
 
 **Common issues**
 - *Start Editing is greyed out* — make sure at least one plugin is checked and you have 2 or more tokens
-- *Download button doesn't appear* — wait for the green checkmark; if it never appears, check for an error toast and try again
+- *Download button doesn't appear* — wait for the green checkmark; if it never appears, click the **Retry** button on the failed job card in the Results panel
+- *Network error during processing* — your 2 tokens are refunded automatically; click **Retry** on the failed job in the Results panel
 - *Selecting a new image* — this resets the panel so you can run a fresh edit on the new image
     `,
   },

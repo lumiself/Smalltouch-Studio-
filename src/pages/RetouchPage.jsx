@@ -92,6 +92,42 @@ export default function RetouchPage() {
     }
   }
 
+  const handleRetry = useCallback(async (job) => {
+    if (!user) return
+    if (job.type === 'quick_enhance' && job.originalFile && job.presetData) {
+      if (!canUseAction(profile, 'quick_enhance')) { navigate('/tokens'); return }
+      let deducted = false
+      try {
+        await deductTokens(user.id, job.presetData.tokenCost, crypto.randomUUID(), 'quick_enhance')
+        deducted = true
+        await runQuickEnhance({ userId: user.id, file: job.originalFile, preset: job.presetData })
+        setMobileTab('results')
+      } catch (err) {
+        if (deducted) {
+          try { await refundTokens(user.id, job.presetData.tokenCost) } catch {}
+        }
+        toast.error(err.message || 'Retry failed')
+      }
+    } else if (job.type === 'advanced_edit' && job.originalFile && job.pluginConfig) {
+      if (!canUseAction(profile, 'advanced_edit')) { navigate('/tokens'); return }
+      setAdvancedProcessing(true)
+      let deducted = false
+      try {
+        await deductTokens(user.id, 2, crypto.randomUUID(), 'advanced_edit')
+        deducted = true
+        const result = await runAdvancedEdit({ userId: user.id, file: job.originalFile, ...job.pluginConfig })
+        setActiveJobId(result.jobId)
+      } catch (err) {
+        if (deducted) {
+          try { await refundTokens(user.id, 2) } catch {}
+        }
+        toast.error(err.message || 'Retry failed')
+      } finally {
+        setAdvancedProcessing(false)
+      }
+    }
+  }, [user, profile, deductTokens, refundTokens, runQuickEnhance, runAdvancedEdit, navigate, toast])
+
   const handleStartBatch = useCallback(async () => {
     if (!activePreset || batchQueue.length === 0 || batchRunning) return
     if (!canUseAction(profile, 'batch_retouch')) { navigate('/tokens'); return }
@@ -123,7 +159,7 @@ export default function RetouchPage() {
   }, [activePreset, batchQueue, batchRunning, profile, user, deductTokens, refundTokens, runQuickEnhance, navigate, toast])
 
   return (
-    <PanelShell mobileTab={mobileTab} onMobileTabChange={setMobileTab}>
+    <PanelShell mobileTab={mobileTab} onMobileTabChange={setMobileTab} onRetry={handleRetry}>
 
       {/* Mobile horizontal tool switcher */}
       <div className="md:hidden flex shrink-0 border-b border-[#2a2a2a] bg-[#161616]">
