@@ -14,7 +14,9 @@ function supabaseClient() {
 
 async function verifyUser(supabase, token) {
   const { data: { user }, error } = await supabase.auth.getUser(token)
-  return (error || !user) ? null : user
+  if (error || !user) return null
+  if (!user.email_confirmed_at) return null
+  return user
 }
 
 async function parseJsonBody(req) {

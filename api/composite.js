@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   )
 
   const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-  if (authError || !user) return res.status(401).json({ error: 'Invalid token' })
+  if (authError || !user || !user.email_confirmed_at) return res.status(401).json({ error: 'Invalid token' })
 
   let body = ''
   for await (const chunk of req) body += chunk

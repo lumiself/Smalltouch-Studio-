@@ -11,7 +11,9 @@ async function verifyUser(req, supabase) {
   const token = req.headers.authorization?.slice(7)
   if (!token) return null
   const { data: { user }, error } = await supabase.auth.getUser(token)
-  return (error || !user) ? null : user
+  if (error || !user) return null
+  if (!user.email_confirmed_at) return null
+  return user
 }
 
 async function parseBody(req) {
