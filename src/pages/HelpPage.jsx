@@ -209,7 +209,7 @@ A warning appears in the top bar when your balance drops below 5 tokens.
 | Batch Retouch (per image) | 1 |
 | Background Removal | 1 |
 | Background Blur | 1 |
-| Background Preset (Flux-2-Max) | 2 |
+| Background Preset | 2 |
 | AI Background Generation | 2 |
 | Smart Background Expand | 2 |
     `,
@@ -244,11 +244,11 @@ There are three tools:
   },
   {
     id: 'background-presets',
-    title: 'Background Presets (Flux-2-Max)',
+    title: 'Background Presets',
     content: `
 **What it does**
 
-Background Presets let you transform the background of a portrait or subject photo by selecting a scene from the preset library. The AI — Flux-2-Max, a top-tier image generation model — replaces or reimagines the background based on a curated prompt built into each preset. Your subject stays in the photo.
+Background Presets let you transform the background of a portrait or subject photo by selecting a scene from the preset library. The AI replaces or reimagines the background based on a curated prompt built into each preset. Your subject stays in the photo.
 
 **How to use it**
 1. Upload your image using the Upload button in the left Library panel
@@ -257,7 +257,7 @@ Background Presets let you transform the background of a portrait or subject pho
 4. Click **Select Preset** to mark it active
 5. Scroll down to the **Apply Background** section
 6. Click **Generate Background** — costs 2 tokens
-7. Wait 20–60 seconds while Flux-2-Max generates the new background
+7. Wait 20–60 seconds while the AI generates the new background
 8. The result appears in the Results panel on the right
 9. Download your result
 
@@ -283,13 +283,13 @@ A flat image (WebP) with the original subject composited over a newly generated 
 
 **Minimum package**
 
-Basic or above. Background Presets use the Flux-2-Max generative model and are available on all packages.
+Basic or above. Background Presets are available on all packages.
 
 **Common issues**
 - *Generate Background is greyed out* — make sure you have selected both an image and a preset
 - *Not enough tokens* — redeem a voucher code on the Tokens page; each generation costs 2 tokens
 - *Result looks odd* — the model conditions on your subject from the input image; portrait-style photos with a clear, well-lit subject work best
-- *Generation took too long* — Flux-2-Max typically takes 20–60 seconds; if you see a timeout error, try again
+- *Generation took too long* — AI background generation typically takes 20–60 seconds; if you see a timeout error, try again
     `,
   },
   {
@@ -488,7 +488,7 @@ Visit /admin/presets or click the Presets link at the top of the Admin dashboard
 
 See the **Plugin Reference** section for available plugin names and parameters.
 
-**Payload format — Background Studio (Flux-2-Max)**
+**Payload format — Background Studio**
 
 \`\`\`json
 {

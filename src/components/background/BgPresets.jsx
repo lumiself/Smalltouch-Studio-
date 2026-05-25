@@ -64,7 +64,7 @@ export default function BgPresets({ selectedPreset, onPresetSelect }) {
     <div className="space-y-4">
       <div>
         <h2 className="font-display font-semibold text-[#f5f5f5] text-base">Background Presets</h2>
-        <p className="text-[#555] text-xs mt-0.5">Powered by Flux-2-Max — select a scene to transform the background</p>
+        <p className="text-[#555] text-xs mt-0.5">Select a scene to transform the background with AI</p>
       </div>
 
       <div className="flex flex-wrap gap-1.5">
