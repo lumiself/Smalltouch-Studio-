@@ -7,6 +7,7 @@ import ProtectedRoute from './components/layout/ProtectedRoute'
 import Navbar from './components/layout/Navbar'
 import BottomNav from './components/layout/BottomNav'
 import AdminRoute from './components/layout/AdminRoute'
+import NetworkBanner from './components/layout/NetworkBanner'
 
 const LoginPage        = lazy(() => import('./pages/LoginPage'))
 const SignupPage       = lazy(() => import('./pages/SignupPage'))
@@ -31,6 +32,7 @@ function AppLayout({ children }) {
   return (
     <div className="flex flex-col h-dvh bg-[#0d0d0d]">
       <Navbar />
+      <NetworkBanner />
       <div className="flex flex-1 overflow-hidden min-h-0 pb-16 md:pb-0">
         {children}
       </div>

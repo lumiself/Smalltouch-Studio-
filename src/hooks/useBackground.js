@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { uploadInput, getOutputUrl } from '../lib/storage'
+import { fetchWithRetry } from '../lib/fetchWithRetry'
 
 const POLL_INTERVAL_MS = 3000
 const MAX_POLLS = 120 // 6 minutes max
@@ -56,7 +57,7 @@ export function useBackground({ addJob, updateJob }) {
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
       updateJob(jobId, { status: 'submitting' })
-      const startRes = await fetch('/api/background/replace', {
+      const startRes = await fetchWithRetry('/api/background/replace', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobId, inputPath, preset: preset.payload, tokenCost: preset.tokenCost }),
@@ -98,7 +99,7 @@ export function useBackground({ addJob, updateJob }) {
 
       // 2. Start prediction — server creates job row + attaches webhook
       updateJob(jobId, { status: 'submitting' })
-      const startRes = await fetch('/api/background/flux-preset', {
+      const startRes = await fetchWithRetry('/api/background/flux-preset', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({

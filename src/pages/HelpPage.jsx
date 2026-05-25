@@ -536,6 +536,40 @@ Lower numbers appear first. Set sort_order to control the display sequence. Pres
     `,
   },
   {
+    id: 'network-errors',
+    title: 'Network Errors & Auto-Retry',
+    content: `
+**What happens when your connection drops**
+
+If your internet goes down or the browser is minimized during processing, the app handles it automatically:
+
+- A slim banner appears at the top of the screen showing "Connection lost — retrying…" or "Reconnecting…"
+- All API calls (image uploads, job submissions, downloads) retry up to 3 times automatically with increasing delays (2s, 4s, 8s)
+- Status polling during Retouch jobs tolerates up to 60 seconds of outage before stopping
+- When the connection is restored, the banner briefly shows "Connection restored" then disappears
+
+**For Retouch Studio jobs specifically**
+
+Once a Retouch job has been submitted, it continues processing on the server even if your connection drops. The job is never lost. When your connection returns:
+- If the job finishes while you are offline, the download starts automatically once polling reconnects
+- If polling fails entirely after the retry tolerance is exceeded, a **Resume** button appears on the failed job card in the Results panel — clicking Resume reconnects to the already-running job without deducting more tokens
+
+**For Background Studio jobs**
+
+Background jobs use a webhook-based system: the AI model (Replicate) notifies the server when the job is done, and the app polls a database table to detect completion. This means your connection only needs to be active when submitting and when downloading — the processing itself runs server-side and is completely unaffected by your browser state or network.
+
+**Token safety**
+
+Tokens are only deducted once per job attempt. If a job fails — for any reason including network errors — the token is refunded automatically. You will never lose a token to a connection problem.
+
+**Tips**
+
+- Keep the browser tab open while processing (do not close the tab, just minimizing is fine)
+- If you see a persistent network error after retries, check your connection and use the Retry or Resume button on the failed job — you do not need to re-upload the image
+- On mobile, switching apps briefly is usually fine; closing the browser or clearing background apps may interrupt polling on long jobs
+    `,
+  },
+  {
     id: 'file-requirements',
     title: 'File Requirements',
     content: `
