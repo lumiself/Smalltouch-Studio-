@@ -22,7 +22,7 @@ export default function RetouchPage() {
   const { user, profile } = useAuth()
   const { balance, deductTokens, refundTokens } = useTokens()
   const { selectedImage, batchQueue, setBatchQueue, addToBatch, removeFromBatch, jobs, addJob, updateJob } = useLibrary()
-  const { runQuickEnhance, runAdvancedEdit } = useRetouch({ addJob, updateJob })
+  const { runQuickEnhance, runAdvancedEdit, resumeJob } = useRetouch({ addJob, updateJob })
   const toast = useToast()
   const navigate = useNavigate()
 
@@ -94,6 +94,24 @@ export default function RetouchPage() {
 
   const handleRetry = useCallback(async (job) => {
     if (!user) return
+
+    // Job was already submitted to Retouch4me — resume polling/download, no token deduction
+    if (job.externalJobId) {
+      try {
+        await resumeJob({
+          userId: user.id,
+          jobId: job.id,
+          externalJobId: job.externalJobId,
+          isZipJob: job.type === 'advanced_edit',
+        })
+        setMobileTab('results')
+      } catch (err) {
+        toast.error(err.message || 'Resume failed')
+      }
+      return
+    }
+
+    // Job never got submitted — full resubmit with token deduction
     if (job.type === 'quick_enhance' && job.originalFile && job.presetData) {
       if (!canUseAction(profile, 'quick_enhance')) { navigate('/tokens'); return }
       let deducted = false
@@ -126,7 +144,7 @@ export default function RetouchPage() {
         setAdvancedProcessing(false)
       }
     }
-  }, [user, profile, deductTokens, refundTokens, runQuickEnhance, runAdvancedEdit, navigate, toast])
+  }, [user, profile, resumeJob, deductTokens, refundTokens, runQuickEnhance, runAdvancedEdit, navigate, toast])
 
   const handleStartBatch = useCallback(async () => {
     if (!activePreset || batchQueue.length === 0 || batchRunning) return

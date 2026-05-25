@@ -107,13 +107,13 @@ export default function ResultsPanel({ jobs = [], onRetry }) {
             {job.status === 'failed' && (
               <div className="px-2.5 pb-2.5 space-y-2">
                 <p className="text-[#ef4444] text-xs">{job.error || 'Processing failed'}</p>
-                {onRetry && job.originalFile && (job.presetData || job.pluginConfig) && (
+                {onRetry && (job.externalJobId || (job.originalFile && (job.presetData || job.pluginConfig))) && (
                   <button
                     onClick={() => onRetry(job)}
                     className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-[#ef4444]/10 hover:bg-[#ef4444]/20 text-[#ef4444] text-xs font-medium transition-colors"
                   >
                     <RotateCcw size={11} />
-                    Retry
+                    {job.externalJobId ? 'Resume' : 'Retry'}
                   </button>
                 )}
               </div>

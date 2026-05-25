@@ -9,6 +9,9 @@ async function isZip(blob) {
 }
 
 const POLL_INTERVAL_MS = 3000
+// Tolerate this many consecutive network errors before aborting the poll.
+// One or two blips (mobile data, brief wifi drop) should not kill the job.
+const MAX_POLL_NETWORK_FAILURES = 3
 
 async function readResponse(res) {
   const text = await res.text()
@@ -30,7 +33,7 @@ function serverError(parsed, fallback) {
 
 function wrapFetchError(err) {
   if (err?.message === 'Failed to fetch') {
-    return new Error('Network error — check your connection. Your image is saved; use the Retry button to try again.')
+    return new Error('Network error — check your connection. Use the Resume button to continue without resubmitting.')
   }
   return err
 }
@@ -40,9 +43,11 @@ export function useRetouch({ addJob, updateJob }) {
 
   function pollStatus(externalJobId, jobId) {
     return new Promise((resolve, reject) => {
+      let consecutiveNetworkFailures = 0
       const interval = setInterval(async () => {
         try {
           const res = await fetch(`/api/retouch/status?jobId=${externalJobId}`)
+          consecutiveNetworkFailures = 0  // reset on any successful response
           const parsed = await readResponse(res)
           if (!parsed.ok || !parsed.data) {
             clearInterval(interval)
@@ -60,12 +65,70 @@ export function useRetouch({ addJob, updateJob }) {
             updateJob(jobId, { progress: data.progress || 0, step: data.pluginName || data.currentStep })
           }
         } catch (err) {
-          clearInterval(interval)
-          reject(wrapFetchError(err))
+          consecutiveNetworkFailures++
+          if (consecutiveNetworkFailures >= MAX_POLL_NETWORK_FAILURES) {
+            clearInterval(interval)
+            reject(wrapFetchError(err))
+          }
+          // else: transient blip — stay in the interval and retry next tick
         }
       }, POLL_INTERVAL_MS)
     })
   }
+
+  // Resumes a job that already has an externalJobId (was submitted but polling/download failed).
+  // Does NOT deduct tokens — the job was already submitted and any failed-job refund already happened.
+  const resumeJob = useCallback(async ({ userId, jobId, externalJobId, isZipJob }) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      // One-shot status check to see where we are
+      const statusRes = await fetch(`/api/retouch/status?jobId=${externalJobId}`)
+      const statusParsed = await readResponse(statusRes)
+      if (!statusParsed.ok || !statusParsed.data) throw serverError(statusParsed, 'Status check failed')
+
+      const currentState = statusParsed.data.state
+
+      if (currentState === 'failed') {
+        throw new Error(statusParsed.data.reason || 'Job failed on the processing server')
+      }
+
+      if (currentState === 'completed') {
+        updateJob(jobId, { status: 'downloading', progress: 100 })
+      } else {
+        // Still in progress — resume polling from current progress
+        updateJob(jobId, { status: 'processing', progress: statusParsed.data.progress || 0 })
+        await pollStatus(externalJobId, jobId)
+        updateJob(jobId, { status: 'downloading', progress: 100 })
+      }
+
+      const downloadRes = await fetch(`/api/retouch/download?jobId=${externalJobId}&internalJobId=${jobId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!downloadRes.ok) throw new Error('Download failed')
+      const blob = await downloadRes.blob()
+
+      if (isZipJob) {
+        const parsedAsZip = await isZip(blob)
+        const outputPath = await uploadOutputBlob(userId, jobId, blob, parsedAsZip ? 'zip' : 'jpg')
+        await supabase.from('jobs').update({ status: 'completed', output_path: outputPath }).eq('id', jobId)
+        updateJob(jobId, { status: 'completed', outputPath })
+        return { jobId, outputPath }
+      } else {
+        const outputPath = await uploadOutputBlob(userId, jobId, blob)
+        const resultUrl = await getOutputUrl(outputPath)
+        await supabase.from('jobs').update({ status: 'completed', output_path: outputPath }).eq('id', jobId)
+        updateJob(jobId, { status: 'completed', result: { url: resultUrl, outputPath } })
+        return { jobId, resultUrl }
+      }
+    } catch (err) {
+      const wrapped = wrapFetchError(err)
+      updateJob(jobId, { status: 'failed', error: wrapped.message })
+      await supabase.from('jobs').update({ status: 'failed' }).eq('id', jobId)
+      throw wrapped
+    }
+  }, [updateJob])
 
   const runQuickEnhance = useCallback(async ({ userId, file, preset }) => {
     const jobId = crypto.randomUUID()
@@ -88,6 +151,8 @@ export function useRetouch({ addJob, updateJob }) {
       if (!startParsed.ok || !startParsed.data) throw serverError(startParsed, 'Failed to start job')
 
       const externalJobId = startParsed.data.externalJobId
+      // Store externalJobId in state immediately — needed for Resume if polling fails
+      updateJob(jobId, { externalJobId })
 
       const { error: jobInsertError } = await supabase.from('jobs').insert({
         id: jobId, user_id: userId, panel: 'retouch', operation: 'quick_enhance',
@@ -144,6 +209,8 @@ export function useRetouch({ addJob, updateJob }) {
       if (!startParsed.ok || !startParsed.data) throw serverError(startParsed, 'Failed to start job')
 
       const externalJobId = startParsed.data.externalJobId
+      // Store externalJobId in state immediately — needed for Resume if polling fails
+      updateJob(jobId, { externalJobId })
 
       const { error: jobInsertError } = await supabase.from('jobs').insert({
         id: jobId, user_id: userId, panel: 'retouch', operation: 'advanced_edit',
@@ -175,7 +242,7 @@ export function useRetouch({ addJob, updateJob }) {
     }
   }, [addJob, updateJob])
 
-  return { runQuickEnhance, runAdvancedEdit }
+  return { runQuickEnhance, runAdvancedEdit, resumeJob }
 }
 
 const INTENSITY_ALPHAS = {
