@@ -46,11 +46,14 @@ export default function RetouchPage() {
       setMobileTab('results')
     } catch (err) {
       if (deducted) {
-        try { await refundTokens(user.id, preset.tokenCost) } catch {}
+        try {
+          await refundTokens(user.id, preset.tokenCost)
+          if (err.jobId) updateJob(err.jobId, { tokensRefunded: true })
+        } catch {}
       }
       toast.error(err.message || 'Enhancement failed')
     }
-  }, [user, selectedImage, profile, deductTokens, refundTokens, runQuickEnhance, navigate, toast])
+  }, [user, selectedImage, profile, deductTokens, refundTokens, runQuickEnhance, updateJob, navigate, toast])
 
   const handleAdvancedEdit = useCallback(async ({ plugins, intensityMode }) => {
     if (!user || !selectedImage) return
@@ -64,13 +67,16 @@ export default function RetouchPage() {
       setActiveJobId(result.jobId)
     } catch (err) {
       if (deducted) {
-        try { await refundTokens(user.id, 2) } catch {}
+        try {
+          await refundTokens(user.id, 2)
+          if (err.jobId) updateJob(err.jobId, { tokensRefunded: true })
+        } catch {}
       }
       toast.error(err.message || 'Advanced edit failed')
     } finally {
       setAdvancedProcessing(false)
     }
-  }, [user, selectedImage, profile, deductTokens, refundTokens, runAdvancedEdit, navigate, toast])
+  }, [user, selectedImage, profile, deductTokens, refundTokens, runAdvancedEdit, updateJob, navigate, toast])
 
   async function handleDownloadZip() {
     const job = jobs.find(j => j.id === activeJobId)
@@ -95,8 +101,21 @@ export default function RetouchPage() {
   const handleRetry = useCallback(async (job) => {
     if (!user) return
 
-    // Job was already submitted to Retouch4me — resume polling/download, no token deduction
+    // Job was already submitted to Retouch4me — resume polling/download.
+    // If tokens were refunded after the initial failure, re-deduct before resuming.
     if (job.externalJobId) {
+      const tokenCost = job.type === 'advanced_edit' ? 2 : job.presetData?.tokenCost
+      let deducted = false
+      if (job.tokensRefunded && tokenCost) {
+        if (!canUseAction(profile, job.type)) { navigate('/tokens'); return }
+        try {
+          await deductTokens(user.id, tokenCost, crypto.randomUUID(), job.type)
+          deducted = true
+        } catch (err) {
+          toast.error(err.message || 'Insufficient tokens')
+          return
+        }
+      }
       try {
         await resumeJob({
           userId: user.id,
@@ -106,6 +125,9 @@ export default function RetouchPage() {
         })
         setMobileTab('results')
       } catch (err) {
+        if (deducted) {
+          try { await refundTokens(user.id, tokenCost) } catch {}
+        }
         toast.error(err.message || 'Resume failed')
       }
       return
@@ -122,7 +144,10 @@ export default function RetouchPage() {
         setMobileTab('results')
       } catch (err) {
         if (deducted) {
-          try { await refundTokens(user.id, job.presetData.tokenCost) } catch {}
+          try {
+            await refundTokens(user.id, job.presetData.tokenCost)
+            if (err.jobId) updateJob(err.jobId, { tokensRefunded: true })
+          } catch {}
         }
         toast.error(err.message || 'Retry failed')
       }
@@ -137,14 +162,17 @@ export default function RetouchPage() {
         setActiveJobId(result.jobId)
       } catch (err) {
         if (deducted) {
-          try { await refundTokens(user.id, 2) } catch {}
+          try {
+            await refundTokens(user.id, 2)
+            if (err.jobId) updateJob(err.jobId, { tokensRefunded: true })
+          } catch {}
         }
         toast.error(err.message || 'Retry failed')
       } finally {
         setAdvancedProcessing(false)
       }
     }
-  }, [user, profile, resumeJob, deductTokens, refundTokens, runQuickEnhance, runAdvancedEdit, navigate, toast])
+  }, [user, profile, resumeJob, deductTokens, refundTokens, runQuickEnhance, runAdvancedEdit, updateJob, navigate, toast])
 
   const handleStartBatch = useCallback(async () => {
     if (!activePreset || batchQueue.length === 0 || batchRunning) return

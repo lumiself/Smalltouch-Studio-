@@ -179,6 +179,7 @@ export function useRetouch({ addJob, updateJob }) {
       return { jobId, resultUrl }
     } catch (err) {
       const wrapped = wrapFetchError(err)
+      wrapped.jobId = jobId
       updateJob(jobId, { status: 'failed', error: wrapped.message })
       await supabase.from('jobs').update({ status: 'failed' }).eq('id', jobId)
       throw wrapped
@@ -236,6 +237,7 @@ export function useRetouch({ addJob, updateJob }) {
       return { jobId, outputPath }
     } catch (err) {
       const wrapped = wrapFetchError(err)
+      wrapped.jobId = jobId
       updateJob(jobId, { status: 'failed', error: wrapped.message })
       await supabase.from('jobs').update({ status: 'failed' }).eq('id', jobId)
       throw wrapped
