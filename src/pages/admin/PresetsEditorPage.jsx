@@ -24,9 +24,6 @@ async function getAuthHeader() {
 }
 
 function emptyForm(panel = 'retouch') {
-  const defaultPayload = panel === 'background'
-    ? '{\n  "prompt": "professional studio background, soft lighting, neutral gray"\n}'
-    : '{\n  "mode": "professional",\n  "tasks": []\n}'
   return {
     preset_key: '',
     panel,
@@ -35,7 +32,9 @@ function emptyForm(panel = 'retouch') {
     description: '',
     categories: [],
     token_cost: panel === 'background' ? 2 : 1,
-    payload_text: defaultPayload,
+    payload_text: panel === 'background'
+      ? 'professional studio background, soft lighting, neutral gray'
+      : '{\n  "mode": "professional",\n  "tasks": []\n}',
     before_image_url: '',
     after_image_url: '',
     status: 'active',
@@ -74,15 +73,18 @@ export default function PresetsEditorPage() {
 
   function startEdit(preset) {
     setEditingId(preset.id)
+    const panel = preset.panel ?? 'retouch'
     setEditForm({
       preset_key: preset.preset_key,
-      panel: preset.panel ?? 'retouch',
+      panel,
       name: preset.name,
       icon: preset.icon,
       description: preset.description,
       categories: preset.categories ?? [],
       token_cost: preset.token_cost,
-      payload_text: JSON.stringify(preset.payload, null, 2),
+      payload_text: panel === 'background'
+        ? (preset.payload?.prompt ?? '')
+        : JSON.stringify(preset.payload, null, 2),
       before_image_url: preset.before_image_url ?? '',
       after_image_url: preset.after_image_url ?? '',
       status: preset.status,
@@ -100,7 +102,13 @@ export default function PresetsEditorPage() {
     setError('')
     try {
       let payload
-      try { payload = JSON.parse(editForm.payload_text) } catch { throw new Error('Invalid JSON in payload') }
+      if (editForm.panel === 'background') {
+        const prompt = editForm.payload_text.trim()
+        if (!prompt) throw new Error('Prompt is required')
+        payload = { prompt }
+      } else {
+        try { payload = JSON.parse(editForm.payload_text) } catch { throw new Error('Invalid JSON in payload') }
+      }
       const headers = await getAuthHeader()
       const res = await fetch('/api/admin/presets', {
         method: 'PATCH',
@@ -124,7 +132,13 @@ export default function PresetsEditorPage() {
     setError('')
     try {
       let payload
-      try { payload = JSON.parse(newForm.payload_text) } catch { throw new Error('Invalid JSON in payload') }
+      if (newForm.panel === 'background') {
+        const prompt = newForm.payload_text.trim()
+        if (!prompt) throw new Error('Prompt is required')
+        payload = { prompt }
+      } else {
+        try { payload = JSON.parse(newForm.payload_text) } catch { throw new Error('Invalid JSON in payload') }
+      }
       if (!newForm.preset_key.trim() || !newForm.name.trim()) throw new Error('preset_key and name are required')
       const headers = await getAuthHeader()
       const res = await fetch('/api/admin/presets', {
@@ -322,7 +336,7 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
       categories: [],
       token_cost: panelId === 'background' ? 2 : 1,
       payload_text: panelId === 'background'
-        ? '{\n  "prompt": "professional studio background, soft lighting, neutral gray"\n}'
+        ? 'professional studio background, soft lighting, neutral gray'
         : '{\n  "mode": "professional",\n  "tasks": []\n}',
     }))
   }
@@ -472,14 +486,29 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
       </div>
 
       <div>
-        <label className="text-[#a3a3a3] text-xs block mb-1">Payload (JSON)</label>
-        <textarea
-          value={form.payload_text}
-          onChange={e => setForm(prev => ({ ...prev, payload_text: e.target.value }))}
-          rows={8}
-          className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-xs font-mono focus:outline-none focus:border-[#a855f7] transition-colors resize-y"
-          spellCheck={false}
-        />
+        {form.panel === 'background' ? (
+          <>
+            <label className="text-[#a3a3a3] text-xs block mb-1">Prompt</label>
+            <textarea
+              value={form.payload_text}
+              onChange={e => setForm(prev => ({ ...prev, payload_text: e.target.value }))}
+              rows={3}
+              placeholder="Describe the background, e.g. professional studio, soft lighting, neutral gray"
+              className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm focus:outline-none focus:border-[#a855f7] transition-colors resize-y"
+            />
+          </>
+        ) : (
+          <>
+            <label className="text-[#a3a3a3] text-xs block mb-1">Payload (JSON)</label>
+            <textarea
+              value={form.payload_text}
+              onChange={e => setForm(prev => ({ ...prev, payload_text: e.target.value }))}
+              rows={8}
+              className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-xs font-mono focus:outline-none focus:border-[#a855f7] transition-colors resize-y"
+              spellCheck={false}
+            />
+          </>
+        )}
       </div>
 
       <div className="flex gap-2 justify-end">
