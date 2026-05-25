@@ -150,6 +150,38 @@ List all voucher codes with their redemption status. Returns the 200 most recent
 
 ---
 
+## POST /api/admin/topup-tokens
+
+Add tokens directly to a user's balance. Uses the same atomic `refund_tokens` SQL function as the job-failure refund path.
+
+### Request Headers
+| Header | Value |
+|--------|-------|
+| Authorization | `Bearer <access_token>` |
+| Content-Type | `application/json` |
+
+### Request Body
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| userId | string (uuid) | yes | Target user's Supabase auth ID |
+| amount | integer | yes | Number of tokens to add (must be a positive integer) |
+
+### Response — 200 OK
+```json
+{ "success": true }
+```
+
+### Response — Error Cases
+| Status | Error | Cause |
+|--------|-------|-------|
+| 400 | Missing or invalid userId or amount | Fields absent or amount ≤ 0 |
+| 401 | Unauthorized | Missing or invalid auth token |
+| 403 | Forbidden | User is not the admin |
+| 405 | Method not allowed | Non-POST request |
+| 500 | Failed to top up tokens | Database RPC error |
+
+---
+
 ## POST /api/admin/upload-sample
 
 Upload a sample image (before or after) for a preset card. The file is stored in the public `backgrounds` bucket under `preset-samples/` and the public URL is returned for the admin UI to paste into the preset's `before_image_url` or `after_image_url`.
