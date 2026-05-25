@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
+import { fetchWithRetry } from '../lib/fetchWithRetry'
 
 export function useTokens() {
   const { profile, refreshProfile } = useAuth()
@@ -27,7 +28,7 @@ export function useTokens() {
 
   async function redeemVoucher(code) {
     const { data: { session } } = await supabase.auth.getSession()
-    const res = await fetch('/api/tokens/redeem', {
+    const res = await fetchWithRetry('/api/tokens/redeem', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

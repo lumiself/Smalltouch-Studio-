@@ -1,10 +1,42 @@
 import { supabase } from './supabase'
 
+const STORAGE_RETRY_DELAYS = [2000, 4000, 8000]
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
+
+function dispatchRetry(name, success) {
+  window.dispatchEvent(new CustomEvent(name, { detail: { success } }))
+}
+
+async function retryStorage(fn) {
+  let lastErr
+  let didRetry = false
+  for (let attempt = 0; attempt <= STORAGE_RETRY_DELAYS.length; attempt++) {
+    const { error } = await fn()
+    if (!error) {
+      if (didRetry) dispatchRetry('network-retry-done', true)
+      return
+    }
+    // Don't retry on permission / RLS errors
+    const msg = error.message?.toLowerCase() ?? ''
+    const isPermErr = msg.includes('row level security') || msg.includes('not authorized') ||
+      (error.statusCode >= 400 && error.statusCode < 500)
+    if (isPermErr) throw toStorageError(error)
+    lastErr = error
+    if (attempt < STORAGE_RETRY_DELAYS.length) {
+      if (!didRetry) dispatchRetry('network-retrying')
+      didRetry = true
+      await sleep(STORAGE_RETRY_DELAYS[attempt])
+    }
+  }
+  if (didRetry) dispatchRetry('network-retry-done', false)
+  throw toStorageError(lastErr)
+}
+
 export async function uploadInput(userId, jobId, file) {
   const ext = file.name.split('.').pop()
   const path = `${userId}/${jobId}_original.${ext}`
-  const { error } = await supabase.storage.from('inputs').upload(path, file, { upsert: true })
-  if (error) throw toStorageError(error)
+  await retryStorage(() => supabase.storage.from('inputs').upload(path, file, { upsert: true }))
   return path
 }
 
@@ -15,11 +47,10 @@ export async function getInputUrl(path) {
 
 export async function uploadOutputBlob(userId, jobId, blob, ext = 'jpg') {
   const path = `${userId}/${jobId}_result.${ext}`
-  const { error } = await supabase.storage.from('outputs').upload(path, blob, {
+  await retryStorage(() => supabase.storage.from('outputs').upload(path, blob, {
     contentType: ext === 'zip' ? 'application/zip' : 'image/jpeg',
     upsert: true,
-  })
-  if (error) throw toStorageError(error)
+  }))
   return path
 }
 

@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { uploadInput, uploadOutputBlob, getOutputUrl } from '../lib/storage'
+import { fetchWithRetry } from '../lib/fetchWithRetry'
 
 async function isZip(blob) {
   const buf = await blob.slice(0, 2).arrayBuffer()
@@ -9,9 +10,8 @@ async function isZip(blob) {
 }
 
 const POLL_INTERVAL_MS = 3000
-// Tolerate this many consecutive network errors before aborting the poll.
-// One or two blips (mobile data, brief wifi drop) should not kill the job.
-const MAX_POLL_NETWORK_FAILURES = 3
+// Tolerate up to ~60s of consecutive network failures before aborting the poll.
+const MAX_POLL_NETWORK_FAILURES = 20
 
 async function readResponse(res) {
   const text = await res.text()
@@ -47,7 +47,10 @@ export function useRetouch({ addJob, updateJob }) {
       const interval = setInterval(async () => {
         try {
           const res = await fetch(`/api/retouch/status?jobId=${externalJobId}`)
-          consecutiveNetworkFailures = 0  // reset on any successful response
+          if (consecutiveNetworkFailures > 0) {
+            window.dispatchEvent(new CustomEvent('network-retry-done', { detail: { success: true } }))
+          }
+          consecutiveNetworkFailures = 0
           const parsed = await readResponse(res)
           if (!parsed.ok || !parsed.data) {
             clearInterval(interval)
@@ -66,8 +69,12 @@ export function useRetouch({ addJob, updateJob }) {
           }
         } catch (err) {
           consecutiveNetworkFailures++
+          if (consecutiveNetworkFailures === 1) {
+            window.dispatchEvent(new CustomEvent('network-retrying'))
+          }
           if (consecutiveNetworkFailures >= MAX_POLL_NETWORK_FAILURES) {
             clearInterval(interval)
+            window.dispatchEvent(new CustomEvent('network-retry-done', { detail: { success: false } }))
             reject(wrapFetchError(err))
           }
           // else: transient blip — stay in the interval and retry next tick
@@ -84,7 +91,7 @@ export function useRetouch({ addJob, updateJob }) {
       const token = session?.access_token
 
       // One-shot status check to see where we are
-      const statusRes = await fetch(`/api/retouch/status?jobId=${externalJobId}`)
+      const statusRes = await fetchWithRetry(`/api/retouch/status?jobId=${externalJobId}`)
       const statusParsed = await readResponse(statusRes)
       if (!statusParsed.ok || !statusParsed.data) throw serverError(statusParsed, 'Status check failed')
 
@@ -103,7 +110,7 @@ export function useRetouch({ addJob, updateJob }) {
         updateJob(jobId, { status: 'downloading', progress: 100 })
       }
 
-      const downloadRes = await fetch(`/api/retouch/download?jobId=${externalJobId}&internalJobId=${jobId}`, {
+      const downloadRes = await fetchWithRetry(`/api/retouch/download?jobId=${externalJobId}&internalJobId=${jobId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!downloadRes.ok) throw new Error('Download failed')
@@ -142,7 +149,7 @@ export function useRetouch({ addJob, updateJob }) {
       const token = session?.access_token
 
       updateJob(jobId, { status: 'submitting' })
-      const startRes = await fetch('/api/retouch/start', {
+      const startRes = await fetchWithRetry('/api/retouch/start', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ inputPath, payload: preset.payload }),
@@ -165,7 +172,7 @@ export function useRetouch({ addJob, updateJob }) {
       await pollStatus(externalJobId, jobId)
 
       updateJob(jobId, { status: 'downloading', progress: 100 })
-      const downloadRes = await fetch(`/api/retouch/download?jobId=${externalJobId}&internalJobId=${jobId}`, {
+      const downloadRes = await fetchWithRetry(`/api/retouch/download?jobId=${externalJobId}&internalJobId=${jobId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!downloadRes.ok) throw new Error('Download failed')
@@ -201,7 +208,7 @@ export function useRetouch({ addJob, updateJob }) {
       const payload = { mode: 'professional', tasks }
 
       updateJob(jobId, { status: 'submitting' })
-      const startRes = await fetch('/api/retouch/start', {
+      const startRes = await fetchWithRetry('/api/retouch/start', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ inputPath, payload }),
@@ -224,7 +231,7 @@ export function useRetouch({ addJob, updateJob }) {
       await pollStatus(externalJobId, jobId)
 
       updateJob(jobId, { status: 'downloading', progress: 100 })
-      const downloadRes = await fetch(`/api/retouch/download?jobId=${externalJobId}&internalJobId=${jobId}`, {
+      const downloadRes = await fetchWithRetry(`/api/retouch/download?jobId=${externalJobId}&internalJobId=${jobId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!downloadRes.ok) throw new Error('Download failed')
