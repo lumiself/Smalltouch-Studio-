@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
 const REPLICATE_BASE = 'https://api.replicate.com/v1'
-const FLUX_2_MAX_ENDPOINT = 'https://api.replicate.com/v1/models/black-forest-labs/flux-2-max/predictions'
+const NANO_BANANA_ENDPOINT = 'https://api.replicate.com/v1/models/google/nano-banana-pro/predictions'
 
 function supabaseClient() {
   return createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -152,7 +152,7 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Failed to create signed URL' })
       }
 
-      const replicateRes = await fetch(FLUX_2_MAX_ENDPOINT, {
+      const replicateRes = await fetch(NANO_BANANA_ENDPOINT, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
@@ -161,11 +161,11 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           input: {
             prompt: preset.prompt,
-            input_images: [signedData.signedUrl],
-            aspect_ratio: preset.aspect_ratio ?? 'match_input_image',
-            resolution: preset.resolution ?? 'match_input_image',
+            image_input: [signedData.signedUrl],
+            aspect_ratio: preset.aspect_ratio ?? '2:3',
+            resolution: preset.resolution ?? '2K',
             output_format: preset.output_format ?? 'jpg',
-            safety_tolerance: preset.safety_tolerance ?? 5,
+            safety_filter_level: preset.safety_filter_level ?? 'block_only_high',
           },
           webhook: `${webhookBase}/api/webhook/replicate?jobId=${jobId}`,
           webhook_events_filter: ['completed'],
@@ -220,7 +220,7 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Failed to create signed URL' })
       }
 
-      const replicateRes = await fetch(FLUX_2_MAX_ENDPOINT, {
+      const replicateRes = await fetch(NANO_BANANA_ENDPOINT, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
@@ -229,11 +229,11 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           input: {
             prompt: preset.prompt,
-            input_images: [signedData.signedUrl],
-            aspect_ratio: preset.aspect_ratio ?? 'match_input_image',
-            resolution: preset.resolution ?? 'match_input_image',
+            image_input: [signedData.signedUrl],
+            aspect_ratio: preset.aspect_ratio ?? '2:3',
+            resolution: preset.resolution ?? '2K',
             output_format: preset.output_format ?? 'jpg',
-            safety_tolerance: preset.safety_tolerance ?? 5,
+            safety_filter_level: preset.safety_filter_level ?? 'block_only_high',
           },
           webhook: `${webhookBase}/api/webhook/replicate?jobId=${jobId}`,
           webhook_events_filter: ['completed'],

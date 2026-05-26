@@ -28,10 +28,10 @@ export const models = [
     version: "latest",
   },
   {
-    id: "flux_2_max",
+    id: "nano_banana",
     provider: "replicate",
-    model: "black-forest-labs/flux-2-max",
-    actions: ["bg_flux_preset"],
-    endpoint: "https://api.replicate.com/v1/models/black-forest-labs/flux-2-max/predictions",
+    model: "google/nano-banana-pro",
+    actions: ["bg_flux_preset", "bg_replace"],
+    endpoint: "https://api.replicate.com/v1/models/google/nano-banana-pro/predictions",
   },
 ]
