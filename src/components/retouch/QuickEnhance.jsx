@@ -84,7 +84,7 @@ export default function QuickEnhance({ selectedPreset, onPresetSelect }) {
           <BeforeAfterSlider
             beforeSrc={previewPreset.beforeImageUrl}
             afterSrc={previewPreset.afterImageUrl}
-            className="w-full h-44"
+            className="w-full aspect-square"
           />
           <div className="flex items-start justify-between gap-2">
             <div>
