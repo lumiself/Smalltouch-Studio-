@@ -38,7 +38,16 @@ export default function HistoryPage() {
     if (!url) return
     const a = document.createElement('a')
     a.href = url
-    a.download = `result_${job.id.slice(0, 8)}.${job.output_path.endsWith('.zip') ? 'zip' : 'jpg'}`
+    const isZip = job.output_path.endsWith('.zip')
+    const ext = isZip ? 'zip' : 'jpg'
+    if (job.original_filename) {
+      const stem = job.original_filename.replace(/\.[^.]+$/, '')
+      const SUFFIX = { quick_enhance: 'enhanced', advanced_edit: 'retouched', bg_replace: 'bg_replaced', bg_flux_preset: 'bg_replaced' }
+      const suffix = SUFFIX[job.operation] || 'result'
+      a.download = `${stem}_${suffix}.${ext}`
+    } else {
+      a.download = `result_${job.id.slice(0, 8)}.${ext}`
+    }
     a.click()
   }
 

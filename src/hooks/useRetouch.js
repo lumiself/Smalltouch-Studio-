@@ -165,6 +165,7 @@ export function useRetouch({ addJob, updateJob }) {
         id: jobId, user_id: userId, panel: 'retouch', operation: 'quick_enhance',
         status: 'processing', external_job_id: externalJobId,
         input_path: inputPath, tokens_used: preset.tokenCost,
+        original_filename: file.name,
       })
       if (jobInsertError) throw new Error(jobInsertError.message)
 
@@ -224,6 +225,7 @@ export function useRetouch({ addJob, updateJob }) {
         id: jobId, user_id: userId, panel: 'retouch', operation: 'advanced_edit',
         status: 'processing', external_job_id: externalJobId,
         input_path: inputPath, tokens_used: 2,
+        original_filename: file.name,
       })
       if (jobInsertError) throw new Error(jobInsertError.message)
 

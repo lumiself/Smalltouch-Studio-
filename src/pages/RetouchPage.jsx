@@ -90,7 +90,8 @@ export default function RetouchPage() {
       const objectUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = objectUrl
-      a.download = `retouch_layers_${activeJobId.slice(0, 8)}.zip`
+      const stem = job.originalFile?.name?.replace(/\.[^.]+$/, '')
+      a.download = stem ? `${stem}_retouched.zip` : `retouch_layers_${activeJobId.slice(0, 8)}.zip`
       a.click()
       URL.revokeObjectURL(objectUrl)
     } catch (err) {
