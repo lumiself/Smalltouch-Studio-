@@ -89,10 +89,10 @@ export default function BgPresets({ selectedPreset, onPresetSelect }) {
             <BeforeAfterSlider
               beforeSrc={previewPreset.beforeImageUrl}
               afterSrc={previewPreset.afterImageUrl}
-              className="w-full h-44"
+              className="w-full aspect-square"
             />
           ) : (
-            <div className="w-full h-44 bg-[#1a1a1a] rounded-lg flex items-center justify-center">
+            <div className="w-full aspect-square bg-[#1a1a1a] rounded-lg flex items-center justify-center">
               <span className="text-4xl">{previewPreset.icon}</span>
             </div>
           )}
