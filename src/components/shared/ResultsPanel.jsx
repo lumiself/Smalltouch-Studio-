@@ -27,11 +27,16 @@ export default function ResultsPanel({ jobs = [], onRetry }) {
   const downloadable = jobs.filter(j => j.status === 'completed' && j.result?.url)
 
   async function downloadResult(job) {
-    const a = document.createElement('a')
-    a.href = job.result.url
+    const res = await fetch(job.result.url)
+    const blob = await res.blob()
+    const ext = blob.type.includes('png') ? 'png' : 'jpg'
     const stem = fileStem(job)
-    a.download = stem ? `${stem}_${suffixFromJob(job)}.jpg` : `result_${job.id.slice(0, 8)}.jpg`
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = stem ? `${stem}_${suffixFromJob(job)}.${ext}` : `result_${job.id.slice(0, 8)}.${ext}`
     a.click()
+    URL.revokeObjectURL(url)
   }
 
   async function downloadAll() {
