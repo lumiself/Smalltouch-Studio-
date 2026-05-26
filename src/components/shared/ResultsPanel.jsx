@@ -12,13 +12,25 @@ const STATUS_ICONS = {
   failed:      <XCircle size={14} className="text-[#ef4444]" />,
 }
 
+function fileStem(job) {
+  const name = job.originalFile?.name
+  return name ? name.replace(/\.[^.]+$/, '') : null
+}
+
+function suffixFromJob(job) {
+  if (job.presetName) return job.presetName.replace(/\s+/g, '_').toLowerCase()
+  const MAP = { quick_enhance: 'enhanced', advanced_edit: 'retouched', bg_replace: 'bg_replaced', bg_flux_preset: 'bg_replaced' }
+  return MAP[job.type] || 'result'
+}
+
 export default function ResultsPanel({ jobs = [], onRetry }) {
   const downloadable = jobs.filter(j => j.status === 'completed' && j.result?.url)
 
   async function downloadResult(job) {
     const a = document.createElement('a')
     a.href = job.result.url
-    a.download = `result_${job.id.slice(0, 8)}.jpg`
+    const stem = fileStem(job)
+    a.download = stem ? `${stem}_${suffixFromJob(job)}.jpg` : `result_${job.id.slice(0, 8)}.jpg`
     a.click()
   }
 
@@ -30,9 +42,10 @@ export default function ResultsPanel({ jobs = [], onRetry }) {
         const res = await fetch(job.result.url)
         const blob = await res.blob()
         const ext = blob.type.includes('png') ? 'png' : 'jpg'
-        const label = job.presetName
-          ? `${job.presetName.replace(/\s+/g, '_')}_${i + 1}.${ext}`
-          : `result_${i + 1}.${ext}`
+        const stem = fileStem(job)
+        const label = stem
+          ? `${stem}_${suffixFromJob(job)}.${ext}`
+          : (job.presetName ? `${job.presetName.replace(/\s+/g, '_')}_${i + 1}.${ext}` : `result_${i + 1}.${ext}`)
         zip.file(label, blob)
       } catch {}
     }))

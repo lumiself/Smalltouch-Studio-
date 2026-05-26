@@ -44,6 +44,7 @@ create table if not exists public.jobs (
   external_job_id text,
   input_path text,
   output_path text,
+  original_filename text,
   tokens_used integer not null default 0,
   created_at timestamptz not null default now()
 );
@@ -248,3 +249,6 @@ alter table public.system_presets enable row level security;
 -- Authenticated users can read active presets; admin API uses service role for all access
 create policy "system_presets_read_active" on public.system_presets
   for select using (status = 'active' and auth.uid() is not null);
+
+-- Migration: add original_filename to jobs (run this if the table already exists)
+alter table public.jobs add column if not exists original_filename text;
