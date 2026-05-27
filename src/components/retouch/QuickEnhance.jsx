@@ -31,6 +31,7 @@ export default function QuickEnhance({ selectedPreset, onPresetSelect }) {
     supabase
       .from('system_presets')
       .select('*')
+      .eq('panel', 'retouch')
       .eq('status', 'active')
       .order('sort_order')
       .then(({ data }) => {
