@@ -424,6 +424,54 @@ A wider/taller image with your subject in the center and AI-generated content fi
     `,
   },
   {
+    id: 'background-upscale',
+    title: 'Upscale — Increase Image Resolution',
+    content: `
+**What it does**
+
+Upscale increases the resolution of any image using the p-image-upscale AI model. It works on single images or a full batch queue at once.
+
+**How to use it**
+1. Upload an image using the Upload button in the left Library panel
+2. Go to **Background Studio → Upscale** tab
+3. Choose a mode and set the resolution options (see below)
+4. Click **Upscale · 1 token** to process a single image
+5. To process multiple images: add them to the batch queue, then click **Batch**
+6. Results appear in the Results panel on the right
+
+**Mode options**
+| Mode | What it does |
+|------|-------------|
+| Target MP | Scales the image to reach a fixed megapixel count (e.g. 4 MP, 8 MP) |
+| Factor × | Multiplies each side by a fixed amount (e.g. 2× doubles width and height) |
+
+**Settings**
+| Setting | Range | Default | Notes |
+|---------|-------|---------|-------|
+| Target resolution | 1–128 MP | 4 MP | Used in Target MP mode |
+| Scale factor | 1–8× | 2× | Used in Factor mode |
+| Enhance details | On / Off | Off | Sharpens fine textures; may increase contrast slightly |
+
+**Token cost**
+
+1 token per image. Deducted before processing starts. Refunded automatically if the job fails.
+
+**Expected output**
+
+A JPEG at 80% quality. Higher resolution than the input based on your chosen settings.
+
+**Batch upscale**
+
+Add multiple images to the batch queue using the + button in the Library panel, then switch to the Upscale tab and click **Batch**. Each image is processed in parallel and costs 1 token each.
+
+**Common issues**
+- *Upscale button is greyed out* — select an image from the library first
+- *Not enough tokens* — redeem a voucher on the Tokens page; each upscale costs 1 token
+- *Factor mode output capped* — the model caps output at 128 MP regardless of factor setting
+- *Enhance details changed the look slightly* — this is expected; the option adds contrast and texture; turn it off for a faithful enlargement
+    `,
+  },
+  {
     id: 'admin-dashboard',
     title: 'Admin Dashboard',
     content: `

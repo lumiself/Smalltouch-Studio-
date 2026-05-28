@@ -41,4 +41,11 @@ export const models = [
     actions: ["bg_replace_precise"],
     endpoint: "https://api.replicate.com/v1/models/openai/gpt-image-2/predictions",
   },
+  {
+    id: "p_image_upscale",
+    provider: "replicate",
+    model: "prunaai/p-image-upscale",
+    actions: ["bg_upscale"],
+    endpoint: "https://api.replicate.com/v1/models/prunaai/p-image-upscale/predictions",
+  },
 ]

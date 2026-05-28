@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 const REPLICATE_BASE = 'https://api.replicate.com/v1'
 const NANO_BANANA_ENDPOINT = 'https://api.replicate.com/v1/models/google/nano-banana-pro/predictions'
 const GPT_IMAGE_2_ENDPOINT = 'https://api.replicate.com/v1/models/openai/gpt-image-2/predictions'
+const P_IMAGE_UPSCALE_ENDPOINT = 'https://api.replicate.com/v1/models/prunaai/p-image-upscale/predictions'
 
 function supabaseClient() {
   return createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -278,6 +279,79 @@ export default async function handler(req, res) {
       return res.status(200).json({ jobId })
     } catch (err) {
       console.error('background/replace error:', err)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+
+  // POST /api/background/upscale
+  if (subpath === 'upscale') {
+    const { jobId, inputPath, options, tokenCost } = body
+    if (!jobId || !inputPath || !options?.upscaleMode) {
+      return res.status(400).json({ error: 'Missing jobId, inputPath, or options' })
+    }
+
+    const webhookBase = process.env.WEBHOOK_BASE ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+    if (!webhookBase) {
+      return res.status(500).json({ error: 'WEBHOOK_BASE is not configured' })
+    }
+
+    try {
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('inputs')
+        .createSignedUrl(inputPath, 300)
+      if (signedError || !signedData?.signedUrl) {
+        return res.status(500).json({ error: 'Failed to create signed URL' })
+      }
+
+      const replicateInput = {
+        image: signedData.signedUrl,
+        upscale_mode: options.upscaleMode,
+        output_format: 'jpg',
+        output_quality: 80,
+        enhance_details: options.enhanceDetails ?? false,
+        enhance_realism: false,
+      }
+      if (options.upscaleMode === 'target') {
+        replicateInput.target = Math.min(Math.max(Number(options.targetMp) || 4, 1), 128)
+      } else {
+        replicateInput.factor = Math.min(Math.max(Number(options.factor) || 2, 1), 8)
+      }
+
+      const replicateRes = await fetch(P_IMAGE_UPSCALE_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          input: replicateInput,
+          webhook: `${webhookBase}/api/webhook/replicate?jobId=${jobId}`,
+          webhook_events_filter: ['completed'],
+        }),
+      })
+      const replicateData = await replicateRes.json()
+      if (!replicateRes.ok) {
+        return res.status(500).json({ error: replicateData.detail || replicateData.error || 'Replicate error' })
+      }
+
+      const { error: insertError } = await supabase.from('jobs').insert({
+        id: jobId,
+        user_id: user.id,
+        panel: 'background',
+        operation: 'bg_upscale',
+        status: 'processing',
+        external_job_id: replicateData.id,
+        input_path: inputPath,
+        tokens_used: tokenCost ?? 1,
+      })
+      if (insertError) {
+        console.error('upscale job insert error:', insertError)
+      }
+
+      return res.status(200).json({ jobId })
+    } catch (err) {
+      console.error('background/upscale error:', err)
       return res.status(500).json({ error: 'Internal server error' })
     }
   }
