@@ -34,4 +34,11 @@ export const models = [
     actions: ["bg_flux_preset", "bg_replace"],
     endpoint: "https://api.replicate.com/v1/models/google/nano-banana-pro/predictions",
   },
+  {
+    id: "gpt_image_2",
+    provider: "replicate",
+    model: "openai/gpt-image-2",
+    actions: ["bg_replace_precise"],
+    endpoint: "https://api.replicate.com/v1/models/openai/gpt-image-2/predictions",
+  },
 ]

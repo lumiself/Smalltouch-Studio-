@@ -48,7 +48,7 @@ function pollJob(jobId, updateJob) {
 
 export function useBackground({ addJob, updateJob }) {
 
-  const runReplace = useCallback(async ({ userId, file, preset }) => {
+  const runReplace = useCallback(async ({ userId, file, preset, model = 'nano_banana' }) => {
     const jobId = crypto.randomUUID()
     addJob({ id: jobId, type: 'bg_replace', panel: 'background', presetName: preset.name, status: 'uploading', progress: 0, result: null })
     try {
@@ -60,7 +60,7 @@ export function useBackground({ addJob, updateJob }) {
       const startRes = await fetchWithRetry('/api/background/replace', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId, inputPath, preset: preset.payload, tokenCost: preset.tokenCost }),
+        body: JSON.stringify({ jobId, inputPath, preset: preset.payload, tokenCost: preset.tokenCost, model }),
       })
       if (!startRes.ok) {
         const errData = await startRes.json().catch(() => ({}))

@@ -25,6 +25,7 @@ export default function BackgroundPage() {
 
   const [activeTool, setActiveTool] = useState('presets')
   const [activePreset, setActivePreset] = useState(null)
+  const [selectedModel, setSelectedModel] = useState('nano_banana')
   const [processing, setProcessing] = useState(false)
   const [batchRunning, setBatchRunning] = useState(false)
   const [batchStatuses, setBatchStatuses] = useState({})
@@ -39,7 +40,7 @@ export default function BackgroundPage() {
     try {
       await deductTokens(user.id, preset.tokenCost, crypto.randomUUID(), 'bg_replace')
       deducted = true
-      await runReplace({ userId: user.id, file: selectedImage.file, preset })
+      await runReplace({ userId: user.id, file: selectedImage.file, preset, model: selectedModel })
       setMobileTab('results')
     } catch (err) {
       if (deducted) {
@@ -64,7 +65,7 @@ export default function BackgroundPage() {
       try {
         await deductTokens(user.id, activePreset.tokenCost, crypto.randomUUID(), 'bg_replace')
         deducted = true
-        await runReplace({ userId: user.id, file: img.file, preset: activePreset })
+        await runReplace({ userId: user.id, file: img.file, preset: activePreset, model: selectedModel })
         setBatchStatuses(prev => ({ ...prev, [img.id]: 'completed' }))
       } catch (err) {
         if (deducted) {
@@ -140,6 +141,8 @@ export default function BackgroundPage() {
                 batchRunning={batchRunning}
                 onRemoveFromBatch={removeFromBatch}
                 onStartBatch={handleStartBatch}
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
               />
             </>
           )}

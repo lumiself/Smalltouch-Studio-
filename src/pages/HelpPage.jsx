@@ -258,10 +258,19 @@ Background Presets let you transform the background of a portrait or subject pho
 3. Browse the preset grid and click any card to see a before/after preview
 4. Click **Select Preset** to mark it active
 5. Scroll down to the **Apply Background** section
-6. Click **Generate Background** — costs 2 tokens
-7. Wait 20–60 seconds while the AI generates the new background
-8. The result appears in the Results panel on the right
-9. Download your result
+6. Choose a **Generation mode** — Creative or Precise (see below)
+7. Click **Replace BG** — costs 2 tokens
+8. Wait 20–60 seconds while the AI generates the new background
+9. The result appears in the Results panel on the right
+10. Download your result
+
+**Generation modes**
+| Mode | Model | Best for |
+|------|-------|----------|
+| Creative | Nano Banana | Atmospheric scenes, stylised looks — may alter facial details |
+| Precise | GPT-Image 2 | Portraits where the subject must stay unchanged |
+
+Use **Creative** for most background swaps. Switch to **Precise** if the subject's face or details are being changed in Creative mode.
 
 **Preset categories**
 | Category | Best for |
@@ -277,20 +286,20 @@ Background Presets let you transform the background of a portrait or subject pho
 
 **Token cost**
 
-2 tokens per generation. Deducted before the job starts. Refunded automatically if the generation fails.
+2 tokens per generation regardless of mode. Deducted before the job starts. Refunded automatically if the generation fails.
 
 **Expected output**
 
-A flat image (WebP) with the original subject composited over a newly generated background. The result matches the aspect ratio of your input image.
+A flat WebP image with the original subject composited over a newly generated background.
 
 **Minimum package**
 
 Basic or above. Background Presets are available on all packages.
 
 **Common issues**
-- *Generate Background is greyed out* — make sure you have selected both an image and a preset
+- *Replace BG is greyed out* — make sure you have selected both an image and a preset
 - *Not enough tokens* — redeem a voucher code on the Tokens page; each generation costs 2 tokens
-- *Result looks odd* — the model conditions on your subject from the input image; portrait-style photos with a clear, well-lit subject work best
+- *Subject face is being changed* — switch from Creative to Precise mode; Precise uses GPT-Image 2 which better preserves facial details
 - *Generation took too long* — AI background generation typically takes 20–60 seconds; if you see a timeout error, try again
     `,
   },
