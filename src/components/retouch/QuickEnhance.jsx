@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X } from 'lucide-react'
+import { X, RefreshCw } from 'lucide-react'
 import { CATEGORIES } from '../../registry/presets'
 import { supabase } from '../../lib/supabase'
 import TokenCostBadge from '../shared/TokenCostBadge'
@@ -26,19 +26,29 @@ export default function QuickEnhance({ selectedPreset, onPresetSelect }) {
   const modalRef = useRef(null)
   const [dbPresets, setDbPresets] = useState([])
   const [presetsLoaded, setPresetsLoaded] = useState(false)
+  const [loadError, setLoadError] = useState(null)
 
-  useEffect(() => {
-    supabase
+  async function loadPresets() {
+    setLoadError(null)
+    setPresetsLoaded(false)
+    const { data, error } = await supabase
       .from('system_presets')
       .select('*')
       .eq('panel', 'retouch')
       .eq('status', 'active')
-      .order('sort_order')
-      .then(({ data }) => {
-        setDbPresets(data?.map(dbToPreset) ?? [])
-        setPresetsLoaded(true)
-      })
-  }, [])
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true })
+      .limit(500)
+    if (error) {
+      setLoadError(error.message)
+      setPresetsLoaded(true)
+      return
+    }
+    setDbPresets(data?.map(dbToPreset) ?? [])
+    setPresetsLoaded(true)
+  }
+
+  useEffect(() => { loadPresets() }, [])  // eslint-disable-line react-hooks/exhaustive-deps
 
   const visiblePresets =
     activeCategory === 'All'
@@ -120,7 +130,16 @@ export default function QuickEnhance({ selectedPreset, onPresetSelect }) {
         </div>
       )}
 
-      {presetsLoaded && visiblePresets.length === 0 ? (
+      {loadError && (
+        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-[#1a1a1a] border border-[#ef4444]/30 rounded-lg">
+          <p className="text-[#ef4444] text-xs">Failed to load presets: {loadError}</p>
+          <button onClick={loadPresets} className="shrink-0 text-[#a3a3a3] hover:text-[#f5f5f5]">
+            <RefreshCw size={13} />
+          </button>
+        </div>
+      )}
+
+      {presetsLoaded && !loadError && visiblePresets.length === 0 ? (
         <p className="text-[#a3a3a3] text-xs text-center py-8">
           No presets available yet.{' '}
           {activeCategory !== 'All'
