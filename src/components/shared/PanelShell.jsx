@@ -15,6 +15,8 @@ export default function PanelShell({
   onMobileTabChange,
   // Retry handler for failed jobs
   onRetry,
+  // Continue handler — sends a completed result to another feature as a chained input
+  onContinue,
   // Center tools content
   children,
 }) {
@@ -80,7 +82,7 @@ export default function PanelShell({
 
         {/* ── Results / Output ── */}
         <div className={`${mobileTab === 'results' ? 'flex' : 'hidden'} md:flex flex-col ${resolvedResultsClassName} overflow-hidden`}>
-          {resultsSlot ?? <ResultsPanel jobs={jobs} onRetry={onRetry} />}
+          {resultsSlot ?? <ResultsPanel jobs={jobs} onRetry={onRetry} onContinue={onContinue} />}
         </div>
 
       </div>

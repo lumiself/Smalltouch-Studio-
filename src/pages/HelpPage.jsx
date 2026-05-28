@@ -593,6 +593,47 @@ Lower numbers appear first. Set sort_order to control the display sequence. Pres
     `,
   },
   {
+    id: 'multi-step-processing',
+    title: 'Multi-Step Processing (Chaining)',
+    content: `
+**What it does**
+
+Lets you send a completed result directly into the next processing step without downloading and re-uploading the file. For example: retouch a portrait, then immediately apply a background preset to the retouched version — all in one session.
+
+**How to use it**
+1. Complete any processing step that produces a result (Retouch, Background Presets, Upscale)
+2. In the Results panel, find the completed job
+3. Below the Download button, two grey buttons appear: **Retouch** and **Background**
+4. Click the button for the next step you want to apply
+5. The app navigates to that feature and adds your result to the Batch Queue automatically
+6. Select a preset (or configure your settings) and click **Start Batch** to process it
+7. Your retouched result is processed without any download or re-upload
+
+**Bulk chaining**
+
+You can chain multiple results at once:
+1. Click the continuation button on each completed result you want to continue processing
+2. All selected results are queued in the target feature's Batch Queue
+3. Run the batch as normal — each result is processed in sequence
+
+**Token costs**
+
+Chaining itself is free. The next processing step costs its normal token rate:
+- Continue to Retouch (One Click Enhance): 1 token per image
+- Continue to Background Presets: 2 tokens per image
+- Continue to Upscale: 1 token per image
+
+**How it works**
+
+When you click a continuation button, the app copies your result from the completed-results storage to the input storage entirely on the server — no file passes through your browser or device. This means it works on slow connections and with large files the same as any batch operation.
+
+**Common issues**
+- *Continuation buttons are not showing* — the buttons only appear on completed results that have an output file (not on Advanced Edit zip results)
+- *Item already in queue* — clicking the same result's continuation button twice does nothing; the item is only added once
+- *Wrong feature opened* — check the Batch Queue on the target page; your result should be there ready to process
+    `,
+  },
+  {
     id: 'network-errors',
     title: 'Network Errors & Auto-Retry',
     content: `

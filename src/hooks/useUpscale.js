@@ -43,7 +43,7 @@ function pollJob(jobId, updateJob) {
 }
 
 export function useUpscale({ addJob, updateJob }) {
-  const runUpscale = useCallback(async ({ userId, file, options }) => {
+  const runUpscale = useCallback(async ({ userId, file, options, chainedFrom }) => {
     const TOKEN_COST = 1
     const jobId = crypto.randomUUID()
     addJob({
@@ -54,14 +54,32 @@ export function useUpscale({ addJob, updateJob }) {
       status: 'uploading',
       progress: 0,
       result: null,
+      originalFile: file ?? null,
+      chainedPreview: chainedFrom?.preview ?? null,
     })
 
     try {
-      updateJob(jobId, { status: 'uploading' })
-      const inputPath = await uploadInput(userId, jobId, file)
-
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
+
+      let inputPath
+      if (chainedFrom) {
+        updateJob(jobId, { status: 'uploading' })
+        const chainRes = await fetchWithRetry('/api/jobs/chain', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ outputPaths: [chainedFrom.outputPath] }),
+        })
+        if (!chainRes.ok) {
+          const e = await chainRes.json().catch(() => ({}))
+          throw new Error(e.error || 'Failed to chain input')
+        }
+        const { inputPaths } = await chainRes.json()
+        inputPath = inputPaths[0].newInputPath
+      } else {
+        updateJob(jobId, { status: 'uploading' })
+        inputPath = await uploadInput(userId, jobId, file)
+      }
 
       updateJob(jobId, { status: 'submitting' })
       const startRes = await fetchWithRetry('/api/background/upscale', {

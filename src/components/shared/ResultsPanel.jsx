@@ -1,4 +1,4 @@
-import { Download, CheckCircle, Clock, XCircle, RotateCcw } from 'lucide-react'
+import { Download, CheckCircle, Clock, XCircle, RotateCcw, ArrowRight } from 'lucide-react'
 import JSZip from 'jszip'
 import ProgressBar from './ProgressBar'
 import BeforeAfterSlider from './BeforeAfterSlider'
@@ -23,7 +23,7 @@ function suffixFromJob(job) {
   return MAP[job.type] || 'result'
 }
 
-export default function ResultsPanel({ jobs = [], onRetry }) {
+export default function ResultsPanel({ jobs = [], onRetry, onContinue }) {
   const downloadable = jobs.filter(j => j.status === 'completed' && j.result?.url)
 
   async function downloadResult(job) {
@@ -106,11 +106,11 @@ export default function ResultsPanel({ jobs = [], onRetry }) {
             {job.status === 'completed' && job.result?.url && (
               <>
                 <BeforeAfterSlider
-                  beforeSrc={job.originalFile ? URL.createObjectURL(job.originalFile) : null}
+                  beforeSrc={job.originalFile ? URL.createObjectURL(job.originalFile) : (job.chainedPreview ?? null)}
                   afterSrc={job.result.url}
                   className="w-full h-40"
                 />
-                <div className="p-2">
+                <div className="p-2 space-y-1">
                   <button
                     onClick={() => downloadResult(job)}
                     className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-[#a855f7]/20 hover:bg-[#a855f7]/30 text-[#a855f7] text-xs font-medium transition-colors"
@@ -118,6 +118,24 @@ export default function ResultsPanel({ jobs = [], onRetry }) {
                     <Download size={12} />
                     Download
                   </button>
+                  {onContinue && job.result.outputPath && (
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => onContinue(job, 'retouch')}
+                        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#2a2a2a] hover:bg-[#333] text-[#a3a3a3] hover:text-[#f5f5f5] text-xs font-medium transition-colors"
+                      >
+                        <ArrowRight size={11} />
+                        Retouch
+                      </button>
+                      <button
+                        onClick={() => onContinue(job, 'background')}
+                        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#2a2a2a] hover:bg-[#333] text-[#a3a3a3] hover:text-[#f5f5f5] text-xs font-medium transition-colors"
+                      >
+                        <ArrowRight size={11} />
+                        Background
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             )}
