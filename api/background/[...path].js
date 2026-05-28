@@ -226,19 +226,14 @@ export default async function handler(req, res) {
       const endpoint = useGptImage2 ? GPT_IMAGE_2_ENDPOINT : NANO_BANANA_ENDPOINT
       const operation = useGptImage2 ? 'bg_replace_precise' : 'bg_replace'
 
-      // GPT-image-2 only supports 1:1, 3:2, 2:3
-      const gptAspectRatio = ['1:1', '3:2', '2:3'].includes(preset.aspect_ratio)
-        ? preset.aspect_ratio
-        : '1:1'
-
       const replicateInput = useGptImage2
         ? {
             prompt: preset.prompt,
             input_images: [signedData.signedUrl],
-            aspect_ratio: gptAspectRatio,
-            quality: 'auto',
-            output_format: 'webp',
-            moderation: 'auto',
+            aspect_ratio: '2:3',
+            quality: 'medium',
+            output_format: 'jpeg',
+            moderation: 'low',
           }
         : {
             prompt: preset.prompt,
