@@ -1,18 +1,21 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Image } from 'lucide-react'
+import { Image, Maximize2 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useTokens } from '../hooks/useTokens'
 import { useBackground } from '../hooks/useBackground'
+import { useUpscale } from '../hooks/useUpscale'
 import { useToast } from '../contexts/ToastContext'
 import { useLibrary } from '../contexts/LibraryContext'
 import { canUseAction } from '../lib/access'
 import PanelShell from '../components/shared/PanelShell'
 import BgPresets from '../components/background/BgPresets'
 import BgApplyPanel from '../components/background/BgApplyPanel'
+import UpscalePanel from '../components/background/UpscalePanel'
 
 const TOOL_NAV = [
   { id: 'presets', label: 'Presets', Icon: Image },
+  { id: 'upscale', label: 'Upscale', Icon: Maximize2 },
 ]
 
 export default function BackgroundPage() {
@@ -20,6 +23,7 @@ export default function BackgroundPage() {
   const { balance, deductTokens, refundTokens } = useTokens()
   const { selectedImage, batchQueue, removeFromBatch, addJob, updateJob } = useLibrary()
   const { runReplace } = useBackground({ addJob, updateJob })
+  const { runUpscale } = useUpscale({ addJob, updateJob })
   const toast = useToast()
   const navigate = useNavigate()
 
@@ -30,6 +34,15 @@ export default function BackgroundPage() {
   const [batchRunning, setBatchRunning] = useState(false)
   const [batchStatuses, setBatchStatuses] = useState({})
   const [mobileTab, setMobileTab] = useState('tools')
+
+  // Upscale settings
+  const [upscaleMode, setUpscaleMode] = useState('target')
+  const [targetMp, setTargetMp] = useState(4)
+  const [upscaleFactor, setUpscaleFactor] = useState(2)
+  const [enhanceDetails, setEnhanceDetails] = useState(false)
+  const [upscaleProcessing, setUpscaleProcessing] = useState(false)
+  const [upscaleBatchRunning, setUpscaleBatchRunning] = useState(false)
+  const [upscaleBatchStatuses, setUpscaleBatchStatuses] = useState({})
 
   const handleApply = useCallback(async (preset) => {
     if (!user || !selectedImage || !preset) return
@@ -81,6 +94,65 @@ export default function BackgroundPage() {
     toast.success('Batch complete')
     setMobileTab('results')
   }, [activePreset, batchQueue, batchRunning, profile, user, deductTokens, refundTokens, runReplace, navigate, toast])
+
+  const upscaleOptions = useCallback(() => ({
+    upscaleMode,
+    targetMp,
+    factor: upscaleFactor,
+    enhanceDetails,
+  }), [upscaleMode, targetMp, upscaleFactor, enhanceDetails])
+
+  const handleUpscale = useCallback(async () => {
+    if (!user || !selectedImage) return
+    if (!canUseAction(profile, 'bg_upscale')) { navigate('/tokens'); return }
+
+    setUpscaleProcessing(true)
+    let deducted = false
+    try {
+      await deductTokens(user.id, 1, crypto.randomUUID(), 'bg_upscale')
+      deducted = true
+      await runUpscale({ userId: user.id, file: selectedImage.file, options: upscaleOptions() })
+      setMobileTab('results')
+    } catch (err) {
+      if (deducted) {
+        try { await refundTokens(user.id, 1) } catch {}
+      }
+      toast.error(err.message || 'Upscale failed')
+    } finally {
+      setUpscaleProcessing(false)
+    }
+  }, [user, selectedImage, profile, deductTokens, refundTokens, runUpscale, upscaleOptions, navigate, toast])
+
+  const handleStartUpscaleBatch = useCallback(async () => {
+    if (batchQueue.length === 0 || upscaleBatchRunning) return
+    if (!canUseAction(profile, 'bg_upscale')) { navigate('/tokens'); return }
+
+    setUpscaleBatchRunning(true)
+    setUpscaleBatchStatuses(Object.fromEntries(batchQueue.map(img => [img.id, 'pending'])))
+
+    const opts = upscaleOptions()
+    const runItem = async (img) => {
+      setUpscaleBatchStatuses(prev => ({ ...prev, [img.id]: 'processing' }))
+      let deducted = false
+      try {
+        await deductTokens(user.id, 1, crypto.randomUUID(), 'bg_upscale')
+        deducted = true
+        await runUpscale({ userId: user.id, file: img.file, options: opts })
+        setUpscaleBatchStatuses(prev => ({ ...prev, [img.id]: 'completed' }))
+      } catch (err) {
+        if (deducted) {
+          try { await refundTokens(user.id, 1) } catch {}
+        }
+        setUpscaleBatchStatuses(prev => ({ ...prev, [img.id]: 'failed' }))
+        toast.error(`Failed: ${img.name}`)
+      }
+    }
+
+    await Promise.allSettled(batchQueue.map(runItem))
+    setUpscaleBatchRunning(false)
+    toast.success('Batch upscale complete')
+    setMobileTab('results')
+  }, [batchQueue, upscaleBatchRunning, profile, user, deductTokens, refundTokens, runUpscale, upscaleOptions, navigate, toast])
 
   return (
     <PanelShell mobileTab={mobileTab} onMobileTabChange={setMobileTab}>
@@ -145,6 +217,28 @@ export default function BackgroundPage() {
                 onModelChange={setSelectedModel}
               />
             </>
+          )}
+
+          {activeTool === 'upscale' && (
+            <UpscalePanel
+              selectedImage={selectedImage}
+              processing={upscaleProcessing}
+              balance={balance}
+              onUpscale={handleUpscale}
+              batchQueue={batchQueue}
+              batchStatuses={upscaleBatchStatuses}
+              batchRunning={upscaleBatchRunning}
+              onRemoveFromBatch={removeFromBatch}
+              onStartBatch={handleStartUpscaleBatch}
+              upscaleMode={upscaleMode}
+              onUpscaleModeChange={setUpscaleMode}
+              targetMp={targetMp}
+              onTargetMpChange={setTargetMp}
+              factor={upscaleFactor}
+              onFactorChange={setUpscaleFactor}
+              enhanceDetails={enhanceDetails}
+              onEnhanceDetailsChange={setEnhanceDetails}
+            />
           )}
         </div>
       </div>

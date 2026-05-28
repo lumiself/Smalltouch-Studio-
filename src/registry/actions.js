@@ -69,6 +69,13 @@ export const actions = [
     tokenCost: 2,
     outputType: "flat",
   },
+  {
+    id: "bg_upscale",
+    panel: "background",
+    name: "Upscale",
+    tokenCost: 1,
+    outputType: "flat",
+  },
 ]
 
 export function getAction(id) {
