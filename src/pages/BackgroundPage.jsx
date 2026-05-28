@@ -21,7 +21,18 @@ const TOOL_NAV = [
 export default function BackgroundPage() {
   const { user, profile } = useAuth()
   const { balance, deductTokens, refundTokens } = useTokens()
-  const { selectedImage, batchQueue, removeFromBatch, addJob, updateJob } = useLibrary()
+  const { selectedImage, batchQueue, setBatchQueue, removeFromBatch, addJob, updateJob } = useLibrary()
+  const handleContinue = useCallback((job, target) => {
+    const chained = {
+      id: crypto.randomUUID(),
+      name: job.presetName || job.id.slice(0, 8),
+      preview: job.result.url,
+      outputPath: job.result.outputPath,
+      isChained: true,
+    }
+    setBatchQueue(prev => prev.find(i => i.outputPath === chained.outputPath) ? prev : [...prev, chained])
+    navigate(`/${target}`)
+  }, [setBatchQueue, navigate])
   const { runReplace } = useBackground({ addJob, updateJob })
   const { runUpscale } = useUpscale({ addJob, updateJob })
   const toast = useToast()
@@ -78,7 +89,10 @@ export default function BackgroundPage() {
       try {
         await deductTokens(user.id, activePreset.tokenCost, crypto.randomUUID(), 'bg_replace')
         deducted = true
-        await runReplace({ userId: user.id, file: img.file, preset: activePreset, model: selectedModel })
+        const args = img.isChained
+          ? { userId: user.id, chainedFrom: img, preset: activePreset, model: selectedModel }
+          : { userId: user.id, file: img.file, preset: activePreset, model: selectedModel }
+        await runReplace(args)
         setBatchStatuses(prev => ({ ...prev, [img.id]: 'completed' }))
       } catch (err) {
         if (deducted) {
@@ -137,7 +151,10 @@ export default function BackgroundPage() {
       try {
         await deductTokens(user.id, 1, crypto.randomUUID(), 'bg_upscale')
         deducted = true
-        await runUpscale({ userId: user.id, file: img.file, options: opts })
+        const args = img.isChained
+          ? { userId: user.id, chainedFrom: img, options: opts }
+          : { userId: user.id, file: img.file, options: opts }
+        await runUpscale(args)
         setUpscaleBatchStatuses(prev => ({ ...prev, [img.id]: 'completed' }))
       } catch (err) {
         if (deducted) {
@@ -155,7 +172,7 @@ export default function BackgroundPage() {
   }, [batchQueue, upscaleBatchRunning, profile, user, deductTokens, refundTokens, runUpscale, upscaleOptions, navigate, toast])
 
   return (
-    <PanelShell mobileTab={mobileTab} onMobileTabChange={setMobileTab}>
+    <PanelShell mobileTab={mobileTab} onMobileTabChange={setMobileTab} onContinue={handleContinue}>
 
       {/* Mobile horizontal tool switcher */}
       <div className="md:hidden flex shrink-0 border-b border-[#2a2a2a] bg-[#161616]">

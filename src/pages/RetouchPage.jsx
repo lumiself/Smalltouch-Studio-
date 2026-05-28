@@ -22,6 +22,17 @@ export default function RetouchPage() {
   const { user, profile } = useAuth()
   const { balance, deductTokens, refundTokens } = useTokens()
   const { selectedImage, batchQueue, setBatchQueue, addToBatch, removeFromBatch, jobs, addJob, updateJob } = useLibrary()
+  const handleContinue = useCallback((job, target) => {
+    const chained = {
+      id: crypto.randomUUID(),
+      name: job.presetName || job.id.slice(0, 8),
+      preview: job.result.url,
+      outputPath: job.result.outputPath,
+      isChained: true,
+    }
+    setBatchQueue(prev => prev.find(i => i.outputPath === chained.outputPath) ? prev : [...prev, chained])
+    navigate(`/${target}`)
+  }, [setBatchQueue, navigate])
   const { runQuickEnhance, runAdvancedEdit, resumeJob } = useRetouch({ addJob, updateJob })
   const toast = useToast()
   const navigate = useNavigate()
@@ -188,7 +199,10 @@ export default function RetouchPage() {
       try {
         await deductTokens(user.id, activePreset.tokenCost, crypto.randomUUID(), 'batch_retouch')
         deducted = true
-        await runQuickEnhance({ userId: user.id, file: img.file, preset: activePreset })
+        const args = img.isChained
+          ? { userId: user.id, chainedFrom: img, preset: activePreset }
+          : { userId: user.id, file: img.file, preset: activePreset }
+        await runQuickEnhance(args)
         setBatchStatuses(prev => ({ ...prev, [img.id]: 'completed' }))
       } catch (err) {
         if (deducted) {
@@ -206,7 +220,7 @@ export default function RetouchPage() {
   }, [activePreset, batchQueue, batchRunning, profile, user, deductTokens, refundTokens, runQuickEnhance, navigate, toast])
 
   return (
-    <PanelShell mobileTab={mobileTab} onMobileTabChange={setMobileTab} onRetry={handleRetry}>
+    <PanelShell mobileTab={mobileTab} onMobileTabChange={setMobileTab} onRetry={handleRetry} onContinue={handleContinue}>
 
       {/* Mobile horizontal tool switcher */}
       <div className="md:hidden flex shrink-0 border-b border-[#2a2a2a] bg-[#161616]">

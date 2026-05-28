@@ -137,16 +137,32 @@ export function useRetouch({ addJob, updateJob }) {
     }
   }, [updateJob])
 
-  const runQuickEnhance = useCallback(async ({ userId, file, preset }) => {
+  const runQuickEnhance = useCallback(async ({ userId, file, preset, chainedFrom }) => {
     const jobId = crypto.randomUUID()
-    addJob({ id: jobId, type: 'quick_enhance', panel: 'retouch', presetName: preset.name, status: 'uploading', progress: 0, result: null, originalFile: file, presetData: preset })
+    addJob({ id: jobId, type: 'quick_enhance', panel: 'retouch', presetName: preset.name, status: 'uploading', progress: 0, result: null, originalFile: file ?? null, chainedPreview: chainedFrom?.preview ?? null, presetData: preset })
 
     try {
-      updateJob(jobId, { status: 'uploading' })
-      const inputPath = await uploadInput(userId, jobId, file)
-
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
+
+      let inputPath
+      if (chainedFrom) {
+        updateJob(jobId, { status: 'uploading' })
+        const chainRes = await fetchWithRetry('/api/jobs/chain', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ outputPaths: [chainedFrom.outputPath] }),
+        })
+        if (!chainRes.ok) {
+          const e = await chainRes.json().catch(() => ({}))
+          throw new Error(e.error || 'Failed to chain input')
+        }
+        const { inputPaths } = await chainRes.json()
+        inputPath = inputPaths[0].newInputPath
+      } else {
+        updateJob(jobId, { status: 'uploading' })
+        inputPath = await uploadInput(userId, jobId, file)
+      }
 
       updateJob(jobId, { status: 'submitting' })
       const startRes = await fetchWithRetry('/api/retouch/start', {
@@ -165,7 +181,7 @@ export function useRetouch({ addJob, updateJob }) {
         id: jobId, user_id: userId, panel: 'retouch', operation: 'quick_enhance',
         status: 'processing', external_job_id: externalJobId,
         input_path: inputPath, tokens_used: preset.tokenCost,
-        original_filename: file.name,
+        original_filename: file?.name ?? chainedFrom?.name ?? 'chained',
       })
       if (jobInsertError) throw new Error(jobInsertError.message)
 
@@ -194,16 +210,32 @@ export function useRetouch({ addJob, updateJob }) {
     }
   }, [addJob, updateJob])
 
-  const runAdvancedEdit = useCallback(async ({ userId, file, plugins, intensityMode }) => {
+  const runAdvancedEdit = useCallback(async ({ userId, file, plugins, intensityMode, chainedFrom }) => {
     const jobId = crypto.randomUUID()
-    addJob({ id: jobId, type: 'advanced_edit', panel: 'retouch', status: 'uploading', progress: 0, originalFile: file, pluginConfig: { plugins, intensityMode } })
+    addJob({ id: jobId, type: 'advanced_edit', panel: 'retouch', status: 'uploading', progress: 0, originalFile: file ?? null, chainedPreview: chainedFrom?.preview ?? null, pluginConfig: { plugins, intensityMode } })
 
     try {
-      updateJob(jobId, { status: 'uploading' })
-      const inputPath = await uploadInput(userId, jobId, file)
-
       const { data: { session } } = await supabase.auth.getSession()
       const token = session?.access_token
+
+      let inputPath
+      if (chainedFrom) {
+        updateJob(jobId, { status: 'uploading' })
+        const chainRes = await fetchWithRetry('/api/jobs/chain', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ outputPaths: [chainedFrom.outputPath] }),
+        })
+        if (!chainRes.ok) {
+          const e = await chainRes.json().catch(() => ({}))
+          throw new Error(e.error || 'Failed to chain input')
+        }
+        const { inputPaths } = await chainRes.json()
+        inputPath = inputPaths[0].newInputPath
+      } else {
+        updateJob(jobId, { status: 'uploading' })
+        inputPath = await uploadInput(userId, jobId, file)
+      }
 
       const tasks = buildAdvancedPayload(plugins, intensityMode)
       const payload = { mode: 'professional', tasks }
@@ -225,7 +257,7 @@ export function useRetouch({ addJob, updateJob }) {
         id: jobId, user_id: userId, panel: 'retouch', operation: 'advanced_edit',
         status: 'processing', external_job_id: externalJobId,
         input_path: inputPath, tokens_used: 2,
-        original_filename: file.name,
+        original_filename: file?.name ?? chainedFrom?.name ?? 'chained',
       })
       if (jobInsertError) throw new Error(jobInsertError.message)
 
