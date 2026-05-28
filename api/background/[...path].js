@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const REPLICATE_BASE = 'https://api.replicate.com/v1'
 const NANO_BANANA_ENDPOINT = 'https://api.replicate.com/v1/models/google/nano-banana-pro/predictions'
+const GPT_IMAGE_2_ENDPOINT = 'https://api.replicate.com/v1/models/openai/gpt-image-2/predictions'
 
 function supabaseClient() {
   return createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -199,9 +200,10 @@ export default async function handler(req, res) {
     }
   }
 
-  // POST /api/background/replace — single Flux-2-Max call: subject photo as input_images + preset prompt → new background
+  // POST /api/background/replace
+  // model: 'nano_banana' (creative, default) | 'gpt_image_2' (precise)
   if (subpath === 'replace') {
-    const { jobId, inputPath, preset, tokenCost } = body
+    const { jobId, inputPath, preset, tokenCost, model = 'nano_banana' } = body
     if (!jobId || !inputPath || !preset?.prompt) {
       return res.status(400).json({ error: 'Missing jobId, inputPath, or preset.prompt' })
     }
@@ -220,21 +222,41 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Failed to create signed URL' })
       }
 
-      const replicateRes = await fetch(NANO_BANANA_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          input: {
+      const useGptImage2 = model === 'gpt_image_2'
+      const endpoint = useGptImage2 ? GPT_IMAGE_2_ENDPOINT : NANO_BANANA_ENDPOINT
+      const operation = useGptImage2 ? 'bg_replace_precise' : 'bg_replace'
+
+      // GPT-image-2 only supports 1:1, 3:2, 2:3
+      const gptAspectRatio = ['1:1', '3:2', '2:3'].includes(preset.aspect_ratio)
+        ? preset.aspect_ratio
+        : '1:1'
+
+      const replicateInput = useGptImage2
+        ? {
+            prompt: preset.prompt,
+            input_images: [signedData.signedUrl],
+            aspect_ratio: gptAspectRatio,
+            quality: 'auto',
+            output_format: 'webp',
+            moderation: 'auto',
+          }
+        : {
             prompt: preset.prompt,
             image_input: [signedData.signedUrl],
             aspect_ratio: preset.aspect_ratio ?? '2:3',
             resolution: preset.resolution ?? '2K',
             output_format: preset.output_format ?? 'jpg',
             safety_filter_level: preset.safety_filter_level ?? 'block_only_high',
-          },
+          }
+
+      const replicateRes = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.REPLICATE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          input: replicateInput,
           webhook: `${webhookBase}/api/webhook/replicate?jobId=${jobId}`,
           webhook_events_filter: ['completed'],
         }),
@@ -248,7 +270,7 @@ export default async function handler(req, res) {
         id: jobId,
         user_id: user.id,
         panel: 'background',
-        operation: 'bg_replace',
+        operation,
         status: 'processing',
         external_job_id: replicateData.id,
         input_path: inputPath,

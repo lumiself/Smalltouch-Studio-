@@ -105,7 +105,7 @@ export default async function handler(req, res) {
       if (!imgRes.ok) throw new Error(`Failed to fetch result (${imgRes.status})`)
       const buffer = Buffer.from(await imgRes.arrayBuffer())
 
-      const ext = job.operation === 'bg_flux_preset' ? 'webp' : 'jpg'
+      const ext = ['bg_flux_preset', 'bg_replace_precise'].includes(job.operation) ? 'webp' : 'jpg'
       const outputPath = `${job.user_id}/${jobId}_result.${ext}`
       const contentType = ext === 'webp' ? 'image/webp' : 'image/jpeg'
 

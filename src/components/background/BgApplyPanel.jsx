@@ -1,6 +1,21 @@
 import { useState, useEffect } from 'react'
-import { Loader2, Play, Wand2, X } from 'lucide-react'
+import { Loader2, Play, Wand2, X, Sparkles, ShieldCheck } from 'lucide-react'
 import TokenCostBadge from '../shared/TokenCostBadge'
+
+const MODEL_OPTIONS = [
+  {
+    id: 'nano_banana',
+    label: 'Creative',
+    icon: Sparkles,
+    description: 'Nano Banana · may alter subject',
+  },
+  {
+    id: 'gpt_image_2',
+    label: 'Precise',
+    icon: ShieldCheck,
+    description: 'GPT-Image 2 · preserves subject',
+  },
+]
 
 function statusDotClass(status) {
   if (status === 'processing') return 'bg-[#f59e0b]'
@@ -20,6 +35,8 @@ export default function BgApplyPanel({
   batchRunning = false,
   onRemoveFromBatch,
   onStartBatch,
+  selectedModel = 'nano_banana',
+  onModelChange,
 }) {
   const [focusedItemId, setFocusedItemId] = useState(null)
 
@@ -77,6 +94,34 @@ export default function BgApplyPanel({
             </button>
           </div>
         )}
+      </div>
+
+      {/* Model selector */}
+      <div className="border-t border-[#2a2a2a] bg-[#141414] px-3 py-2.5">
+        <p className="text-[#555] text-[10px] uppercase tracking-wider mb-2">Generation mode</p>
+        <div className="flex gap-2">
+          {MODEL_OPTIONS.map(({ id, label, icon: Icon, description }) => {
+            const active = selectedModel === id
+            return (
+              <button
+                key={id}
+                onClick={() => onModelChange?.(id)}
+                disabled={processing || batchRunning}
+                className={`flex-1 flex flex-col gap-1 px-2.5 py-2 rounded-lg border text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                  active
+                    ? 'border-[#a855f7] bg-[#a855f7]/10'
+                    : 'border-[#2a2a2a] hover:border-[#3a3a3a] hover:bg-[#1e1e1e]'
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <Icon size={11} className={active ? 'text-[#a855f7]' : 'text-[#555]'} />
+                  <span className={`text-xs font-medium ${active ? 'text-[#f5f5f5]' : 'text-[#a3a3a3]'}`}>{label}</span>
+                </div>
+                <span className="text-[10px] text-[#555] leading-tight">{description}</span>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Batch filmstrip */}
