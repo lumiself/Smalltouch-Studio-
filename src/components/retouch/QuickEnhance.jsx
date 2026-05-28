@@ -37,7 +37,6 @@ export default function QuickEnhance({ selectedPreset, onPresetSelect }) {
       .eq('panel', 'retouch')
       .eq('status', 'active')
       .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true })
       .limit(500)
     if (error) {
       setLoadError(error.message)
