@@ -37,7 +37,6 @@ export default function BgPresets({ selectedPreset, onPresetSelect }) {
       .eq('panel', 'background')
       .eq('status', 'active')
       .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true })
       .limit(500)
     if (error) {
       setLoadError(error.message)
