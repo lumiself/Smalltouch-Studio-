@@ -22,8 +22,18 @@ export default {
         'bauhaus-yellow': '#F5C400',
         'bauhaus-blue': '#1B3A7A',
         'bauhaus-cream': '#F8F4EC',
+        // Premium / luxe palette
+        'ink': '#0a0908',
+        'ink-soft': '#121110',
+        'ink-card': '#16140f',
+        'gold': '#c5a572',
+        'gold-bright': '#dcc28d',
+        'gold-deep': '#9b7d4c',
+        'champagne': '#e9dcc2',
+        'luxe-border': '#2b271f',
       },
       fontFamily: {
+        'serif': ['"Cormorant Garamond"', 'Georgia', 'serif'],
         'display': ['Syne', 'sans-serif'],
         'body': ['Inter', 'sans-serif'],
       },

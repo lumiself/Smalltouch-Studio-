@@ -22,8 +22,8 @@ const PresetsEditorPage = lazy(() => import('./pages/admin/PresetsEditorPage'))
 
 function PageLoader() {
   return (
-    <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-[#a855f7] border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen bg-ink flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-gold border-t-transparent rounded-full animate-spin" />
     </div>
   )
 }
