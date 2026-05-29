@@ -1,27 +1,27 @@
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
-import { fetchWithRetry } from '../lib/fetchWithRetry'
+import { fetchWithRetry, supabaseRetry } from '../lib/fetchWithRetry'
 
 export function useTokens() {
   const { profile, refreshProfile } = useAuth()
 
   async function deductTokens(userId, amount, jobId, operation) {
-    const { data, error } = await supabase.rpc('deduct_tokens', {
+    const { data, error } = await supabaseRetry(() => supabase.rpc('deduct_tokens', {
       p_user_id: userId,
       p_amount: amount,
       p_job_id: jobId,
       p_operation: operation,
-    })
+    }))
     if (error) throw error
     await refreshProfile()
     return data
   }
 
   async function refundTokens(userId, amount) {
-    const { error } = await supabase.rpc('refund_tokens', {
+    const { error } = await supabaseRetry(() => supabase.rpc('refund_tokens', {
       p_user_id: userId,
       p_amount: amount,
-    })
+    }))
     if (error) throw error
     await refreshProfile()
   }

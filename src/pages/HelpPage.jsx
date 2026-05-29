@@ -301,6 +301,7 @@ Basic or above. Background Presets are available on all packages.
 - *Not enough tokens* — redeem a voucher code on the Tokens page; each generation costs 2 tokens
 - *Subject face is being changed* — switch from Creative to Precise mode; Precise uses GPT-Image 2 which better preserves facial details
 - *Generation took too long* — AI background generation typically takes 20–60 seconds; if you see a timeout error, try again
+- *"Failed to fetch" / network error right after opening the page* — a brief connection blip on the first request is now retried automatically (uploads, token deduction, and job submission all auto-retry). If it still fails, your tokens are refunded and your image stays loaded — just click Replace BG again; you no longer need to refresh the page
     `,
   },
   {
@@ -469,6 +470,7 @@ Add multiple images to the batch queue using the + button in the Library panel, 
 - *Not enough tokens* — redeem a voucher on the Tokens page; each upscale costs 1 token
 - *Factor mode output capped* — the model caps output at 128 MP regardless of factor setting
 - *Enhance details changed the look slightly* — this is expected; the option adds contrast and texture; turn it off for a faithful enlargement
+- *"Failed to fetch" / network error on the first try* — connection blips are retried automatically; if it still fails your token is refunded and the image stays loaded, so just click Upscale again — refreshing the page is no longer needed
     `,
   },
   {
@@ -642,7 +644,8 @@ When you click a continuation button, the app copies your result from the comple
 If your internet goes down or the browser is minimized during processing, the app handles it automatically:
 
 - A slim banner appears at the top of the screen showing "Connection lost — retrying…" or "Reconnecting…"
-- All API calls (image uploads, job submissions, downloads) retry up to 3 times automatically with increasing delays (2s, 4s, 8s)
+- All network calls — image uploads, token deduction/refund, job submissions, and downloads — retry up to 3 times automatically with increasing delays (2s, 4s, 8s)
+- This includes the very first request after opening or refreshing the page, so a one-off "Failed to fetch" blip no longer needs a manual page refresh to recover
 - Status polling during Retouch jobs tolerates up to 60 seconds of outage before stopping
 - When the connection is restored, the banner briefly shows "Connection restored" then disappears
 
