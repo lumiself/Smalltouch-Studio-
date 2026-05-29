@@ -79,7 +79,6 @@ export default function DashboardPage() {
     navigate(panel.route)
   }
 
-  const firstName = profile?.full_name?.split(' ')[0] ?? null
   const tokenBalance = profile?.token_balance ?? 0
 
   return (
@@ -118,15 +117,14 @@ export default function DashboardPage() {
             </p>
 
             <h1 className="hero-reveal-delayed font-serif font-light text-[#f7f3ea] leading-[0.98] tracking-tight text-5xl sm:text-6xl md:text-7xl lg:text-[5.75rem]">
-              Let intelligence
+              The evolution of
               <br />
-              handle <span className="italic text-gold-gradient font-medium">the rest.</span>
+              your <span className="italic text-gold-gradient font-medium">workflow.</span>
             </h1>
 
             <p className="hero-reveal-delayed-2 text-[#c9c2b4] font-body font-light text-base md:text-lg mt-8 max-w-md leading-relaxed">
-              {firstName ? `Welcome back, ${firstName}. ` : ''}
-              A quiet, considered studio where AI takes the repetitive work off your
-              hands — so your time goes to the craft only you can bring.
+              We bring advanced intelligence to your creative process with a suite
+              built for speed, quality, and total artistic freedom.
             </p>
 
             <div className="hero-reveal-delayed-2 flex flex-wrap items-center gap-6 mt-11">
@@ -165,7 +163,7 @@ export default function DashboardPage() {
               </span>
             </p>
             <h2 className="font-serif font-light text-[#f2ede2] text-3xl md:text-4xl tracking-tight">
-              Tools, refined.
+              Get started
             </h2>
           </div>
         </div>
