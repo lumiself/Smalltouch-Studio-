@@ -7,10 +7,10 @@ import { canUsePanel, getRequiredPackage } from '../lib/access'
 import { useAuth } from '../hooks/useAuth'
 import OnboardingModal, { shouldShowOnboarding } from '../components/shared/OnboardingModal'
 
-// Editorial cover image — soft, elegant studio portrait. Sits beneath a deep
-// gradient so the hero still reads as premium even before/if the image loads.
-const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1740&auto=format&fit=crop'
+// Editorial cover image — self-hosted in /public. Sits beneath a deep gradient
+// so the hero still reads as premium even before/if the image loads. The subject
+// is framed on the right, where the left-side gradient leaves it visible.
+const HERO_IMAGE = '/hero.jpg'
 
 function useRevealOnScroll(keys) {
   const [visible, setVisible] = useState(() => Object.fromEntries(keys.map(k => [k, false])))
@@ -88,7 +88,7 @@ export default function DashboardPage() {
             src={HERO_IMAGE}
             alt=""
             aria-hidden="true"
-            className="hero-kenburns w-full h-full object-cover object-[70%_center] opacity-70"
+            className="hero-kenburns w-full h-full object-cover object-[72%_center] opacity-90"
             loading="eager"
           />
         </div>
