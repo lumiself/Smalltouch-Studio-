@@ -22,6 +22,11 @@ export default function BackgroundPage() {
   const { user, profile } = useAuth()
   const { balance, deductTokens, refundTokens } = useTokens()
   const { selectedImage, batchQueue, setBatchQueue, removeFromBatch, addJob, updateJob } = useLibrary()
+  const { runReplace } = useBackground({ addJob, updateJob })
+  const { runUpscale } = useUpscale({ addJob, updateJob })
+  const toast = useToast()
+  const navigate = useNavigate()
+
   const handleContinue = useCallback((job, target) => {
     const chained = {
       id: crypto.randomUUID(),
@@ -33,10 +38,6 @@ export default function BackgroundPage() {
     setBatchQueue(prev => prev.find(i => i.outputPath === chained.outputPath) ? prev : [...prev, chained])
     navigate(`/${target}`)
   }, [setBatchQueue, navigate])
-  const { runReplace } = useBackground({ addJob, updateJob })
-  const { runUpscale } = useUpscale({ addJob, updateJob })
-  const toast = useToast()
-  const navigate = useNavigate()
 
   const [activeTool, setActiveTool] = useState('presets')
   const [activePreset, setActivePreset] = useState(null)
