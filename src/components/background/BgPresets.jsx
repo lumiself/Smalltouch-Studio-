@@ -72,8 +72,8 @@ export default function BgPresets({ selectedPreset, onPresetSelect }) {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="font-display font-semibold text-[#f5f5f5] text-base">Background Presets</h2>
-        <p className="text-[#555] text-xs mt-0.5">Select a scene to transform the background with AI</p>
+        <h2 className="font-serif font-semibold text-[#f2ede2] text-base">Background Presets</h2>
+        <p className="text-[#6b665c] text-xs mt-0.5">Select a scene to transform the background with AI</p>
       </div>
 
       <div className="flex flex-wrap gap-1.5">
@@ -83,8 +83,8 @@ export default function BgPresets({ selectedPreset, onPresetSelect }) {
             onClick={() => setActiveCategory(cat)}
             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
               activeCategory === cat
-                ? 'bg-[#a855f7] text-white'
-                : 'bg-[#242424] text-[#a3a3a3] hover:text-[#f5f5f5]'
+                ? 'bg-[#c5a572] text-[#0a0908]'
+                : 'bg-[#16140f] text-[#9a9387] hover:text-[#f2ede2]'
             }`}
           >
             {cat}
@@ -93,7 +93,7 @@ export default function BgPresets({ selectedPreset, onPresetSelect }) {
       </div>
 
       {previewPreset && (
-        <div ref={modalRef} className="bg-[#242424] rounded-xl p-3 border border-[#a855f7]/40 space-y-3">
+        <div ref={modalRef} className="bg-[#16140f] rounded-xl p-3 border border-[#c5a572]/40 space-y-3">
           {previewPreset.beforeImageUrl || previewPreset.afterImageUrl ? (
             <BeforeAfterSlider
               beforeSrc={previewPreset.beforeImageUrl}
@@ -101,17 +101,17 @@ export default function BgPresets({ selectedPreset, onPresetSelect }) {
               className="w-full aspect-square"
             />
           ) : (
-            <div className="w-full aspect-square bg-[#1a1a1a] rounded-lg flex items-center justify-center">
+            <div className="w-full aspect-square bg-[#121110] rounded-lg flex items-center justify-center">
               <span className="text-4xl">{previewPreset.icon}</span>
             </div>
           )}
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-[#f5f5f5] text-sm font-medium">{previewPreset.name}</p>
-              <p className="text-[#a3a3a3] text-xs">{previewPreset.description}</p>
+              <p className="text-[#f2ede2] text-sm font-medium">{previewPreset.name}</p>
+              <p className="text-[#9a9387] text-xs">{previewPreset.description}</p>
               <div className="flex gap-1 mt-1 flex-wrap">
                 {previewPreset.categories.map(c => (
-                  <span key={c} className="text-[10px] text-[#a3a3a3] bg-[#1a1a1a] px-1.5 py-0.5 rounded">{c}</span>
+                  <span key={c} className="text-[10px] text-[#9a9387] bg-[#121110] px-1.5 py-0.5 rounded">{c}</span>
                 ))}
               </div>
             </div>
@@ -122,15 +122,15 @@ export default function BgPresets({ selectedPreset, onPresetSelect }) {
               onClick={() => handleSelect(previewPreset)}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedPreset?.id === previewPreset.id
-                  ? 'bg-[#7c3aed] text-white'
-                  : 'bg-[#a855f7] hover:bg-[#7c3aed] text-white'
+                  ? 'bg-[#9b7d4c] text-white'
+                  : 'bg-[#c5a572] hover:bg-[#9b7d4c] text-[#0a0908]'
               }`}
             >
               {selectedPreset?.id === previewPreset.id ? 'Deselect' : 'Select Preset'}
             </button>
             <button
               onClick={() => setPreviewPreset(null)}
-              className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-[#2a2a2a] text-[#a3a3a3] transition-colors"
+              className="p-2 rounded-lg bg-[#121110] hover:bg-[#2b271f] text-[#9a9387] transition-colors"
             >
               <X size={16} />
             </button>
@@ -139,16 +139,16 @@ export default function BgPresets({ selectedPreset, onPresetSelect }) {
       )}
 
       {loadError && (
-        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-[#1a1a1a] border border-[#ef4444]/30 rounded-lg">
+        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-[#121110] border border-[#ef4444]/30 rounded-lg">
           <p className="text-[#ef4444] text-xs">Failed to load presets: {loadError}</p>
-          <button onClick={loadPresets} className="shrink-0 text-[#a3a3a3] hover:text-[#f5f5f5]">
+          <button onClick={loadPresets} className="shrink-0 text-[#9a9387] hover:text-[#f2ede2]">
             <RefreshCw size={13} />
           </button>
         </div>
       )}
 
       {presetsLoaded && !loadError && visiblePresets.length === 0 ? (
-        <p className="text-[#a3a3a3] text-xs text-center py-8">
+        <p className="text-[#9a9387] text-xs text-center py-8">
           No background presets yet.{' '}
           {activeCategory !== 'All'
             ? 'Try a different category, or an admin can '
@@ -161,13 +161,13 @@ export default function BgPresets({ selectedPreset, onPresetSelect }) {
             <button
               key={preset.id}
               onClick={() => handleCardClick(preset)}
-              className={`group relative bg-[#242424] hover:bg-[#2a2a2a] rounded-xl overflow-hidden border transition-all ${
+              className={`group relative bg-[#16140f] hover:bg-[#2b271f] rounded-xl overflow-hidden border transition-all ${
                 selectedPreset?.id === preset.id
-                  ? 'border-[#a855f7] ring-1 ring-[#a855f7]/40'
-                  : 'border-[#2a2a2a] hover:border-[#3a3a3a]'
+                  ? 'border-[#c5a572] ring-1 ring-[#c5a572]/40'
+                  : 'border-[#2b271f] hover:border-[#3a352b]'
               }`}
             >
-              <div className="aspect-square bg-[#1a1a1a] flex items-center justify-center overflow-hidden">
+              <div className="aspect-square bg-[#121110] flex items-center justify-center overflow-hidden">
                 {preset.afterImageUrl ? (
                   <img
                     src={preset.afterImageUrl}
@@ -180,7 +180,7 @@ export default function BgPresets({ selectedPreset, onPresetSelect }) {
                 )}
               </div>
               <div className="p-2 text-left">
-                <p className="text-[#f5f5f5] text-xs font-medium leading-tight">{preset.name}</p>
+                <p className="text-[#f2ede2] text-xs font-medium leading-tight">{preset.name}</p>
                 <TokenCostBadge cost={preset.tokenCost} className="mt-1" />
               </div>
             </button>

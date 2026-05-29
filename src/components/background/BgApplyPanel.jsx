@@ -21,7 +21,7 @@ function statusDotClass(status) {
   if (status === 'processing') return 'bg-[#f59e0b]'
   if (status === 'completed') return 'bg-[#22c55e]'
   if (status === 'failed') return 'bg-[#ef4444]'
-  return 'bg-[#3a3a3a]'
+  return 'bg-[#3a352b]'
 }
 
 export default function BgApplyPanel({
@@ -56,10 +56,10 @@ export default function BgApplyPanel({
   const totalCost = selectedPreset ? batchQueue.length * selectedPreset.tokenCost : 0
 
   return (
-    <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
+    <div className="rounded-xl overflow-hidden border border-[#2b271f]">
 
       {/* Large preview with action bar overlay */}
-      <div className="h-52 bg-[#0d0d0d] relative overflow-hidden">
+      <div className="h-52 bg-[#0a0908] relative overflow-hidden">
         {previewImage ? (
           <img
             src={previewImage.preview}
@@ -68,7 +68,7 @@ export default function BgApplyPanel({
           />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <p className="text-[#2a2a2a] text-xs">Select an image to preview</p>
+            <p className="text-[#2b271f] text-xs">Select an image to preview</p>
           </div>
         )}
 
@@ -76,13 +76,13 @@ export default function BgApplyPanel({
           <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between gap-2 px-2.5 py-2 bg-gradient-to-t from-black/80 to-transparent">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-lg shrink-0">{selectedPreset.icon}</span>
-              <span className="text-[#f5f5f5] text-xs font-medium truncate">{selectedPreset.name}</span>
+              <span className="text-[#f2ede2] text-xs font-medium truncate">{selectedPreset.name}</span>
               <TokenCostBadge cost={selectedPreset.tokenCost} />
             </div>
             <button
               onClick={() => onApply(selectedPreset)}
               disabled={!canRun}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-medium transition-colors"
+              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#c5a572] hover:bg-[#9b7d4c] disabled:opacity-40 disabled:cursor-not-allowed text-[#0a0908] text-xs font-medium transition-colors"
             >
               {processing ? (
                 <><Loader2 size={11} className="animate-spin" /> Replacing…</>
@@ -97,8 +97,8 @@ export default function BgApplyPanel({
       </div>
 
       {/* Model selector */}
-      <div className="border-t border-[#2a2a2a] bg-[#141414] px-3 py-2.5">
-        <p className="text-[#555] text-[10px] uppercase tracking-wider mb-2">Generation mode</p>
+      <div className="border-t border-[#2b271f] bg-[#121110] px-3 py-2.5">
+        <p className="text-[#6b665c] text-[10px] uppercase tracking-wider mb-2">Generation mode</p>
         <div className="flex gap-2">
           {MODEL_OPTIONS.map(({ id, label, icon: Icon, description }) => {
             const active = selectedModel === id
@@ -109,15 +109,15 @@ export default function BgApplyPanel({
                 disabled={processing || batchRunning}
                 className={`flex-1 flex flex-col gap-1 px-2.5 py-2 rounded-lg border text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                   active
-                    ? 'border-[#a855f7] bg-[#a855f7]/10'
-                    : 'border-[#2a2a2a] hover:border-[#3a3a3a] hover:bg-[#1e1e1e]'
+                    ? 'border-[#c5a572] bg-[#c5a572]/10'
+                    : 'border-[#2b271f] hover:border-[#3a352b] hover:bg-[#16140f]'
                 }`}
               >
                 <div className="flex items-center gap-1.5">
-                  <Icon size={11} className={active ? 'text-[#a855f7]' : 'text-[#555]'} />
-                  <span className={`text-xs font-medium ${active ? 'text-[#f5f5f5]' : 'text-[#a3a3a3]'}`}>{label}</span>
+                  <Icon size={11} className={active ? 'text-[#c5a572]' : 'text-[#6b665c]'} />
+                  <span className={`text-xs font-medium ${active ? 'text-[#f2ede2]' : 'text-[#9a9387]'}`}>{label}</span>
                 </div>
-                <span className="text-[10px] text-[#555] leading-tight">{description}</span>
+                <span className="text-[10px] text-[#6b665c] leading-tight">{description}</span>
               </button>
             )
           })}
@@ -126,14 +126,14 @@ export default function BgApplyPanel({
 
       {/* Batch filmstrip */}
       {hasBatch && (
-        <div className="h-[76px] border-t border-[#2a2a2a] bg-[#141414] flex items-center gap-2 px-3">
+        <div className="h-[76px] border-t border-[#2b271f] bg-[#121110] flex items-center gap-2 px-3">
           <div className="flex items-center gap-1.5 flex-1 overflow-x-auto min-w-0 pr-1">
             {batchQueue.map(item => (
               <div
                 key={item.id}
                 onClick={() => setFocusedItemId(item.id)}
                 className={`relative shrink-0 w-12 h-12 rounded overflow-hidden group/thumb cursor-pointer ring-2 transition-all ${
-                  focusedItem?.id === item.id ? 'ring-[#a855f7]' : 'ring-transparent'
+                  focusedItem?.id === item.id ? 'ring-[#c5a572]' : 'ring-transparent'
                 }`}
               >
                 <img src={item.preview} alt={item.name} className="w-full h-full object-cover" />
@@ -155,22 +155,22 @@ export default function BgApplyPanel({
           <div className="shrink-0 flex flex-col items-end gap-1">
             {selectedPreset ? (
               <>
-                <p className="text-[10px] text-[#a3a3a3] whitespace-nowrap">
+                <p className="text-[10px] text-[#9a9387] whitespace-nowrap">
                   {batchQueue.length} image{batchQueue.length !== 1 ? 's' : ''}
                   {' · '}
-                  <span className="text-[#a855f7]">{totalCost}t</span>
+                  <span className="text-[#c5a572]">{totalCost}t</span>
                 </p>
                 <button
                   onClick={onStartBatch}
                   disabled={batchRunning}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] disabled:opacity-40 text-white text-xs font-medium transition-colors whitespace-nowrap"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#c5a572] hover:bg-[#9b7d4c] disabled:opacity-40 text-[#0a0908] text-xs font-medium transition-colors whitespace-nowrap"
                 >
                   <Play size={10} />
                   {batchRunning ? 'Running…' : `Batch (${batchQueue.length})`}
                 </button>
               </>
             ) : (
-              <p className="text-[10px] text-[#a3a3a3] text-right whitespace-nowrap leading-snug">
+              <p className="text-[10px] text-[#9a9387] text-right whitespace-nowrap leading-snug">
                 Select a preset<br />to run batch
               </p>
             )}
@@ -179,13 +179,13 @@ export default function BgApplyPanel({
       )}
 
       {!selectedPreset && !hasBatch && (
-        <div className="px-3 py-2.5 bg-[#141414] border-t border-[#2a2a2a]">
-          <p className="text-[#555] text-xs text-center">Select a preset above to continue</p>
+        <div className="px-3 py-2.5 bg-[#121110] border-t border-[#2b271f]">
+          <p className="text-[#6b665c] text-xs text-center">Select a preset above to continue</p>
         </div>
       )}
 
       {balance < (selectedPreset?.tokenCost ?? 2) && balance >= 0 && selectedPreset && (
-        <div className="px-3 py-2 bg-[#141414] border-t border-[#2a2a2a]">
+        <div className="px-3 py-2 bg-[#121110] border-t border-[#2b271f]">
           <p className="text-[#f59e0b] text-[10px] text-center">
             Not enough tokens — redeem a voucher on the Tokens page
           </p>

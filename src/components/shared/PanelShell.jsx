@@ -30,13 +30,13 @@ export default function PanelShell({
   const setMobileTab = onMobileTabChange ?? setInternalTab
 
   const resolvedResultsClassName =
-    resultsClassName ?? 'w-full md:w-[260px] shrink-0 border-l border-[#2a2a2a]'
+    resultsClassName ?? 'w-full md:w-[260px] shrink-0 border-l border-[#2b271f]'
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden min-h-0">
 
       {/* Mobile top tabs */}
-      <div className="md:hidden flex border-b border-[#2a2a2a] shrink-0 bg-[#1a1a1a]">
+      <div className="md:hidden flex border-b border-[#2b271f] shrink-0 bg-[#121110]">
         {[
           { id: 'library', label: 'Library' },
           { id: 'tools',   label: 'Tools'   },
@@ -47,13 +47,13 @@ export default function PanelShell({
             onClick={() => setMobileTab(tab.id)}
             className={`flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
               mobileTab === tab.id
-                ? 'text-[#a855f7] border-[#a855f7]'
-                : 'text-[#555] border-transparent hover:text-[#a3a3a3]'
+                ? 'text-[#c5a572] border-[#c5a572]'
+                : 'text-[#6b665c] border-transparent hover:text-[#9a9387]'
             }`}
           >
             {tab.label}
             {tab.id === 'results' && !resultsSlot && jobs.length > 0 && (
-              <span className="ml-1 text-[9px] bg-[#a855f7]/20 text-[#a855f7] px-1 rounded-full">
+              <span className="ml-1 text-[9px] bg-[#c5a572]/20 text-[#c5a572] px-1 rounded-full">
                 {jobs.length}
               </span>
             )}
@@ -64,7 +64,7 @@ export default function PanelShell({
       <div className="flex flex-1 overflow-hidden min-h-0">
 
         {/* ── Library ── */}
-        <div className={`${mobileTab === 'library' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[220px] shrink-0 border-r border-[#2a2a2a] overflow-hidden`}>
+        <div className={`${mobileTab === 'library' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[220px] shrink-0 border-r border-[#2b271f] overflow-hidden`}>
           <LibraryPanel
             images={images}
             selectedImage={selectedImage}

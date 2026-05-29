@@ -30,7 +30,7 @@ function PageLoader() {
 
 function AppLayout({ children }) {
   return (
-    <div className="flex flex-col h-dvh bg-[#0d0d0d]">
+    <div className="flex flex-col h-dvh bg-[#0a0908]">
       <Navbar />
       <NetworkBanner />
       <div className="flex flex-1 overflow-hidden min-h-0 pb-16 md:pb-0">

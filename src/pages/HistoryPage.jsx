@@ -103,8 +103,8 @@ export default function HistoryPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="font-display font-bold text-[#f5f5f5] text-2xl">History</h1>
-        <p className="text-[#a3a3a3] text-sm mt-1">Your recent processing jobs (last 50)</p>
+        <h1 className="font-serif font-bold text-[#f2ede2] text-2xl">History</h1>
+        <p className="text-[#9a9387] text-sm mt-1">Your recent processing jobs (last 50)</p>
       </div>
 
       {loading ? (
@@ -112,7 +112,7 @@ export default function HistoryPage() {
           {Array.from({ length: 6 }).map((_, i) => <SkeletonJobRow key={i} />)}
         </div>
       ) : jobs.length === 0 ? (
-        <p className="text-[#a3a3a3] text-sm text-center py-12">No jobs yet. Start retouching to see results here.</p>
+        <p className="text-[#9a9387] text-sm text-center py-12">No jobs yet. Start retouching to see results here.</p>
       ) : (
         <div className="space-y-2">
           {jobs.map(job => {
@@ -121,18 +121,18 @@ export default function HistoryPage() {
             const resumeError = resumeErrors[job.id]
 
             return (
-              <div key={job.id} className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4">
+              <div key={job.id} className="bg-[#121110] border border-[#2b271f] rounded-xl p-4">
                 <div className="flex items-center gap-4">
                   {job.status === 'completed'
                     ? <CheckCircle size={16} className="text-[#22c55e] shrink-0" />
                     : <XCircle size={16} className="text-[#ef4444] shrink-0" />
                   }
                   <div className="flex-1 min-w-0">
-                    <p className="text-[#f5f5f5] text-sm font-medium truncate">{job.operation.replace(/_/g, ' ')}</p>
-                    <p className="text-[#a3a3a3] text-xs">{new Date(job.created_at).toLocaleString()} · {job.tokens_used} token{job.tokens_used !== 1 ? 's' : ''}</p>
+                    <p className="text-[#f2ede2] text-sm font-medium truncate">{job.operation.replace(/_/g, ' ')}</p>
+                    <p className="text-[#9a9387] text-xs">{new Date(job.created_at).toLocaleString()} · {job.tokens_used} token{job.tokens_used !== 1 ? 's' : ''}</p>
                   </div>
                   {job.status === 'completed' && job.output_path && (
-                    <button onClick={() => downloadJob(job)} className="text-[#a855f7] hover:text-[#7c3aed] transition-colors shrink-0">
+                    <button onClick={() => downloadJob(job)} className="text-[#c5a572] hover:text-[#9b7d4c] transition-colors shrink-0">
                       <Download size={16} />
                     </button>
                   )}
@@ -140,7 +140,7 @@ export default function HistoryPage() {
                     <button
                       onClick={() => handleResume(job)}
                       disabled={isResuming}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#a855f7]/15 hover:bg-[#a855f7]/25 disabled:opacity-50 text-[#a855f7] text-xs font-medium transition-colors shrink-0"
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#c5a572]/15 hover:bg-[#c5a572]/25 disabled:opacity-50 text-[#c5a572] text-xs font-medium transition-colors shrink-0"
                     >
                       {isResuming
                         ? <Loader size={11} className="animate-spin" />

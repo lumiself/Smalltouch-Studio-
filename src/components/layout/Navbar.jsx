@@ -51,7 +51,7 @@ export default function Navbar() {
         {isAdmin && (
           <Link
             to="/admin"
-            className={`flex items-center gap-1 text-xs transition-colors ${location.pathname.startsWith('/admin') ? 'text-gold' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}
+            className={`flex items-center gap-1 text-xs transition-colors ${location.pathname.startsWith('/admin') ? 'text-gold' : 'text-[#9a9387] hover:text-[#f2ede2]'}`}
           >
             <ShieldCheck size={14} />
             <span className="hidden sm:inline">Admin</span>
@@ -59,7 +59,7 @@ export default function Navbar() {
         )}
         <Link
           to="/help"
-          className={`flex items-center gap-1 text-xs transition-colors ${location.pathname === '/help' ? 'text-gold' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}
+          className={`flex items-center gap-1 text-xs transition-colors ${location.pathname === '/help' ? 'text-gold' : 'text-[#9a9387] hover:text-[#f2ede2]'}`}
         >
           <HelpCircle size={14} />
           <span className="hidden sm:inline">Help</span>
@@ -77,7 +77,7 @@ export default function Navbar() {
           <span>{balance} tokens</span>
         </Link>
 
-        <button onClick={signOut} className="text-[#a3a3a3] hover:text-[#f5f5f5] transition-colors">
+        <button onClick={signOut} className="text-[#9a9387] hover:text-[#f2ede2] transition-colors">
           <LogOut size={16} />
         </button>
       </div>

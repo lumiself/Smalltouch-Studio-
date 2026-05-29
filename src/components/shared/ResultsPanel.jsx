@@ -64,15 +64,15 @@ export default function ResultsPanel({ jobs = [], onRetry, onContinue }) {
   }
 
   return (
-    <aside className="w-full shrink-0 bg-[#1a1a1a] flex flex-col overflow-hidden h-full">
-      <div className="p-3 border-b border-[#2a2a2a] flex items-center justify-between shrink-0">
-        <h3 className="text-[#f5f5f5] text-sm font-medium">
+    <aside className="w-full shrink-0 bg-[#121110] flex flex-col overflow-hidden h-full">
+      <div className="p-3 border-b border-[#2b271f] flex items-center justify-between shrink-0">
+        <h3 className="text-[#f2ede2] text-sm font-medium">
           Results{jobs.length > 0 ? ` (${jobs.length})` : ''}
         </h3>
         {downloadable.length > 1 && (
           <button
             onClick={downloadAll}
-            className="flex items-center gap-1 text-xs text-[#a855f7] hover:text-[#7c3aed] transition-colors"
+            className="flex items-center gap-1 text-xs text-[#c5a572] hover:text-[#9b7d4c] transition-colors"
           >
             <Download size={12} />
             All
@@ -82,14 +82,14 @@ export default function ResultsPanel({ jobs = [], onRetry, onContinue }) {
 
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
         {jobs.length === 0 && (
-          <p className="text-[#a3a3a3] text-xs text-center mt-8">Results will appear here</p>
+          <p className="text-[#9a9387] text-xs text-center mt-8">Results will appear here</p>
         )}
 
         {[...jobs].reverse().map(job => (
-          <div key={job.id} className="bg-[#242424] rounded-xl overflow-hidden">
+          <div key={job.id} className="bg-[#16140f] rounded-xl overflow-hidden">
             <div className="p-2.5 flex items-center gap-2">
-              {STATUS_ICONS[job.status] ?? <Clock size={14} className="text-[#a3a3a3]" />}
-              <span className="text-[#f5f5f5] text-xs font-medium flex-1 truncate">
+              {STATUS_ICONS[job.status] ?? <Clock size={14} className="text-[#9a9387]" />}
+              <span className="text-[#f2ede2] text-xs font-medium flex-1 truncate">
                 {job.presetName || job.id.slice(0, 8)}
               </span>
             </div>
@@ -113,7 +113,7 @@ export default function ResultsPanel({ jobs = [], onRetry, onContinue }) {
                 <div className="p-2 space-y-1">
                   <button
                     onClick={() => downloadResult(job)}
-                    className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-[#a855f7]/20 hover:bg-[#a855f7]/30 text-[#a855f7] text-xs font-medium transition-colors"
+                    className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-[#c5a572]/20 hover:bg-[#c5a572]/30 text-[#c5a572] text-xs font-medium transition-colors"
                   >
                     <Download size={12} />
                     Download
@@ -122,14 +122,14 @@ export default function ResultsPanel({ jobs = [], onRetry, onContinue }) {
                     <div className="flex gap-1">
                       <button
                         onClick={() => onContinue(job, 'retouch')}
-                        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#2a2a2a] hover:bg-[#333] text-[#a3a3a3] hover:text-[#f5f5f5] text-xs font-medium transition-colors"
+                        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#2b271f] hover:bg-[#2b271f] text-[#9a9387] hover:text-[#f2ede2] text-xs font-medium transition-colors"
                       >
                         <ArrowRight size={11} />
                         Retouch
                       </button>
                       <button
                         onClick={() => onContinue(job, 'background')}
-                        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#2a2a2a] hover:bg-[#333] text-[#a3a3a3] hover:text-[#f5f5f5] text-xs font-medium transition-colors"
+                        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#2b271f] hover:bg-[#2b271f] text-[#9a9387] hover:text-[#f2ede2] text-xs font-medium transition-colors"
                       >
                         <ArrowRight size={11} />
                         Background

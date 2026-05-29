@@ -31,34 +31,34 @@ export default function TokensPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 max-w-2xl mx-auto space-y-8">
       <div>
-        <h1 className="font-display font-bold text-[#f5f5f5] text-2xl">Tokens</h1>
-        <p className="text-[#a3a3a3] text-sm mt-1">Manage your token balance and redemptions</p>
+        <h1 className="font-serif font-bold text-[#f2ede2] text-2xl">Tokens</h1>
+        <p className="text-[#9a9387] text-sm mt-1">Manage your token balance and redemptions</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4">
-          <p className="text-[#a3a3a3] text-xs mb-1">Current Balance</p>
+        <div className="bg-[#121110] border border-[#2b271f] rounded-xl p-4">
+          <p className="text-[#9a9387] text-xs mb-1">Current Balance</p>
           <div className="flex items-center gap-2">
-            <Coins size={20} className="text-[#a855f7]" />
-            <span className="font-display font-bold text-[#f5f5f5] text-2xl">{balance}</span>
+            <Coins size={20} className="text-[#c5a572]" />
+            <span className="font-serif font-bold text-[#f2ede2] text-2xl">{balance}</span>
           </div>
         </div>
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4">
-          <p className="text-[#a3a3a3] text-xs mb-1">Package</p>
+        <div className="bg-[#121110] border border-[#2b271f] rounded-xl p-4">
+          <p className="text-[#9a9387] text-xs mb-1">Package</p>
           {currentPkg ? (
             <div className="flex items-center gap-2">
               <span className="text-xl">{currentPkg.icon}</span>
-              <span className="font-display font-bold text-[#f5f5f5] text-lg">{currentPkg.name}</span>
+              <span className="font-serif font-bold text-[#f2ede2] text-lg">{currentPkg.name}</span>
             </div>
           ) : (
-            <p className="text-[#a3a3a3] text-sm">No package</p>
+            <p className="text-[#9a9387] text-sm">No package</p>
           )}
         </div>
       </div>
 
-      <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 space-y-4">
-        <h2 className="font-display font-semibold text-[#f5f5f5] text-base">Redeem Voucher</h2>
-        <p className="text-[#a3a3a3] text-sm">Enter your voucher code below. Codes follow the format <code className="text-[#a855f7]">SMTCH-XXXX-XXXX</code>.</p>
+      <div className="bg-[#121110] border border-[#2b271f] rounded-xl p-5 space-y-4">
+        <h2 className="font-serif font-semibold text-[#f2ede2] text-base">Redeem Voucher</h2>
+        <p className="text-[#9a9387] text-sm">Enter your voucher code below. Codes follow the format <code className="text-[#c5a572]">SMTCH-XXXX-XXXX</code>.</p>
 
         <form onSubmit={handleRedeem} className="flex gap-2">
           <input
@@ -66,12 +66,12 @@ export default function TokensPage() {
             value={code}
             onChange={e => setCode(e.target.value)}
             placeholder="SMTCH-XXXX-XXXX"
-            className="flex-1 px-3 py-2.5 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm font-mono placeholder:text-[#a3a3a3] focus:outline-none focus:border-[#a855f7] uppercase tracking-wider transition-colors"
+            className="flex-1 px-3 py-2.5 bg-[#16140f] border border-[#2b271f] rounded-lg text-[#f2ede2] text-sm font-mono placeholder:text-[#9a9387] focus:outline-none focus:border-[#c5a572] uppercase tracking-wider transition-colors"
           />
           <button
             type="submit"
             disabled={loading || !code.trim()}
-            className="px-5 py-2.5 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] disabled:opacity-50 text-white font-medium text-sm transition-colors whitespace-nowrap"
+            className="px-5 py-2.5 rounded-lg bg-[#c5a572] hover:bg-[#9b7d4c] disabled:opacity-50 text-[#0a0908] font-medium text-sm transition-colors whitespace-nowrap"
           >
             {loading ? 'Redeeming...' : 'Redeem'}
           </button>
@@ -80,28 +80,28 @@ export default function TokensPage() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="font-display font-semibold text-[#f5f5f5] text-base">Token Packages</h2>
-        <p className="text-[#a3a3a3] text-sm">Purchase physical vouchers — tokens are added when you redeem a code.</p>
+        <h2 className="font-serif font-semibold text-[#f2ede2] text-base">Token Packages</h2>
+        <p className="text-[#9a9387] text-sm">Purchase physical vouchers — tokens are added when you redeem a code.</p>
         <div className="grid grid-cols-1 gap-3">
           {packages.map(pkg => (
             <div
               key={pkg.id}
-              className={`bg-[#1a1a1a] border rounded-xl p-4 flex items-center gap-4 ${
-                currentPkg?.id === pkg.id ? 'border-[#a855f7]/50' : 'border-[#2a2a2a]'
+              className={`bg-[#121110] border rounded-xl p-4 flex items-center gap-4 ${
+                currentPkg?.id === pkg.id ? 'border-[#c5a572]/50' : 'border-[#2b271f]'
               }`}
             >
               <span className="text-2xl">{pkg.icon}</span>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-[#f5f5f5] font-medium text-sm">{pkg.name}</span>
+                  <span className="text-[#f2ede2] font-medium text-sm">{pkg.name}</span>
                   {currentPkg?.id === pkg.id && (
-                    <span className="text-[10px] text-[#a855f7] bg-[#a855f7]/20 px-1.5 py-0.5 rounded-full">Current</span>
+                    <span className="text-[10px] text-[#c5a572] bg-[#c5a572]/20 px-1.5 py-0.5 rounded-full">Current</span>
                   )}
                 </div>
-                <p className="text-[#a3a3a3] text-xs mt-0.5">{pkg.description}</p>
-                <p className="text-[#a3a3a3] text-xs mt-1">{pkg.tokens} tokens · Batch up to {pkg.limits.maxBatchSize} images</p>
+                <p className="text-[#9a9387] text-xs mt-0.5">{pkg.description}</p>
+                <p className="text-[#9a9387] text-xs mt-1">{pkg.tokens} tokens · Batch up to {pkg.limits.maxBatchSize} images</p>
               </div>
-              <span className="font-display font-bold text-[#f5f5f5]" style={{ color: pkg.color }}>{pkg.price}</span>
+              <span className="font-serif font-bold text-[#f2ede2]" style={{ color: pkg.color }}>{pkg.price}</span>
             </div>
           ))}
         </div>

@@ -4,8 +4,8 @@
 
 @layer base {
   body {
-    background-color: #0d0d0d;
-    color: #f5f5f5;
+    background-color: #0a0908;
+    color: #f2ede2;
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
   }
@@ -17,7 +17,7 @@
   input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
-    background: #242424;
+    background: #16140f;
     height: 6px;
     border-radius: 3px;
   }
@@ -27,7 +27,7 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: #a855f7;
+    background: #c5a572;
     cursor: pointer;
   }
 
@@ -35,7 +35,7 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: #a855f7;
+    background: #c5a572;
     cursor: pointer;
     border: none;
   }
@@ -50,7 +50,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #2a2a2a;
+    background: #3a352b;
     border-radius: 2px;
   }
 }

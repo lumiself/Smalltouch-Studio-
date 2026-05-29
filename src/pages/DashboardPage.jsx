@@ -1,11 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Lock, ArrowRight, ArrowUpRight } from 'lucide-react'
+import { Lock, ArrowRight, ArrowUpRight, Wand2, ImageIcon, PersonStanding, Aperture } from 'lucide-react'
 import { panels } from '../registry/panels'
 import { supabase } from '../lib/supabase'
 import { canUsePanel, getRequiredPackage } from '../lib/access'
 import { useAuth } from '../hooks/useAuth'
 import OnboardingModal, { shouldShowOnboarding } from '../components/shared/OnboardingModal'
+
+// Refined line-icons replace the emoji panel glyphs for a premium feel.
+const PANEL_ICONS = {
+  retouch: Wand2,
+  background: ImageIcon,
+  pose: PersonStanding,
+  headshot: Aperture,
+}
 
 // Editorial cover image — self-hosted in /public. Sits beneath a deep gradient
 // so the hero still reads as premium even before/if the image loads. The subject
@@ -170,6 +178,7 @@ export default function DashboardPage() {
               (!canUsePanel(profile, panel.id) && panel.status === 'active')
             const requiredPkg =
               locked && panel.status === 'active' ? getRequiredPackage(panel.id) : null
+            const PanelIcon = PANEL_ICONS[panel.id] ?? Aperture
 
             return (
               <button
@@ -183,9 +192,11 @@ export default function DashboardPage() {
                 }`}
                 style={{ minHeight: '230px' }}
               >
-                <span className="text-[1.9rem] block opacity-90 transition-transform duration-300 group-hover:-translate-y-0.5">
-                  {panel.icon}
-                </span>
+                <PanelIcon
+                  size={26}
+                  strokeWidth={1.25}
+                  className="text-gold/90 transition-transform duration-300 group-hover:-translate-y-0.5"
+                />
 
                 <div>
                   <p className="font-serif text-[#f2ede2] text-2xl leading-tight tracking-tight transition-colors duration-300 group-hover:text-gold-bright">
