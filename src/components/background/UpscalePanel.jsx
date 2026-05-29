@@ -8,7 +8,7 @@ function statusDotClass(status) {
   if (status === 'processing') return 'bg-[#f59e0b]'
   if (status === 'completed') return 'bg-[#22c55e]'
   if (status === 'failed') return 'bg-[#ef4444]'
-  return 'bg-[#3a3a3a]'
+  return 'bg-[#3a352b]'
 }
 
 function NumberInput({ value, onChange, min, max, step = 1, suffix }) {
@@ -24,9 +24,9 @@ function NumberInput({ value, onChange, min, max, step = 1, suffix }) {
           const v = Number(e.target.value)
           if (!isNaN(v)) onChange(Math.min(Math.max(v, min), max))
         }}
-        className="w-16 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg px-2 py-1 text-xs text-[#f5f5f5] text-center focus:outline-none focus:border-[#a855f7]"
+        className="w-16 bg-[#0a0908] border border-[#2b271f] rounded-lg px-2 py-1 text-xs text-[#f2ede2] text-center focus:outline-none focus:border-[#c5a572]"
       />
-      {suffix && <span className="text-[#555] text-xs">{suffix}</span>}
+      {suffix && <span className="text-[#6b665c] text-xs">{suffix}</span>}
     </div>
   )
 }
@@ -69,10 +69,10 @@ export default function UpscalePanel({
   const totalCost = batchQueue.length * TOKEN_COST
 
   return (
-    <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
+    <div className="rounded-xl overflow-hidden border border-[#2b271f]">
 
       {/* Preview */}
-      <div className="h-52 bg-[#0d0d0d] relative overflow-hidden">
+      <div className="h-52 bg-[#0a0908] relative overflow-hidden">
         {previewImage ? (
           <img
             src={previewImage.preview}
@@ -81,19 +81,19 @@ export default function UpscalePanel({
           />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <p className="text-[#2a2a2a] text-xs">Select an image to preview</p>
+            <p className="text-[#2b271f] text-xs">Select an image to preview</p>
           </div>
         )}
 
         <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between gap-2 px-2.5 py-2 bg-gradient-to-t from-black/80 to-transparent">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[#f5f5f5] text-xs font-medium">Upscale</span>
+            <span className="text-[#f2ede2] text-xs font-medium">Upscale</span>
             <TokenCostBadge cost={TOKEN_COST} />
           </div>
           <button
             onClick={onUpscale}
             disabled={!canRun}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-medium transition-colors"
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#c5a572] hover:bg-[#9b7d4c] disabled:opacity-40 disabled:cursor-not-allowed text-[#0a0908] text-xs font-medium transition-colors"
           >
             {processing ? (
               <><Loader2 size={11} className="animate-spin" /> Upscaling…</>
@@ -107,12 +107,12 @@ export default function UpscalePanel({
       </div>
 
       {/* Settings */}
-      <div className="border-t border-[#2a2a2a] bg-[#141414] px-3 py-3 space-y-3">
+      <div className="border-t border-[#2b271f] bg-[#121110] px-3 py-3 space-y-3">
 
         {/* Mode toggle */}
         <div className="flex items-center justify-between">
-          <span className="text-[#a3a3a3] text-xs">Mode</span>
-          <div className="flex rounded-lg overflow-hidden border border-[#2a2a2a]">
+          <span className="text-[#9a9387] text-xs">Mode</span>
+          <div className="flex rounded-lg overflow-hidden border border-[#2b271f]">
             {[
               { id: 'target', label: 'Target MP' },
               { id: 'factor', label: 'Factor ×' },
@@ -123,8 +123,8 @@ export default function UpscalePanel({
                 disabled={processing || batchRunning}
                 className={`px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-40 ${
                   upscaleMode === id
-                    ? 'bg-[#a855f7] text-white'
-                    : 'text-[#a3a3a3] hover:text-[#f5f5f5]'
+                    ? 'bg-[#c5a572] text-[#0a0908]'
+                    : 'text-[#9a9387] hover:text-[#f2ede2]'
                 }`}
               >
                 {label}
@@ -137,8 +137,8 @@ export default function UpscalePanel({
         {upscaleMode === 'target' && (
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[#a3a3a3] text-xs">Target resolution</span>
-              <p className="text-[#555] text-[10px]">1–128 MP</p>
+              <span className="text-[#9a9387] text-xs">Target resolution</span>
+              <p className="text-[#6b665c] text-[10px]">1–128 MP</p>
             </div>
             <NumberInput
               value={targetMp}
@@ -154,8 +154,8 @@ export default function UpscalePanel({
         {upscaleMode === 'factor' && (
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[#a3a3a3] text-xs">Scale factor</span>
-              <p className="text-[#555] text-[10px]">1–8× per side</p>
+              <span className="text-[#9a9387] text-xs">Scale factor</span>
+              <p className="text-[#6b665c] text-[10px]">1–8× per side</p>
             </div>
             <NumberInput
               value={factor}
@@ -171,14 +171,14 @@ export default function UpscalePanel({
         {/* Enhance details */}
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-[#a3a3a3] text-xs">Enhance details</span>
-            <p className="text-[#555] text-[10px]">Sharpen fine textures</p>
+            <span className="text-[#9a9387] text-xs">Enhance details</span>
+            <p className="text-[#6b665c] text-[10px]">Sharpen fine textures</p>
           </div>
           <button
             onClick={() => onEnhanceDetailsChange(!enhanceDetails)}
             disabled={processing || batchRunning}
             className={`relative w-9 h-5 rounded-full transition-colors disabled:opacity-40 ${
-              enhanceDetails ? 'bg-[#a855f7]' : 'bg-[#2a2a2a]'
+              enhanceDetails ? 'bg-[#c5a572]' : 'bg-[#2b271f]'
             }`}
           >
             <span
@@ -192,14 +192,14 @@ export default function UpscalePanel({
 
       {/* Batch filmstrip */}
       {hasBatch && (
-        <div className="h-[76px] border-t border-[#2a2a2a] bg-[#141414] flex items-center gap-2 px-3">
+        <div className="h-[76px] border-t border-[#2b271f] bg-[#121110] flex items-center gap-2 px-3">
           <div className="flex items-center gap-1.5 flex-1 overflow-x-auto min-w-0 pr-1">
             {batchQueue.map(item => (
               <div
                 key={item.id}
                 onClick={() => setFocusedItemId(item.id)}
                 className={`relative shrink-0 w-12 h-12 rounded overflow-hidden group/thumb cursor-pointer ring-2 transition-all ${
-                  focusedItem?.id === item.id ? 'ring-[#a855f7]' : 'ring-transparent'
+                  focusedItem?.id === item.id ? 'ring-[#c5a572]' : 'ring-transparent'
                 }`}
               >
                 <img src={item.preview} alt={item.name} className="w-full h-full object-cover" />
@@ -219,15 +219,15 @@ export default function UpscalePanel({
           </div>
 
           <div className="shrink-0 flex flex-col items-end gap-1">
-            <p className="text-[10px] text-[#a3a3a3] whitespace-nowrap">
+            <p className="text-[10px] text-[#9a9387] whitespace-nowrap">
               {batchQueue.length} image{batchQueue.length !== 1 ? 's' : ''}
               {' · '}
-              <span className="text-[#a855f7]">{totalCost}t</span>
+              <span className="text-[#c5a572]">{totalCost}t</span>
             </p>
             <button
               onClick={onStartBatch}
               disabled={batchRunning || !canAfford}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] disabled:opacity-40 text-white text-xs font-medium transition-colors whitespace-nowrap"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#c5a572] hover:bg-[#9b7d4c] disabled:opacity-40 text-[#0a0908] text-xs font-medium transition-colors whitespace-nowrap"
             >
               <Play size={10} />
               {batchRunning ? 'Running…' : `Batch (${batchQueue.length})`}
@@ -237,7 +237,7 @@ export default function UpscalePanel({
       )}
 
       {!canAfford && balance >= 0 && (
-        <div className="px-3 py-2 bg-[#141414] border-t border-[#2a2a2a]">
+        <div className="px-3 py-2 bg-[#121110] border-t border-[#2b271f]">
           <p className="text-[#f59e0b] text-[10px] text-center">
             Not enough tokens — redeem a voucher on the Tokens page
           </p>

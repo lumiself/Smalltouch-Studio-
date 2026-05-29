@@ -45,40 +45,40 @@ export default function SignupPage() {
   }
 
   if (done) return (
-    <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#0a0908] flex items-center justify-center p-4">
       <div className="w-full max-w-sm text-center space-y-4">
-        <Sparkles size={32} className="text-[#a855f7] mx-auto" />
-        <h2 className="font-display font-semibold text-[#f5f5f5] text-lg">Check your email</h2>
-        <p className="text-[#a3a3a3] text-sm">We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.</p>
-        <Link to="/login" className="block text-[#a855f7] text-sm hover:underline">Back to login</Link>
+        <Sparkles size={32} className="text-[#c5a572] mx-auto" />
+        <h2 className="font-serif font-semibold text-[#f2ede2] text-lg">Check your email</h2>
+        <p className="text-[#9a9387] text-sm">We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.</p>
+        <Link to="/login" className="block text-[#c5a572] text-sm hover:underline">Back to login</Link>
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#0a0908] flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
-            <Sparkles size={24} className="text-[#a855f7]" />
-            <span className="font-display font-semibold text-[#f5f5f5] text-xl">Smalltouch Studio</span>
+            <Sparkles size={24} className="text-[#c5a572]" />
+            <span className="font-serif font-semibold text-[#f2ede2] text-xl">Smalltouch Studio</span>
           </div>
-          <p className="text-[#a3a3a3] text-sm">Create your account</p>
+          <p className="text-[#9a9387] text-sm">Create your account</p>
         </div>
 
         <button
           onClick={handleGoogle}
           disabled={googleLoading || loading}
-          className="w-full flex items-center justify-center gap-3 py-2.5 rounded-lg bg-[#1a1a1a] hover:bg-[#242424] border border-[#2a2a2a] hover:border-[#3a3a3a] text-[#f5f5f5] font-medium text-sm transition-colors disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-3 py-2.5 rounded-lg bg-[#121110] hover:bg-[#16140f] border border-[#2b271f] hover:border-[#3a352b] text-[#f2ede2] font-medium text-sm transition-colors disabled:opacity-50"
         >
           <GoogleIcon />
           {googleLoading ? 'Redirecting...' : 'Continue with Google'}
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-[#2a2a2a]" />
-          <span className="text-[#555] text-xs">or</span>
-          <div className="flex-1 h-px bg-[#2a2a2a]" />
+          <div className="flex-1 h-px bg-[#2b271f]" />
+          <span className="text-[#6b665c] text-xs">or</span>
+          <div className="flex-1 h-px bg-[#2b271f]" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,40 +88,40 @@ export default function SignupPage() {
             </div>
           )}
           <div className="space-y-1">
-            <label className="text-[#a3a3a3] text-xs font-medium">Email</label>
+            <label className="text-[#9a9387] text-xs font-medium">Email</label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2.5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm placeholder:text-[#a3a3a3] focus:outline-none focus:border-[#a855f7] transition-colors"
+              className="w-full px-3 py-2.5 bg-[#121110] border border-[#2b271f] rounded-lg text-[#f2ede2] text-sm placeholder:text-[#9a9387] focus:outline-none focus:border-[#c5a572] transition-colors"
               placeholder="you@example.com"
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[#a3a3a3] text-xs font-medium">Password</label>
+            <label className="text-[#9a9387] text-xs font-medium">Password</label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-3 py-2.5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm placeholder:text-[#a3a3a3] focus:outline-none focus:border-[#a855f7] transition-colors"
+              className="w-full px-3 py-2.5 bg-[#121110] border border-[#2b271f] rounded-lg text-[#f2ede2] text-sm placeholder:text-[#9a9387] focus:outline-none focus:border-[#c5a572] transition-colors"
               placeholder="6+ characters"
             />
           </div>
           <button
             type="submit"
             disabled={loading || googleLoading}
-            className="w-full py-2.5 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] disabled:opacity-50 text-white font-medium text-sm transition-colors"
+            className="w-full py-2.5 rounded-lg bg-[#c5a572] hover:bg-[#9b7d4c] disabled:opacity-50 text-[#0a0908] font-medium text-sm transition-colors"
           >
             {loading ? 'Creating account...' : 'Create account'}
           </button>
         </form>
 
-        <p className="text-center text-[#a3a3a3] text-sm">
+        <p className="text-center text-[#9a9387] text-sm">
           Already have an account?{' '}
-          <Link to="/login" className="text-[#a855f7] hover:underline">Sign in</Link>
+          <Link to="/login" className="text-[#c5a572] hover:underline">Sign in</Link>
         </p>
       </div>
     </div>

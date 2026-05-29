@@ -224,15 +224,15 @@ export default function RetouchPage() {
     <PanelShell mobileTab={mobileTab} onMobileTabChange={setMobileTab} onRetry={handleRetry} onContinue={handleContinue}>
 
       {/* Mobile horizontal tool switcher */}
-      <div className="md:hidden flex shrink-0 border-b border-[#2a2a2a] bg-[#161616]">
+      <div className="md:hidden flex shrink-0 border-b border-[#2b271f] bg-[#16140f]">
         {TOOL_NAV.map(({ id, label, Icon }) => (
           <button
             key={id}
             onClick={() => setActiveTool(id)}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
               activeTool === id
-                ? 'text-[#a855f7] border-[#a855f7]'
-                : 'text-[#555] border-transparent hover:text-[#a3a3a3]'
+                ? 'text-[#c5a572] border-[#c5a572]'
+                : 'text-[#6b665c] border-transparent hover:text-[#9a9387]'
             }`}
           >
             <Icon size={12} />
@@ -243,15 +243,15 @@ export default function RetouchPage() {
 
       <div className="flex flex-1 overflow-hidden min-h-0">
         {/* Desktop vertical tool nav */}
-        <nav className="hidden md:flex flex-col w-[72px] shrink-0 border-r border-[#2a2a2a] bg-[#161616] py-3 gap-1">
+        <nav className="hidden md:flex flex-col w-[72px] shrink-0 border-r border-[#2b271f] bg-[#16140f] py-3 gap-1">
           {TOOL_NAV.map(({ id, label, Icon }) => (
             <button
               key={id}
               onClick={() => setActiveTool(id)}
               className={`flex flex-col items-center gap-1.5 py-3 mx-1.5 rounded-lg transition-colors ${
                 activeTool === id
-                  ? 'bg-[#a855f7]/15 text-[#a855f7]'
-                  : 'text-[#555] hover:text-[#a3a3a3] hover:bg-[#242424]'
+                  ? 'bg-[#c5a572]/15 text-[#c5a572]'
+                  : 'text-[#6b665c] hover:text-[#9a9387] hover:bg-[#16140f]'
               }`}
             >
               <Icon size={16} />

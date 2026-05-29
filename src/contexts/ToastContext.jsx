@@ -36,9 +36,9 @@ export function ToastProvider({ children }) {
 
 function ToastItem({ toast, onDismiss }) {
   const config = {
-    success: { icon: CheckCircle, color: 'text-[#22c55e]', bg: 'bg-[#1a1a1a] border-[#22c55e]/30' },
-    error:   { icon: XCircle,    color: 'text-[#ef4444]', bg: 'bg-[#1a1a1a] border-[#ef4444]/30' },
-    info:    { icon: Info,       color: 'text-[#a855f7]', bg: 'bg-[#1a1a1a] border-[#a855f7]/30' },
+    success: { icon: CheckCircle, color: 'text-[#22c55e]', bg: 'bg-[#121110] border-[#22c55e]/30' },
+    error:   { icon: XCircle,    color: 'text-[#ef4444]', bg: 'bg-[#121110] border-[#ef4444]/30' },
+    info:    { icon: Info,       color: 'text-[#c5a572]', bg: 'bg-[#121110] border-[#c5a572]/30' },
   }
   const { icon: Icon, color, bg } = config[toast.type] ?? config.info
 
@@ -47,10 +47,10 @@ function ToastItem({ toast, onDismiss }) {
       className={`pointer-events-auto flex items-start gap-2.5 px-3 py-2.5 rounded-xl border shadow-lg ${bg} animate-in slide-in-from-right-4 duration-200`}
     >
       <Icon size={15} className={`${color} shrink-0 mt-0.5`} />
-      <p className="text-[#f5f5f5] text-xs flex-1 leading-relaxed">{toast.message}</p>
+      <p className="text-[#f2ede2] text-xs flex-1 leading-relaxed">{toast.message}</p>
       <button
         onClick={() => onDismiss(toast.id)}
-        className="text-[#555] hover:text-[#a3a3a3] transition-colors shrink-0"
+        className="text-[#6b665c] hover:text-[#9a9387] transition-colors shrink-0"
       >
         <X size={13} />
       </button>

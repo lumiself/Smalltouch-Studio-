@@ -18,19 +18,19 @@ export default function AdminPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="font-display font-bold text-[#f5f5f5] text-2xl">Admin Dashboard</h1>
-        <p className="text-[#a3a3a3] text-sm mt-1">Generate voucher codes, manage users, and review redemptions</p>
+        <h1 className="font-serif font-bold text-[#f2ede2] text-2xl">Admin Dashboard</h1>
+        <p className="text-[#9a9387] text-sm mt-1">Generate voucher codes, manage users, and review redemptions</p>
       </div>
 
-      <div className="flex gap-1 border-b border-[#2a2a2a]">
+      <div className="flex gap-1 border-b border-[#2b271f]">
         {TABS.map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
               tab === t
-                ? 'text-[#a855f7] border-[#a855f7]'
-                : 'text-[#a3a3a3] border-transparent hover:text-[#f5f5f5]'
+                ? 'text-[#c5a572] border-[#c5a572]'
+                : 'text-[#9a9387] border-transparent hover:text-[#f2ede2]'
             }`}
           >
             {t}
@@ -38,7 +38,7 @@ export default function AdminPage() {
         ))}
         <Link
           to="/admin/presets"
-          className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-[#a3a3a3] hover:text-[#f5f5f5] transition-colors border-b-2 border-transparent"
+          className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-[#9a9387] hover:text-[#f2ede2] transition-colors border-b-2 border-transparent"
         >
           Presets
           <ExternalLink size={11} className="opacity-50" />
@@ -97,16 +97,16 @@ function GenerateTab() {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleGenerate} className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 space-y-4">
-        <h2 className="font-display font-semibold text-[#f5f5f5] text-base">Generate Voucher Codes</h2>
+      <form onSubmit={handleGenerate} className="bg-[#121110] border border-[#2b271f] rounded-xl p-5 space-y-4">
+        <h2 className="font-serif font-semibold text-[#f2ede2] text-base">Generate Voucher Codes</h2>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-[#a3a3a3] text-xs block mb-1.5">Package</label>
+            <label className="text-[#9a9387] text-xs block mb-1.5">Package</label>
             <select
               value={packageId}
               onChange={e => setPackageId(e.target.value)}
-              className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm focus:outline-none focus:border-[#a855f7] transition-colors"
+              className="w-full px-3 py-2 bg-[#16140f] border border-[#2b271f] rounded-lg text-[#f2ede2] text-sm focus:outline-none focus:border-[#c5a572] transition-colors"
             >
               {packages.map(p => (
                 <option key={p.id} value={p.id}>{p.icon} {p.name} — {p.tokens} tokens · {p.price}</option>
@@ -115,21 +115,21 @@ function GenerateTab() {
           </div>
 
           <div>
-            <label className="text-[#a3a3a3] text-xs block mb-1.5">Quantity (max 500)</label>
+            <label className="text-[#9a9387] text-xs block mb-1.5">Quantity (max 500)</label>
             <input
               type="number"
               min={1}
               max={500}
               value={quantity}
               onChange={e => setQuantity(Math.max(1, Math.min(500, Number(e.target.value))))}
-              className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm focus:outline-none focus:border-[#a855f7] transition-colors"
+              className="w-full px-3 py-2 bg-[#16140f] border border-[#2b271f] rounded-lg text-[#f2ede2] text-sm focus:outline-none focus:border-[#c5a572] transition-colors"
             />
           </div>
         </div>
 
         {selectedPkg && (
-          <div className="bg-[#242424] rounded-lg px-3 py-2 text-xs text-[#a3a3a3]">
-            Each code adds <span className="text-[#f5f5f5] font-semibold">{selectedPkg.tokens} tokens</span> and upgrades the user to <span className="text-[#f5f5f5] font-semibold">{selectedPkg.name}</span> if their current tier is lower.
+          <div className="bg-[#16140f] rounded-lg px-3 py-2 text-xs text-[#9a9387]">
+            Each code adds <span className="text-[#f2ede2] font-semibold">{selectedPkg.tokens} tokens</span> and upgrades the user to <span className="text-[#f2ede2] font-semibold">{selectedPkg.name}</span> if their current tier is lower.
           </div>
         )}
 
@@ -138,7 +138,7 @@ function GenerateTab() {
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] disabled:opacity-50 text-white text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#c5a572] hover:bg-[#9b7d4c] disabled:opacity-50 text-[#0a0908] text-sm font-medium transition-colors"
         >
           {loading ? <Loader2 size={14} className="animate-spin" /> : null}
           {loading ? 'Generating...' : `Generate ${quantity} Code${quantity > 1 ? 's' : ''}`}
@@ -146,14 +146,14 @@ function GenerateTab() {
       </form>
 
       {generatedCodes.length > 0 && (
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 space-y-4">
+        <div className="bg-[#121110] border border-[#2b271f] rounded-xl p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display font-semibold text-[#f5f5f5] text-base">
+            <h2 className="font-serif font-semibold text-[#f2ede2] text-base">
               {generatedCodes.length} codes generated
             </h2>
             <button
               onClick={downloadCSV}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#242424] hover:bg-[#2a2a2a] text-[#a3a3a3] hover:text-[#f5f5f5] text-xs font-medium transition-colors border border-[#3a3a3a]"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#16140f] hover:bg-[#2b271f] text-[#9a9387] hover:text-[#f2ede2] text-xs font-medium transition-colors border border-[#3a352b]"
             >
               <Download size={13} />
               Download CSV
@@ -161,7 +161,7 @@ function GenerateTab() {
           </div>
           <div className="max-h-64 overflow-y-auto space-y-1">
             {generatedCodes.map(code => (
-              <div key={code} className="font-mono text-sm text-[#f5f5f5] bg-[#242424] rounded px-3 py-1.5 tracking-wider">
+              <div key={code} className="font-mono text-sm text-[#f2ede2] bg-[#16140f] rounded px-3 py-1.5 tracking-wider">
                 {code}
               </div>
             ))}
@@ -220,7 +220,7 @@ function CodesTab() {
               key={f}
               onClick={() => setFilter(f)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ${
-                filter === f ? 'bg-[#a855f7] text-white' : 'bg-[#242424] text-[#a3a3a3] hover:text-[#f5f5f5]'
+                filter === f ? 'bg-[#c5a572] text-[#0a0908]' : 'bg-[#16140f] text-[#9a9387] hover:text-[#f2ede2]'
               }`}
             >
               {f}
@@ -228,13 +228,13 @@ function CodesTab() {
           ))}
         </div>
         <div className="flex gap-2">
-          <button onClick={load} className="text-[#a3a3a3] hover:text-[#f5f5f5] transition-colors">
+          <button onClick={load} className="text-[#9a9387] hover:text-[#f2ede2] transition-colors">
             <RefreshCw size={14} />
           </button>
           {codes.length > 0 && (
             <button
               onClick={downloadCSV}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#242424] hover:bg-[#2a2a2a] text-[#a3a3a3] hover:text-[#f5f5f5] text-xs font-medium transition-colors border border-[#3a3a3a]"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#16140f] hover:bg-[#2b271f] text-[#9a9387] hover:text-[#f2ede2] text-xs font-medium transition-colors border border-[#3a352b]"
             >
               <Download size={13} />
               CSV
@@ -246,35 +246,35 @@ function CodesTab() {
       {error && <p className="text-[#ef4444] text-sm">{error}</p>}
 
       {loading ? (
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
+        <div className="bg-[#121110] border border-[#2b271f] rounded-xl overflow-hidden">
           <table className="w-full text-sm">
             <tbody>{Array.from({ length: 8 }).map((_, i) => <SkeletonAdminRow key={i} />)}</tbody>
           </table>
         </div>
       ) : codes.length === 0 ? (
-        <p className="text-[#a3a3a3] text-sm text-center py-8">No codes found</p>
+        <p className="text-[#9a9387] text-sm text-center py-8">No codes found</p>
       ) : (
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
+        <div className="bg-[#121110] border border-[#2b271f] rounded-xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#2a2a2a]">
-                <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Code</th>
-                <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Package</th>
-                <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Tokens</th>
-                <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Status</th>
-                <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Created</th>
+              <tr className="border-b border-[#2b271f]">
+                <th className="text-left text-xs text-[#9a9387] font-medium px-4 py-3">Code</th>
+                <th className="text-left text-xs text-[#9a9387] font-medium px-4 py-3">Package</th>
+                <th className="text-left text-xs text-[#9a9387] font-medium px-4 py-3">Tokens</th>
+                <th className="text-left text-xs text-[#9a9387] font-medium px-4 py-3">Status</th>
+                <th className="text-left text-xs text-[#9a9387] font-medium px-4 py-3">Created</th>
               </tr>
             </thead>
             <tbody>
               {codes.map(c => {
                 const pkg = packages.find(p => p.id === c.package_id)
                 return (
-                  <tr key={c.id} className="border-b border-[#2a2a2a]/50 hover:bg-[#242424]/50 transition-colors">
-                    <td className="px-4 py-2.5 font-mono text-xs text-[#f5f5f5] tracking-wider">{c.code}</td>
-                    <td className="px-4 py-2.5 text-xs text-[#a3a3a3]">
+                  <tr key={c.id} className="border-b border-[#2b271f]/50 hover:bg-[#16140f]/50 transition-colors">
+                    <td className="px-4 py-2.5 font-mono text-xs text-[#f2ede2] tracking-wider">{c.code}</td>
+                    <td className="px-4 py-2.5 text-xs text-[#9a9387]">
                       {pkg ? `${pkg.icon} ${pkg.name}` : c.package_id}
                     </td>
-                    <td className="px-4 py-2.5 text-xs text-[#f5f5f5]">{c.value}</td>
+                    <td className="px-4 py-2.5 text-xs text-[#f2ede2]">{c.value}</td>
                     <td className="px-4 py-2.5">
                       {c.is_used ? (
                         <span className="flex items-center gap-1 text-xs text-[#ef4444]">
@@ -286,7 +286,7 @@ function CodesTab() {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-2.5 text-xs text-[#555]">
+                    <td className="px-4 py-2.5 text-xs text-[#6b665c]">
                       {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
                     </td>
                   </tr>
@@ -371,8 +371,8 @@ function UsersTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-[#a3a3a3] text-sm">{users.length} users</p>
-        <button onClick={load} className="text-[#a3a3a3] hover:text-[#f5f5f5] transition-colors">
+        <p className="text-[#9a9387] text-sm">{users.length} users</p>
+        <button onClick={load} className="text-[#9a9387] hover:text-[#f2ede2] transition-colors">
           <RefreshCw size={14} />
         </button>
       </div>
@@ -380,33 +380,33 @@ function UsersTab() {
       {error && <p className="text-[#ef4444] text-sm">{error}</p>}
 
       {loading ? (
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
+        <div className="bg-[#121110] border border-[#2b271f] rounded-xl overflow-hidden">
           <table className="w-full text-sm">
             <tbody>{Array.from({ length: 6 }).map((_, i) => <SkeletonAdminRow key={i} />)}</tbody>
           </table>
         </div>
       ) : users.length === 0 ? (
-        <p className="text-[#a3a3a3] text-sm text-center py-8">No users found</p>
+        <p className="text-[#9a9387] text-sm text-center py-8">No users found</p>
       ) : (
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
+        <div className="bg-[#121110] border border-[#2b271f] rounded-xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#2a2a2a]">
-                <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Email</th>
-                <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Tokens</th>
-                <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Package</th>
-                <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Top Up</th>
-                <th className="text-left text-xs text-[#a3a3a3] font-medium px-4 py-3">Joined</th>
+              <tr className="border-b border-[#2b271f]">
+                <th className="text-left text-xs text-[#9a9387] font-medium px-4 py-3">Email</th>
+                <th className="text-left text-xs text-[#9a9387] font-medium px-4 py-3">Tokens</th>
+                <th className="text-left text-xs text-[#9a9387] font-medium px-4 py-3">Package</th>
+                <th className="text-left text-xs text-[#9a9387] font-medium px-4 py-3">Top Up</th>
+                <th className="text-left text-xs text-[#9a9387] font-medium px-4 py-3">Joined</th>
               </tr>
             </thead>
             <tbody>
               {users.map(u => {
                 const pkg = packages.find(p => p.id === u.package_id)
                 return (
-                  <tr key={u.id} className="border-b border-[#2a2a2a]/50 hover:bg-[#242424]/50 transition-colors">
-                    <td className="px-4 py-2.5 text-xs text-[#f5f5f5] max-w-[200px] truncate">{u.email}</td>
+                  <tr key={u.id} className="border-b border-[#2b271f]/50 hover:bg-[#16140f]/50 transition-colors">
+                    <td className="px-4 py-2.5 text-xs text-[#f2ede2] max-w-[200px] truncate">{u.email}</td>
                     <td className="px-4 py-2.5">
-                      <span className="text-xs font-semibold" style={{ color: pkg?.color ?? '#a3a3a3' }}>
+                      <span className="text-xs font-semibold" style={{ color: pkg?.color ?? '#9a9387' }}>
                         {u.token_balance ?? 0}
                       </span>
                     </td>
@@ -416,14 +416,14 @@ function UsersTab() {
                           value={u.package_id ?? ''}
                           onChange={e => handlePackageChange(u.id, e.target.value)}
                           disabled={updating === u.id}
-                          className="bg-[#242424] border border-[#3a3a3a] rounded px-2 py-1 text-xs text-[#f5f5f5] focus:outline-none focus:border-[#a855f7] transition-colors disabled:opacity-50"
+                          className="bg-[#16140f] border border-[#3a352b] rounded px-2 py-1 text-xs text-[#f2ede2] focus:outline-none focus:border-[#c5a572] transition-colors disabled:opacity-50"
                         >
                           <option value="">— none —</option>
                           {packages.map(p => (
                             <option key={p.id} value={p.id}>{p.icon} {p.name}</option>
                           ))}
                         </select>
-                        {updating === u.id && <Loader2 size={12} className="animate-spin text-[#a855f7]" />}
+                        {updating === u.id && <Loader2 size={12} className="animate-spin text-[#c5a572]" />}
                       </div>
                     </td>
                     <td className="px-4 py-2.5">
@@ -436,12 +436,12 @@ function UsersTab() {
                           onChange={e => setTopupAmounts(prev => ({ ...prev, [u.id]: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && handleTopup(u.id)}
                           disabled={topping === u.id}
-                          className="w-16 px-2 py-1 bg-[#242424] border border-[#3a3a3a] rounded text-xs text-[#f5f5f5] focus:outline-none focus:border-[#a855f7] transition-colors disabled:opacity-50"
+                          className="w-16 px-2 py-1 bg-[#16140f] border border-[#3a352b] rounded text-xs text-[#f2ede2] focus:outline-none focus:border-[#c5a572] transition-colors disabled:opacity-50"
                         />
                         <button
                           onClick={() => handleTopup(u.id)}
                           disabled={topping === u.id || !topupAmounts[u.id]}
-                          className="flex items-center justify-center w-6 h-6 rounded bg-[#a855f7] hover:bg-[#7c3aed] disabled:opacity-40 transition-colors"
+                          className="flex items-center justify-center w-6 h-6 rounded bg-[#c5a572] hover:bg-[#9b7d4c] disabled:opacity-40 transition-colors"
                         >
                           {topping === u.id
                             ? <Loader2 size={11} className="animate-spin text-white" />
@@ -449,7 +449,7 @@ function UsersTab() {
                         </button>
                       </div>
                     </td>
-                    <td className="px-4 py-2.5 text-xs text-[#555]">
+                    <td className="px-4 py-2.5 text-xs text-[#6b665c]">
                       {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
                     </td>
                   </tr>

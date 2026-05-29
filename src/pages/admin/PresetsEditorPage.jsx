@@ -195,16 +195,16 @@ export default function PresetsEditorPage() {
     <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display font-bold text-[#f5f5f5] text-2xl">Preset Editor</h1>
-          <p className="text-[#a3a3a3] text-sm mt-1">Manage presets for all panels</p>
+          <h1 className="font-serif font-bold text-[#f2ede2] text-2xl">Preset Editor</h1>
+          <p className="text-[#9a9387] text-sm mt-1">Manage presets for all panels</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={load} className="text-[#a3a3a3] hover:text-[#f5f5f5] transition-colors p-2">
+          <button onClick={load} className="text-[#9a9387] hover:text-[#f2ede2] transition-colors p-2">
             <RefreshCw size={14} />
           </button>
           <button
             onClick={() => { setCreating(true); setEditingId(null); setNewForm(emptyForm(activePanel)) }}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] text-white text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#c5a572] hover:bg-[#9b7d4c] text-[#0a0908] text-sm font-medium transition-colors"
           >
             <Plus size={14} />
             New Preset
@@ -220,8 +220,8 @@ export default function PresetsEditorPage() {
             onClick={() => { setActivePanel(p.id); setCreating(false) }}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activePanel === p.id
-                ? 'bg-[#a855f7] text-white'
-                : 'bg-[#242424] text-[#a3a3a3] hover:text-[#f5f5f5]'
+                ? 'bg-[#c5a572] text-[#0a0908]'
+                : 'bg-[#16140f] text-[#9a9387] hover:text-[#f2ede2]'
             }`}
           >
             {p.label}
@@ -243,15 +243,15 @@ export default function PresetsEditorPage() {
       )}
 
       {loading ? (
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
+        <div className="bg-[#121110] border border-[#2b271f] rounded-xl overflow-hidden">
           <table className="w-full"><tbody>{Array.from({ length: 5 }).map((_, i) => <SkeletonAdminRow key={i} />)}</tbody></table>
         </div>
       ) : visiblePresets.length === 0 && !creating ? (
-        <p className="text-[#a3a3a3] text-sm text-center py-12">No {PANEL_OPTIONS.find(p => p.id === activePanel)?.label} presets yet. Click "New Preset" to create one.</p>
+        <p className="text-[#9a9387] text-sm text-center py-12">No {PANEL_OPTIONS.find(p => p.id === activePanel)?.label} presets yet. Click "New Preset" to create one.</p>
       ) : (
         <div className="space-y-2">
           {visiblePresets.map(preset => (
-            <div key={preset.id} className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
+            <div key={preset.id} className="bg-[#121110] border border-[#2b271f] rounded-xl overflow-hidden">
               {editingId === preset.id ? (
                 <div className="p-4">
                   <PresetForm
@@ -264,7 +264,7 @@ export default function PresetsEditorPage() {
                 </div>
               ) : (
                 <div className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#0d0d0d] flex items-center justify-center overflow-hidden shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-[#0a0908] flex items-center justify-center overflow-hidden shrink-0">
                     {preset.after_image_url ? (
                       <img
                         src={preset.after_image_url}
@@ -278,32 +278,32 @@ export default function PresetsEditorPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[#f5f5f5] text-sm font-medium">{preset.name}</span>
-                      <span className="text-[10px] text-[#555] font-mono">{preset.preset_key}</span>
+                      <span className="text-[#f2ede2] text-sm font-medium">{preset.name}</span>
+                      <span className="text-[10px] text-[#6b665c] font-mono">{preset.preset_key}</span>
                       {preset.status === 'hidden' && (
                         <span className="text-[10px] text-[#f59e0b] bg-[#f59e0b]/10 px-1.5 py-0.5 rounded">hidden</span>
                       )}
                     </div>
-                    <p className="text-[#555] text-xs truncate">{preset.description}</p>
+                    <p className="text-[#6b665c] text-xs truncate">{preset.description}</p>
                     <div className="flex gap-1 mt-0.5">
                       {(preset.categories ?? []).map(c => (
-                        <span key={c} className="text-[10px] text-[#a3a3a3] bg-[#242424] px-1.5 py-0.5 rounded">{c}</span>
+                        <span key={c} className="text-[10px] text-[#9a9387] bg-[#16140f] px-1.5 py-0.5 rounded">{c}</span>
                       ))}
                     </div>
                   </div>
-                  <span className="text-xs text-[#a3a3a3] shrink-0">{preset.token_cost}t</span>
+                  <span className="text-xs text-[#9a9387] shrink-0">{preset.token_cost}t</span>
                   <div className="flex gap-1 shrink-0">
                     <button
                       onClick={() => toggleStatus(preset)}
                       title={preset.status === 'active' ? 'Hide preset' : 'Show preset'}
-                      className="p-1.5 rounded text-[#555] hover:text-[#a3a3a3] transition-colors"
+                      className="p-1.5 rounded text-[#6b665c] hover:text-[#9a9387] transition-colors"
                     >
                       {preset.status === 'active' ? <Eye size={13} /> : <EyeOff size={13} />}
                     </button>
-                    <button onClick={() => startEdit(preset)} className="p-1.5 rounded text-[#555] hover:text-[#a855f7] transition-colors">
+                    <button onClick={() => startEdit(preset)} className="p-1.5 rounded text-[#6b665c] hover:text-[#c5a572] transition-colors">
                       <Pencil size={13} />
                     </button>
-                    <button onClick={() => deletePreset(preset.id)} className="p-1.5 rounded text-[#555] hover:text-[#ef4444] transition-colors">
+                    <button onClick={() => deletePreset(preset.id)} className="p-1.5 rounded text-[#6b665c] hover:text-[#ef4444] transition-colors">
                       <Trash2 size={13} />
                     </button>
                   </div>
@@ -342,12 +342,12 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
   }
 
   return (
-    <div className="space-y-4 bg-[#0d0d0d] rounded-xl p-4 border border-[#a855f7]/30">
-      <h3 className="text-[#f5f5f5] font-medium text-sm">{isNew ? 'New Preset' : 'Edit Preset'}</h3>
+    <div className="space-y-4 bg-[#0a0908] rounded-xl p-4 border border-[#c5a572]/30">
+      <h3 className="text-[#f2ede2] font-medium text-sm">{isNew ? 'New Preset' : 'Edit Preset'}</h3>
 
       {/* Panel selector */}
       <div>
-        <label className="text-[#a3a3a3] text-xs block mb-1.5">Panel</label>
+        <label className="text-[#9a9387] text-xs block mb-1.5">Panel</label>
         <div className="flex gap-2">
           {PANEL_OPTIONS.map(p => (
             <button
@@ -356,8 +356,8 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
               onClick={() => handlePanelChange(p.id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 form.panel === p.id
-                  ? 'bg-[#a855f7] text-white'
-                  : 'bg-[#242424] text-[#a3a3a3] hover:text-[#f5f5f5]'
+                  ? 'bg-[#c5a572] text-[#0a0908]'
+                  : 'bg-[#16140f] text-[#9a9387] hover:text-[#f2ede2]'
               }`}
             >
               {p.label}
@@ -369,48 +369,48 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
       <div className="grid grid-cols-2 gap-3">
         {isNew && (
           <div>
-            <label className="text-[#a3a3a3] text-xs block mb-1">Key (unique, no spaces)</label>
+            <label className="text-[#9a9387] text-xs block mb-1">Key (unique, no spaces)</label>
             <input
               value={form.preset_key}
               onChange={e => setForm(prev => ({ ...prev, preset_key: e.target.value.toLowerCase().replace(/\s+/g, '_') }))}
               placeholder="natural"
-              className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm font-mono focus:outline-none focus:border-[#a855f7] transition-colors"
+              className="w-full px-3 py-2 bg-[#16140f] border border-[#2b271f] rounded-lg text-[#f2ede2] text-sm font-mono focus:outline-none focus:border-[#c5a572] transition-colors"
             />
           </div>
         )}
         <div>
-          <label className="text-[#a3a3a3] text-xs block mb-1">Name</label>
+          <label className="text-[#9a9387] text-xs block mb-1">Name</label>
           <input
             value={form.name}
             onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
             placeholder="Natural"
-            className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm focus:outline-none focus:border-[#a855f7] transition-colors"
+            className="w-full px-3 py-2 bg-[#16140f] border border-[#2b271f] rounded-lg text-[#f2ede2] text-sm focus:outline-none focus:border-[#c5a572] transition-colors"
           />
         </div>
         <div>
-          <label className="text-[#a3a3a3] text-xs block mb-1">Icon (emoji)</label>
+          <label className="text-[#9a9387] text-xs block mb-1">Icon (emoji)</label>
           <input
             value={form.icon}
             onChange={e => setForm(prev => ({ ...prev, icon: e.target.value }))}
             placeholder="✨"
-            className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm focus:outline-none focus:border-[#a855f7] transition-colors"
+            className="w-full px-3 py-2 bg-[#16140f] border border-[#2b271f] rounded-lg text-[#f2ede2] text-sm focus:outline-none focus:border-[#c5a572] transition-colors"
           />
         </div>
       </div>
 
       <div>
-        <label className="text-[#a3a3a3] text-xs block mb-1">Description</label>
+        <label className="text-[#9a9387] text-xs block mb-1">Description</label>
         <input
           value={form.description}
           onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
           placeholder="One-line description of what this preset does"
-          className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm focus:outline-none focus:border-[#a855f7] transition-colors"
+          className="w-full px-3 py-2 bg-[#16140f] border border-[#2b271f] rounded-lg text-[#f2ede2] text-sm focus:outline-none focus:border-[#c5a572] transition-colors"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[#a3a3a3] text-xs block mb-2">Categories</label>
+          <label className="text-[#9a9387] text-xs block mb-2">Categories</label>
           <div className="flex flex-wrap gap-1.5">
             {panelCategories.map(cat => (
               <button
@@ -419,8 +419,8 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
                 onClick={() => toggleCategory(cat)}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                   form.categories.includes(cat)
-                    ? 'bg-[#a855f7] text-white'
-                    : 'bg-[#242424] text-[#a3a3a3] hover:text-[#f5f5f5]'
+                    ? 'bg-[#c5a572] text-[#0a0908]'
+                    : 'bg-[#16140f] text-[#9a9387] hover:text-[#f2ede2]'
                 }`}
               >
                 {cat}
@@ -430,23 +430,23 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[#a3a3a3] text-xs block mb-1">Token cost</label>
+            <label className="text-[#9a9387] text-xs block mb-1">Token cost</label>
             <input
               type="number"
               min={1}
               max={10}
               value={form.token_cost}
               onChange={e => setForm(prev => ({ ...prev, token_cost: e.target.value }))}
-              className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm focus:outline-none focus:border-[#a855f7] transition-colors"
+              className="w-full px-3 py-2 bg-[#16140f] border border-[#2b271f] rounded-lg text-[#f2ede2] text-sm focus:outline-none focus:border-[#c5a572] transition-colors"
             />
           </div>
           <div>
-            <label className="text-[#a3a3a3] text-xs block mb-1">Sort order</label>
+            <label className="text-[#9a9387] text-xs block mb-1">Sort order</label>
             <input
               type="number"
               value={form.sort_order}
               onChange={e => setForm(prev => ({ ...prev, sort_order: e.target.value }))}
-              className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm focus:outline-none focus:border-[#a855f7] transition-colors"
+              className="w-full px-3 py-2 bg-[#16140f] border border-[#2b271f] rounded-lg text-[#f2ede2] text-sm focus:outline-none focus:border-[#c5a572] transition-colors"
             />
           </div>
         </div>
@@ -466,7 +466,7 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
       </div>
 
       <div>
-        <label className="text-[#a3a3a3] text-xs block mb-1">Status</label>
+        <label className="text-[#9a9387] text-xs block mb-1">Status</label>
         <div className="flex gap-2">
           {['active', 'hidden'].map(s => (
             <button
@@ -475,8 +475,8 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
               onClick={() => setForm(prev => ({ ...prev, status: s }))}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
                 form.status === s
-                  ? 'bg-[#a855f7] text-white'
-                  : 'bg-[#242424] text-[#a3a3a3] hover:text-[#f5f5f5]'
+                  ? 'bg-[#c5a572] text-[#0a0908]'
+                  : 'bg-[#16140f] text-[#9a9387] hover:text-[#f2ede2]'
               }`}
             >
               {s}
@@ -488,23 +488,23 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
       <div>
         {form.panel === 'background' ? (
           <>
-            <label className="text-[#a3a3a3] text-xs block mb-1">Prompt</label>
+            <label className="text-[#9a9387] text-xs block mb-1">Prompt</label>
             <textarea
               value={form.payload_text}
               onChange={e => setForm(prev => ({ ...prev, payload_text: e.target.value }))}
               rows={3}
               placeholder="Describe the background, e.g. professional studio, soft lighting, neutral gray"
-              className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-sm focus:outline-none focus:border-[#a855f7] transition-colors resize-y"
+              className="w-full px-3 py-2 bg-[#16140f] border border-[#2b271f] rounded-lg text-[#f2ede2] text-sm focus:outline-none focus:border-[#c5a572] transition-colors resize-y"
             />
           </>
         ) : (
           <>
-            <label className="text-[#a3a3a3] text-xs block mb-1">Payload (JSON)</label>
+            <label className="text-[#9a9387] text-xs block mb-1">Payload (JSON)</label>
             <textarea
               value={form.payload_text}
               onChange={e => setForm(prev => ({ ...prev, payload_text: e.target.value }))}
               rows={8}
-              className="w-full px-3 py-2 bg-[#242424] border border-[#2a2a2a] rounded-lg text-[#f5f5f5] text-xs font-mono focus:outline-none focus:border-[#a855f7] transition-colors resize-y"
+              className="w-full px-3 py-2 bg-[#16140f] border border-[#2b271f] rounded-lg text-[#f2ede2] text-xs font-mono focus:outline-none focus:border-[#c5a572] transition-colors resize-y"
               spellCheck={false}
             />
           </>
@@ -515,7 +515,7 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
         <button
           type="button"
           onClick={onCancel}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#242424] text-[#a3a3a3] hover:text-[#f5f5f5] text-sm transition-colors"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#16140f] text-[#9a9387] hover:text-[#f2ede2] text-sm transition-colors"
         >
           <X size={13} />
           Cancel
@@ -524,7 +524,7 @@ function PresetForm({ form, setForm, onSave, onCancel, saving, isNew }) {
           type="button"
           onClick={onSave}
           disabled={saving}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#a855f7] hover:bg-[#7c3aed] disabled:opacity-50 text-white text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#c5a572] hover:bg-[#9b7d4c] disabled:opacity-50 text-[#0a0908] text-sm font-medium transition-colors"
         >
           {saving ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
           {saving ? 'Saving...' : 'Save'}
@@ -557,13 +557,13 @@ function ImageUploadField({ label, value, onChange }) {
 
   return (
     <div>
-      <label className="text-[#a3a3a3] text-xs block mb-1">{label}</label>
+      <label className="text-[#9a9387] text-xs block mb-1">{label}</label>
       <div className="flex gap-2">
-        <div className="w-16 h-16 bg-[#0d0d0d] rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-[#2a2a2a]">
+        <div className="w-16 h-16 bg-[#0a0908] rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-[#2b271f]">
           {value ? (
             <img src={value} alt="" className="w-full h-full object-cover" />
           ) : (
-            <span className="text-[#555] text-[10px]">No image</span>
+            <span className="text-[#6b665c] text-[10px]">No image</span>
           )}
         </div>
         <div className="flex-1 flex flex-col gap-1 min-w-0">
@@ -572,7 +572,7 @@ function ImageUploadField({ label, value, onChange }) {
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
-              className="flex-1 px-2 py-1.5 rounded bg-[#242424] hover:bg-[#2a2a2a] text-[#a3a3a3] hover:text-[#f5f5f5] text-xs transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+              className="flex-1 px-2 py-1.5 rounded bg-[#16140f] hover:bg-[#2b271f] text-[#9a9387] hover:text-[#f2ede2] text-xs transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
               {uploading ? <><Loader2 size={11} className="animate-spin" /> Uploading…</> : <><Upload size={11} /> Upload</>}
             </button>
@@ -580,7 +580,7 @@ function ImageUploadField({ label, value, onChange }) {
               <button
                 type="button"
                 onClick={() => onChange('')}
-                className="px-2 py-1.5 rounded bg-[#242424] hover:bg-[#ef4444]/20 text-[#a3a3a3] hover:text-[#ef4444] text-xs transition-colors"
+                className="px-2 py-1.5 rounded bg-[#16140f] hover:bg-[#ef4444]/20 text-[#9a9387] hover:text-[#ef4444] text-xs transition-colors"
                 title="Clear"
               >
                 <X size={11} />
@@ -591,7 +591,7 @@ function ImageUploadField({ label, value, onChange }) {
             value={value}
             onChange={e => onChange(e.target.value)}
             placeholder="…or paste a URL"
-            className="w-full px-2 py-1 bg-[#242424] border border-[#2a2a2a] rounded text-[#f5f5f5] text-[10px] font-mono focus:outline-none focus:border-[#a855f7] transition-colors"
+            className="w-full px-2 py-1 bg-[#16140f] border border-[#2b271f] rounded text-[#f2ede2] text-[10px] font-mono focus:outline-none focus:border-[#c5a572] transition-colors"
           />
         </div>
         <input

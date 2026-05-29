@@ -730,20 +730,20 @@ function Accordion({ section }) {
   const lines = section.content.trim().split('\n')
   const rendered = lines.map((line, i) => {
     if (line.startsWith('**') && line.endsWith('**')) {
-      return <p key={i} className="font-semibold text-[#f5f5f5] text-sm mt-4 mb-1 first:mt-0">{line.slice(2, -2)}</p>
+      return <p key={i} className="font-semibold text-[#f2ede2] text-sm mt-4 mb-1 first:mt-0">{line.slice(2, -2)}</p>
     }
     if (line.startsWith('| ')) {
       return null
     }
     if (line.startsWith('- *')) {
       const [italic, ...rest] = line.slice(3).split('*')
-      return <li key={i} className="text-[#a3a3a3] text-sm ml-4"><em className="text-[#f5f5f5]">{italic}</em>{rest.join('')}</li>
+      return <li key={i} className="text-[#9a9387] text-sm ml-4"><em className="text-[#f2ede2]">{italic}</em>{rest.join('')}</li>
     }
     if (line.startsWith('- ')) {
-      return <li key={i} className="text-[#a3a3a3] text-sm ml-4">{line.slice(2)}</li>
+      return <li key={i} className="text-[#9a9387] text-sm ml-4">{line.slice(2)}</li>
     }
     if (line.trim() === '') return <div key={i} className="h-2" />
-    return <p key={i} className="text-[#a3a3a3] text-sm">{line}</p>
+    return <p key={i} className="text-[#9a9387] text-sm">{line}</p>
   })
 
   const tableLines = lines.filter(l => l.startsWith('| '))
@@ -757,15 +757,15 @@ function Accordion({ section }) {
           <thead>
             <tr>
               {headers.map((h, i) => (
-                <th key={i} className="text-left text-[#a3a3a3] text-xs font-medium py-2 px-3 border-b border-[#2a2a2a]">{h}</th>
+                <th key={i} className="text-left text-[#9a9387] text-xs font-medium py-2 px-3 border-b border-[#2b271f]">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {rows.map((row, ri) => (
-              <tr key={ri} className="border-b border-[#2a2a2a]/50">
+              <tr key={ri} className="border-b border-[#2b271f]/50">
                 {row.map((cell, ci) => (
-                  <td key={ci} className="text-[#f5f5f5] text-xs py-2 px-3">{cell}</td>
+                  <td key={ci} className="text-[#f2ede2] text-xs py-2 px-3">{cell}</td>
                 ))}
               </tr>
             ))}
@@ -776,16 +776,16 @@ function Accordion({ section }) {
   }
 
   return (
-    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
+    <div className="bg-[#121110] border border-[#2b271f] rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between p-4 text-left hover:bg-[#242424] transition-colors"
+        className="w-full flex items-center justify-between p-4 text-left hover:bg-[#16140f] transition-colors"
       >
-        <span className="font-display font-semibold text-[#f5f5f5] text-sm">{section.title}</span>
-        {open ? <ChevronDown size={16} className="text-[#a3a3a3]" /> : <ChevronRight size={16} className="text-[#a3a3a3]" />}
+        <span className="font-serif font-semibold text-[#f2ede2] text-sm">{section.title}</span>
+        {open ? <ChevronDown size={16} className="text-[#9a9387]" /> : <ChevronRight size={16} className="text-[#9a9387]" />}
       </button>
       {open && (
-        <div className="px-4 pb-4 border-t border-[#2a2a2a] space-y-1 pt-3">
+        <div className="px-4 pb-4 border-t border-[#2b271f] space-y-1 pt-3">
           {rendered}
           {tableElements}
         </div>
@@ -798,8 +798,8 @@ export default function HelpPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="font-display font-bold text-[#f5f5f5] text-2xl">Help</h1>
-        <p className="text-[#a3a3a3] text-sm mt-1">Everything you need to know about using Smalltouch Studio</p>
+        <h1 className="font-serif font-bold text-[#f2ede2] text-2xl">Help</h1>
+        <p className="text-[#9a9387] text-sm mt-1">Everything you need to know about using Smalltouch Studio</p>
       </div>
       <div className="space-y-2">
         {HELP_SECTIONS.map(section => (
