@@ -22,6 +22,10 @@ export default function RetouchPage() {
   const { user, profile } = useAuth()
   const { balance, deductTokens, refundTokens } = useTokens()
   const { selectedImage, batchQueue, setBatchQueue, addToBatch, removeFromBatch, jobs, addJob, updateJob } = useLibrary()
+  const { runQuickEnhance, runAdvancedEdit, resumeJob } = useRetouch({ addJob, updateJob })
+  const toast = useToast()
+  const navigate = useNavigate()
+
   const handleContinue = useCallback((job, target) => {
     const chained = {
       id: crypto.randomUUID(),
@@ -33,9 +37,6 @@ export default function RetouchPage() {
     setBatchQueue(prev => prev.find(i => i.outputPath === chained.outputPath) ? prev : [...prev, chained])
     navigate(`/${target}`)
   }, [setBatchQueue, navigate])
-  const { runQuickEnhance, runAdvancedEdit, resumeJob } = useRetouch({ addJob, updateJob })
-  const toast = useToast()
-  const navigate = useNavigate()
 
   // Tool-only state — no library or results state here
   const [activeTool, setActiveTool] = useState('quick-enhance')
