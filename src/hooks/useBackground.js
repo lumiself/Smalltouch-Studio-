@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { uploadInput, getOutputUrl } from '../lib/storage'
-import { fetchWithRetry } from '../lib/fetchWithRetry'
+import { fetchWithRetry, friendlyNetworkError } from '../lib/fetchWithRetry'
 
 const POLL_INTERVAL_MS = 3000
 const MAX_POLLS = 120 // 6 minutes max
@@ -89,8 +89,9 @@ export function useBackground({ addJob, updateJob }) {
       updateJob(jobId, { status: 'completed', progress: 100, result: { url: resultUrl, outputPath }, originalFile: file })
       return { jobId, resultUrl }
     } catch (err) {
-      updateJob(jobId, { status: 'failed', error: err.message })
-      throw err
+      const wrapped = friendlyNetworkError(err)
+      updateJob(jobId, { status: 'failed', error: wrapped.message })
+      throw wrapped
     }
   }, [addJob, updateJob])
 
@@ -165,8 +166,9 @@ export function useBackground({ addJob, updateJob }) {
       })
       return { jobId, resultUrl }
     } catch (err) {
-      updateJob(jobId, { status: 'failed', error: err.message })
-      throw err
+      const wrapped = friendlyNetworkError(err)
+      updateJob(jobId, { status: 'failed', error: wrapped.message })
+      throw wrapped
     }
   }, [addJob, updateJob])
 

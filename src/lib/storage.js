@@ -1,36 +1,16 @@
 import { supabase } from './supabase'
+import { supabaseRetry } from './fetchWithRetry'
 
-const STORAGE_RETRY_DELAYS = [2000, 4000, 8000]
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
-
-function dispatchRetry(name, success) {
-  window.dispatchEvent(new CustomEvent(name, { detail: { success } }))
-}
-
+// Retries a storage operation on transient network errors. supabaseRetry catches both
+// returned `{ error }` results and thrown rejections (e.g. "Failed to fetch") so a
+// connection blip on the first upload is retried instead of escaping as a fatal error.
+// Permission / RLS errors are not transient and surface immediately via toStorageError.
 async function retryStorage(fn) {
-  let lastErr
-  let didRetry = false
-  for (let attempt = 0; attempt <= STORAGE_RETRY_DELAYS.length; attempt++) {
-    const { error } = await fn()
-    if (!error) {
-      if (didRetry) dispatchRetry('network-retry-done', true)
-      return
-    }
-    // Don't retry on permission / RLS errors
-    const msg = error.message?.toLowerCase() ?? ''
-    const isPermErr = msg.includes('row level security') || msg.includes('not authorized') ||
-      (error.statusCode >= 400 && error.statusCode < 500)
-    if (isPermErr) throw toStorageError(error)
-    lastErr = error
-    if (attempt < STORAGE_RETRY_DELAYS.length) {
-      if (!didRetry) dispatchRetry('network-retrying')
-      didRetry = true
-      await sleep(STORAGE_RETRY_DELAYS[attempt])
-    }
+  try {
+    await supabaseRetry(fn)
+  } catch (err) {
+    throw toStorageError(err)
   }
-  if (didRetry) dispatchRetry('network-retry-done', false)
-  throw toStorageError(lastErr)
 }
 
 export async function uploadInput(userId, jobId, file) {
