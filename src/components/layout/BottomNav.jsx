@@ -18,12 +18,12 @@ export default function BottomNav() {
   const isLow = balance < 5 && balance > 0
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#1a1a1a] border-t border-[#2a2a2a] flex items-stretch z-50 pb-[env(safe-area-inset-bottom)]">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-ink-soft border-t border-luxe-border flex items-stretch z-50 pb-[env(safe-area-inset-bottom)]">
       {NAV_ITEMS.map(({ path, icon: Icon, label }) => {
         const active = location.pathname === path
         const isTokens = path === '/tokens'
         const tokenColor = isTokens
-          ? isEmpty ? 'text-[#ef4444]' : isLow ? 'text-[#f59e0b]' : 'text-[#a855f7]'
+          ? isEmpty ? 'text-[#ef4444]' : isLow ? 'text-[#f59e0b]' : 'text-gold'
           : null
 
         return (
@@ -31,7 +31,7 @@ export default function BottomNav() {
             key={path}
             to={path}
             className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-              active ? 'text-[#a855f7]' : tokenColor ?? 'text-[#555] hover:text-[#a3a3a3]'
+              active ? 'text-gold' : tokenColor ?? 'text-[#6b665c] hover:text-[#c9c2b4]'
             }`}
           >
             <Icon size={19} />

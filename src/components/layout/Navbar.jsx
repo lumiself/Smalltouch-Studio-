@@ -18,11 +18,11 @@ export default function Navbar() {
   const isAdmin = user?.email && import.meta.env.VITE_ADMIN_EMAIL && user.email === import.meta.env.VITE_ADMIN_EMAIL
 
   return (
-    <nav className="h-14 bg-[#1a1a1a] border-b border-[#2a2a2a] flex items-center justify-between px-4 shrink-0">
+    <nav className="h-14 bg-ink-soft border-b border-luxe-border flex items-center justify-between px-4 shrink-0">
       {/* Logo */}
       <Link to="/dashboard" className="flex items-center gap-2 shrink-0">
-        <Sparkles size={18} className="text-[#a855f7]" />
-        <span className="font-display font-semibold text-[#f5f5f5] text-sm tracking-wide">Smalltouch Studio</span>
+        <Sparkles size={18} className="text-gold" />
+        <span className="font-serif font-medium text-[#f2ede2] text-base tracking-wide">Smalltouch Studio</span>
       </Link>
 
       {/* Desktop panel nav — hidden on mobile (BottomNav handles it) */}
@@ -35,8 +35,8 @@ export default function Navbar() {
               to={path}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 active
-                  ? 'bg-[#a855f7]/15 text-[#a855f7]'
-                  : 'text-[#555] hover:text-[#a3a3a3] hover:bg-[#242424]'
+                  ? 'bg-gold/15 text-gold'
+                  : 'text-[#6b665c] hover:text-[#c9c2b4] hover:bg-ink-card'
               }`}
             >
               <Icon size={13} />
@@ -51,7 +51,7 @@ export default function Navbar() {
         {isAdmin && (
           <Link
             to="/admin"
-            className={`flex items-center gap-1 text-xs transition-colors ${location.pathname.startsWith('/admin') ? 'text-[#a855f7]' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}
+            className={`flex items-center gap-1 text-xs transition-colors ${location.pathname.startsWith('/admin') ? 'text-gold' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}
           >
             <ShieldCheck size={14} />
             <span className="hidden sm:inline">Admin</span>
@@ -59,7 +59,7 @@ export default function Navbar() {
         )}
         <Link
           to="/help"
-          className={`flex items-center gap-1 text-xs transition-colors ${location.pathname === '/help' ? 'text-[#a855f7]' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}
+          className={`flex items-center gap-1 text-xs transition-colors ${location.pathname === '/help' ? 'text-gold' : 'text-[#a3a3a3] hover:text-[#f5f5f5]'}`}
         >
           <HelpCircle size={14} />
           <span className="hidden sm:inline">Help</span>
@@ -70,7 +70,7 @@ export default function Navbar() {
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
             isEmpty ? 'bg-[#ef4444]/20 text-[#ef4444]' :
             isLow   ? 'bg-[#f59e0b]/20 text-[#f59e0b]' :
-                      'bg-[#a855f7]/20 text-[#a855f7]'
+                      'bg-gold/15 text-gold'
           }`}
         >
           <Coins size={12} />

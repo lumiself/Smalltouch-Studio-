@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Lock, ArrowRight } from 'lucide-react'
+import { Lock, ArrowRight, ArrowUpRight } from 'lucide-react'
 import { panels } from '../registry/panels'
 import { supabase } from '../lib/supabase'
 import { canUsePanel, getRequiredPackage } from '../lib/access'
 import { useAuth } from '../hooks/useAuth'
 import OnboardingModal, { shouldShowOnboarding } from '../components/shared/OnboardingModal'
 
-const PANEL_NUMERALS = ['01', '02', '03', '04']
-const PANEL_COLORS = ['#CC2200', '#F5C400', '#1B3A7A', '#f5f5f5']
+// Editorial cover image — soft, elegant studio portrait. Sits beneath a deep
+// gradient so the hero still reads as premium even before/if the image loads.
+const HERO_IMAGE =
+  'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1740&auto=format&fit=crop'
 
 function useRevealOnScroll(keys) {
   const [visible, setVisible] = useState(() => Object.fromEntries(keys.map(k => [k, false])))
@@ -73,104 +75,65 @@ export default function DashboardPage() {
   const tokenBalance = profile?.token_balance ?? 0
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0d0d0d]">
+    <div className="flex-1 overflow-y-auto bg-ink">
       {showOnboarding && <OnboardingModal onClose={() => setShowOnboarding(false)} />}
 
       {/* ─────────────────────────────────────────────
-          HERO
+          HERO — editorial cover
       ───────────────────────────────────────────── */}
-      <section className="relative border-b border-[#2a2a2a] overflow-hidden">
-        {/* Subtle graph-paper grid */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)',
-            backgroundSize: '48px 48px',
-          }}
-        />
+      <section className="relative overflow-hidden">
+        {/* Cover image */}
+        <div className="absolute inset-0">
+          <img
+            src={HERO_IMAGE}
+            alt=""
+            aria-hidden="true"
+            className="hero-kenburns w-full h-full object-cover object-[70%_center] opacity-70"
+            loading="eager"
+          />
+        </div>
 
-        {/* Left red rule — the structural spine */}
-        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-bauhaus-red z-10" />
+        {/* Gradient veils — keep text legible, give depth */}
+        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-ink/40" />
 
-        <div className="relative grid grid-cols-12 min-h-[58vh]">
+        {/* Thin gold hairline at the very top */}
+        <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
 
-          {/* ── Text column ── */}
-          <div className="col-span-12 md:col-span-7 flex flex-col justify-center pl-10 md:pl-14 pr-8 py-16 md:py-20">
-
-            <p className="hero-reveal font-display text-[9px] tracking-[0.45em] font-bold text-bauhaus-red uppercase mb-6">
-              CREATIVE INTELLIGENCE — SMALLTOUCH STUDIO
+        <div className="relative min-h-[68vh] flex flex-col justify-center px-8 sm:px-12 md:px-20 py-24 md:py-28">
+          <div className="max-w-2xl">
+            <p className="hero-reveal flex items-center gap-3 mb-8">
+              <span className="h-px w-8 bg-gold/70" />
+              <span className="font-body text-[10px] tracking-[0.42em] text-gold/90 uppercase">
+                Smalltouch Studio
+              </span>
             </p>
 
-            <h1 className="hero-reveal-delayed font-display font-extrabold leading-none tracking-tight">
-              <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] text-[#f5f5f5]">
-                LET AI
-              </span>
-              <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] text-bauhaus-yellow -mt-1">
-                HANDLE
-              </span>
-              <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] text-[#f5f5f5] -mt-1">
-                THE REST.
-              </span>
+            <h1 className="hero-reveal-delayed font-serif font-light text-[#f7f3ea] leading-[0.98] tracking-tight text-5xl sm:text-6xl md:text-7xl lg:text-[5.75rem]">
+              Let intelligence
+              <br />
+              handle <span className="italic text-gold-gradient font-medium">the rest.</span>
             </h1>
 
-            <p className="hero-reveal-delayed-2 text-[#a3a3a3] text-sm md:text-base mt-8 max-w-sm leading-relaxed">
-              {firstName
-                ? `Welcome back, ${firstName}.`
-                : 'AI-powered tools that take the repetitive work off your plate.'}{' '}
-              Spend your time on what only you can do.
+            <p className="hero-reveal-delayed-2 text-[#c9c2b4] font-body font-light text-base md:text-lg mt-8 max-w-md leading-relaxed">
+              {firstName ? `Welcome back, ${firstName}. ` : ''}
+              A quiet, considered studio where AI takes the repetitive work off your
+              hands — so your time goes to the craft only you can bring.
             </p>
 
-            <div className="hero-reveal-delayed-2 flex flex-wrap items-center gap-5 mt-8">
+            <div className="hero-reveal-delayed-2 flex flex-wrap items-center gap-6 mt-11">
               <button
                 onClick={() => navigate('/retouch')}
-                className="group flex items-center gap-3 bg-bauhaus-red hover:bg-[#aa1c00] text-white font-display font-bold text-[10px] tracking-[0.22em] uppercase px-7 py-3.5 transition-colors duration-100"
+                className="group flex items-center gap-3 bg-gold hover:bg-gold-bright text-ink font-body font-medium text-[11px] tracking-[0.22em] uppercase px-8 py-4 rounded-sm transition-all duration-300 shadow-[0_8px_30px_-12px_rgba(197,165,114,0.6)]"
               >
-                OPEN STUDIO
+                Enter the Studio
                 <ArrowRight
-                  size={13}
-                  className="transition-transform duration-100 group-hover:translate-x-0.5"
+                  size={14}
+                  className="transition-transform duration-300 group-hover:translate-x-1"
                 />
               </button>
-              <span className="font-display text-[9px] tracking-[0.3em] text-[#a3a3a3] uppercase">
-                {tokenBalance}&thinsp;TOKENS AVAILABLE
-              </span>
-            </div>
-          </div>
-
-          {/* ── Bauhaus geometric composition ── */}
-          <div className="hidden md:flex col-span-5 items-center justify-center border-l border-[#2a2a2a] p-10">
-            <div className="relative w-[264px] h-[264px]">
-              {/* Outer frame */}
-              <div className="absolute inset-0 border border-[#2a2a2a]" />
-
-              {/* 3×3 subdivision cross */}
-              <div className="absolute top-1/3 left-0 right-0 h-px bg-[#2a2a2a]" />
-              <div className="absolute top-2/3 left-0 right-0 h-px bg-[#2a2a2a]" />
-              <div className="absolute left-1/3 top-0 bottom-0 w-px bg-[#2a2a2a]" />
-              <div className="absolute left-2/3 top-0 bottom-0 w-px bg-[#2a2a2a]" />
-
-              {/* Red filled square — top-left cell */}
-              <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-bauhaus-red" />
-
-              {/* Yellow circle — center cell, deliberately overflowing */}
-              <div
-                className="absolute rounded-full bg-bauhaus-yellow"
-                style={{ top: '24%', left: '38%', width: '38%', height: '38%' }}
-              />
-
-              {/* Blue rectangle — bottom-center spanning 2 cells wide */}
-              <div className="absolute bottom-0 left-1/3 w-1/3 h-1/3 bg-bauhaus-blue" />
-
-              {/* Outlined circle — bottom-right cell */}
-              <div
-                className="absolute rounded-full border-2 border-bauhaus-red"
-                style={{ bottom: '6%', right: '6%', width: '24%', height: '24%' }}
-              />
-
-              {/* Studio monogram — ghost text */}
-              <span className="absolute top-[52%] left-[4%] font-display font-extrabold text-[#f5f5f5]/[0.07] text-[2.8rem] tracking-tighter select-none leading-none">
-                ST
+              <span className="font-body text-[10px] tracking-[0.3em] text-[#9a9387] uppercase">
+                {tokenBalance}&thinsp;tokens available
               </span>
             </div>
           </div>
@@ -178,83 +141,83 @@ export default function DashboardPage() {
       </section>
 
       {/* ─────────────────────────────────────────────
-          TOOLS GRID
+          TOOLS
       ───────────────────────────────────────────── */}
       <section
         ref={setRef('tools')}
-        className={`border-b border-[#2a2a2a] section-reveal ${visible.tools ? 'is-visible' : 'is-hidden'}`}
+        className={`bg-ink-soft section-reveal ${visible.tools ? 'is-visible' : 'is-hidden'}`}
       >
-        {/* Section label bar */}
-        <div className="flex items-center gap-3 px-8 md:px-14 py-4 border-b border-[#2a2a2a]">
-          <span className="w-[7px] h-[7px] bg-bauhaus-red shrink-0" />
-          <span className="font-display text-[8px] tracking-[0.45em] font-bold text-[#a3a3a3] uppercase">
-            STUDIO TOOLS — {panels.length} PANELS
-          </span>
+        {/* Section label */}
+        <div className="flex items-baseline justify-between gap-3 px-8 md:px-20 pt-16 pb-8">
+          <div>
+            <p className="flex items-center gap-3 mb-3">
+              <span className="h-px w-6 bg-gold/60" />
+              <span className="font-body text-[9px] tracking-[0.42em] text-gold/80 uppercase">
+                The Studio
+              </span>
+            </p>
+            <h2 className="font-serif font-light text-[#f2ede2] text-3xl md:text-4xl tracking-tight">
+              Tools, refined.
+            </h2>
+          </div>
         </div>
 
-        {/* Gap-px grid: background acts as divider color */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[#2a2a2a]">
-          {panels.map((panel, i) => {
+        {/* Tool cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-luxe-border border-y border-luxe-border">
+          {panels.map(panel => {
             const locked =
               panel.status === 'coming_soon' ||
               (!canUsePanel(profile, panel.id) && panel.status === 'active')
             const requiredPkg =
               locked && panel.status === 'active' ? getRequiredPackage(panel.id) : null
-            const accentColor = PANEL_COLORS[i]
 
             return (
               <button
                 key={panel.id}
                 onClick={() => handlePanelClick(panel)}
                 disabled={panel.status === 'coming_soon'}
-                className={`group relative flex flex-col justify-between p-7 md:p-8 text-left bg-[#0d0d0d] transition-colors duration-100 ${
+                className={`group relative flex flex-col justify-between p-8 md:p-9 text-left bg-ink-soft transition-colors duration-300 ${
                   locked
-                    ? 'opacity-40 cursor-not-allowed'
-                    : 'cursor-pointer hover:bg-[#111111]'
+                    ? 'opacity-45 cursor-not-allowed'
+                    : 'cursor-pointer hover:bg-ink-card'
                 }`}
-                style={{ minHeight: '190px' }}
+                style={{ minHeight: '230px' }}
               >
-                {/* Panel numeral — large ghost number */}
-                <span
-                  className="font-display font-extrabold text-5xl leading-none select-none transition-colors duration-100 group-hover:text-[#1e1e1e]"
-                  style={{ color: '#191919' }}
-                >
-                  {PANEL_NUMERALS[i]}
+                <span className="text-[1.9rem] block opacity-90 transition-transform duration-300 group-hover:-translate-y-0.5">
+                  {panel.icon}
                 </span>
 
                 <div>
-                  <span className="text-[1.6rem] block mb-3">{panel.icon}</span>
-                  <p className="font-display font-bold text-[#f5f5f5] text-[10px] tracking-[0.14em] uppercase leading-tight">
+                  <p className="font-serif text-[#f2ede2] text-2xl leading-tight tracking-tight transition-colors duration-300 group-hover:text-gold-bright">
                     {panel.name}
                   </p>
-                  <p className="text-[#a3a3a3] text-[11px] mt-1.5 leading-snug">{panel.description}</p>
+                  <p className="text-[#9a9387] font-body font-light text-sm mt-2.5 leading-relaxed">
+                    {panel.description}
+                  </p>
                 </div>
 
-                {/* Hover accent line at bottom */}
+                {/* Hover hairline */}
                 {!locked && (
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-100"
-                    style={{ backgroundColor: accentColor }}
-                  />
+                  <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/70 scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-500" />
                 )}
 
                 {/* Status badges */}
                 {panel.status === 'coming_soon' && (
-                  <span className="absolute top-4 right-4 font-display text-[7px] tracking-[0.35em] text-[#a3a3a3] border border-[#2a2a2a] px-2 py-0.5 uppercase">
-                    SOON
+                  <span className="absolute top-6 right-6 font-body text-[8px] tracking-[0.32em] text-[#9a9387] border border-luxe-border px-2.5 py-1 uppercase rounded-sm">
+                    Soon
                   </span>
                 )}
                 {requiredPkg && panel.status !== 'coming_soon' && (
-                  <span className="absolute top-4 right-4 font-display text-[7px] tracking-[0.25em] text-[#a3a3a3] border border-[#2a2a2a] px-2 py-0.5 uppercase flex items-center gap-1">
-                    <Lock size={7} /> {requiredPkg.name}
+                  <span className="absolute top-6 right-6 font-body text-[8px] tracking-[0.24em] text-gold/80 border border-gold/30 px-2.5 py-1 uppercase rounded-sm flex items-center gap-1.5">
+                    <Lock size={8} /> {requiredPkg.name}
                   </span>
                 )}
 
-                {/* Arrow — appears on hover */}
+                {/* Arrow */}
                 {!locked && (
-                  <ArrowRight
-                    size={11}
-                    className="absolute bottom-5 right-5 text-[#252525] group-hover:text-[#a3a3a3] transition-all duration-100 group-hover:translate-x-0.5"
+                  <ArrowUpRight
+                    size={16}
+                    className="absolute top-7 right-7 text-[#3a352b] group-hover:text-gold transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                   />
                 )}
               </button>
@@ -264,35 +227,42 @@ export default function DashboardPage() {
       </section>
 
       {/* ─────────────────────────────────────────────
-          FEATURED PRESETS
+          FEATURED LOOKS
       ───────────────────────────────────────────── */}
       {featured.length > 0 && (
         <section
           ref={setRef('presets')}
-          className={`border-b border-[#2a2a2a] section-reveal ${visible.presets ? 'is-visible' : 'is-hidden'}`}
+          className={`bg-ink section-reveal ${visible.presets ? 'is-visible' : 'is-hidden'}`}
           style={{ transitionDelay: visible.presets ? '0ms' : '100ms' }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-8 md:px-14 py-4 border-b border-[#2a2a2a]">
-            <div className="flex items-center gap-3">
-              <span className="w-[7px] h-[7px] bg-bauhaus-yellow shrink-0" />
-              <span className="font-display text-[8px] tracking-[0.45em] font-bold text-[#a3a3a3] uppercase">
-                SELECTED PRESETS
-              </span>
+          <div className="flex items-end justify-between gap-3 px-8 md:px-20 pt-16 pb-8">
+            <div>
+              <p className="flex items-center gap-3 mb-3">
+                <span className="h-px w-6 bg-gold/60" />
+                <span className="font-body text-[9px] tracking-[0.42em] text-gold/80 uppercase">
+                  The Collection
+                </span>
+              </p>
+              <h2 className="font-serif font-light text-[#f2ede2] text-3xl md:text-4xl tracking-tight">
+                Signature looks.
+              </h2>
             </div>
             <button
               onClick={() => navigate('/retouch')}
-              className="font-display text-[8px] tracking-[0.3em] text-[#a3a3a3] hover:text-[#f5f5f5] uppercase transition-colors duration-100 flex items-center gap-1.5"
+              className="group font-body text-[10px] tracking-[0.26em] text-[#9a9387] hover:text-gold uppercase transition-colors duration-300 flex items-center gap-2 shrink-0 pb-1"
             >
-              ALL PRESETS <ArrowRight size={10} />
+              View all
+              <ArrowRight
+                size={12}
+                className="transition-transform duration-300 group-hover:translate-x-0.5"
+              />
             </button>
           </div>
 
-          {/* Preset grid — gap-px for dividers */}
           <div
-            className={`grid gap-px bg-[#2a2a2a] ${
+            className={`grid gap-px bg-luxe-border border-y border-luxe-border ${
               featured.length >= 6
-                ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-6'
+                ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'
                 : featured.length >= 3
                 ? 'grid-cols-2 sm:grid-cols-3'
                 : 'grid-cols-2'
@@ -302,33 +272,34 @@ export default function DashboardPage() {
               <button
                 key={preset.id}
                 onClick={() => navigate('/retouch')}
-                className="group text-left bg-[#0d0d0d] hover:bg-[#111111] transition-colors duration-100 overflow-hidden"
+                className="group text-left bg-ink overflow-hidden"
               >
-                <div className="aspect-square bg-[#111111] overflow-hidden">
+                <div className="relative aspect-square bg-ink-card overflow-hidden">
                   {preset.after_image_url ? (
                     <img
                       src={preset.after_image_url}
                       alt={preset.name}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.05]"
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
                       loading="lazy"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-3xl">{preset.icon}</span>
+                      <span className="text-3xl opacity-80">{preset.icon}</span>
                     </div>
                   )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
-                <div className="p-4 border-t border-[#2a2a2a]">
-                  <p className="font-display font-bold text-[#f5f5f5] text-[9px] tracking-[0.15em] uppercase leading-tight">
+                <div className="p-4 md:p-5 border-t border-luxe-border">
+                  <p className="font-serif text-[#f2ede2] text-base leading-tight tracking-tight transition-colors duration-300 group-hover:text-gold-bright truncate">
                     {preset.name}
                   </p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="font-display text-[8px] tracking-[0.25em] text-[#a3a3a3] uppercase">
-                      {preset.token_cost}&thinsp;T
+                  <div className="flex items-center justify-between mt-2.5">
+                    <span className="font-body text-[9px] tracking-[0.26em] text-gold/70 uppercase">
+                      {preset.token_cost}&thinsp;tokens
                     </span>
-                    <ArrowRight
-                      size={9}
-                      className="text-[#252525] group-hover:text-[#a3a3a3] transition-colors duration-100"
+                    <ArrowUpRight
+                      size={12}
+                      className="text-[#3a352b] group-hover:text-gold transition-colors duration-300"
                     />
                   </div>
                 </div>
@@ -347,44 +318,45 @@ export default function DashboardPage() {
         style={{ transitionDelay: visible.cta ? '0ms' : '200ms' }}
       >
         {!profile?.package_id ? (
-          /* ── Activation block — full red ── */
-          <div className="relative overflow-hidden bg-bauhaus-red">
-            {/* Faint grid texture */}
+          /* ── Activation block — quiet luxury ── */
+          <div className="relative overflow-hidden bg-ink-soft">
+            {/* Soft gold glow */}
             <div
-              className="absolute inset-0 pointer-events-none"
+              className="absolute inset-0 pointer-events-none opacity-60"
               style={{
-                backgroundImage:
-                  'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)',
-                backgroundSize: '32px 32px',
+                background:
+                  'radial-gradient(120% 140% at 100% 0%, rgba(197,165,114,0.16) 0%, rgba(197,165,114,0) 55%)',
               }}
             />
-            {/* Right white structural rule */}
-            <div className="absolute right-0 top-0 bottom-0 w-[3px] bg-white/20" />
+            <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
 
-            <div className="relative grid grid-cols-12 items-center">
-              <div className="col-span-12 md:col-span-8 px-10 md:px-14 py-12 md:py-14">
-                <p className="font-display text-[8px] tracking-[0.45em] font-bold text-white/50 uppercase mb-5">
-                  — ACTIVATION REQUIRED
+            <div className="relative grid grid-cols-12 items-center gap-y-10">
+              <div className="col-span-12 md:col-span-8 px-8 md:px-20 py-16 md:py-20">
+                <p className="flex items-center gap-3 mb-6">
+                  <span className="h-px w-6 bg-gold/60" />
+                  <span className="font-body text-[9px] tracking-[0.42em] text-gold/80 uppercase">
+                    Begin
+                  </span>
                 </p>
-                <h2 className="font-display font-extrabold text-white leading-none tracking-tight text-4xl sm:text-5xl md:text-6xl">
-                  UNLOCK STUDIO
+                <h2 className="font-serif font-light text-[#f7f3ea] leading-[1.02] tracking-tight text-4xl sm:text-5xl md:text-6xl">
+                  Unlock your
                   <br />
-                  ACCESS.
+                  <span className="italic text-gold-gradient font-medium">studio access.</span>
                 </h2>
-                <p className="text-white/60 text-sm mt-5 max-w-md leading-relaxed">
-                  Redeem your voucher code to activate your token balance and begin transforming
-                  visual assets with machine intelligence.
+                <p className="text-[#c9c2b4] font-body font-light text-base mt-6 max-w-md leading-relaxed">
+                  Redeem your voucher to activate your token balance and begin transforming
+                  your images with a single, considered touch.
                 </p>
               </div>
-              <div className="col-span-12 md:col-span-4 px-10 md:px-8 pb-12 md:py-0 md:flex md:justify-center">
+              <div className="col-span-12 md:col-span-4 px-8 md:px-12 pb-16 md:pb-0">
                 <button
                   onClick={() => navigate('/tokens')}
-                  className="group flex items-center gap-3 bg-white text-bauhaus-red hover:bg-bauhaus-cream font-display font-bold text-[10px] tracking-[0.22em] uppercase px-8 py-4 transition-colors duration-100"
+                  className="group flex items-center gap-3 bg-gold hover:bg-gold-bright text-ink font-body font-medium text-[11px] tracking-[0.22em] uppercase px-8 py-4 rounded-sm transition-all duration-300 shadow-[0_8px_30px_-12px_rgba(197,165,114,0.6)]"
                 >
-                  REDEEM CODE
+                  Redeem code
                   <ArrowRight
-                    size={13}
-                    className="transition-transform duration-100 group-hover:translate-x-0.5"
+                    size={14}
+                    className="transition-transform duration-300 group-hover:translate-x-1"
                   />
                 </button>
               </div>
@@ -392,17 +364,17 @@ export default function DashboardPage() {
           </div>
         ) : (
           /* ── Studio active status strip ── */
-          <div className="px-8 md:px-14 py-5 border-b border-[#2a2a2a] flex items-center gap-5">
+          <div className="px-8 md:px-20 py-7 bg-ink-soft border-t border-luxe-border flex items-center gap-5">
             <div className="flex items-center gap-2.5">
-              <span className="w-[7px] h-[7px] rounded-full bg-success animate-pulse shrink-0" />
-              <span className="font-display text-[8px] tracking-[0.45em] text-[#a3a3a3] uppercase">
-                STUDIO ACTIVE
+              <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse shrink-0" />
+              <span className="font-body text-[9px] tracking-[0.42em] text-[#9a9387] uppercase">
+                Studio active
               </span>
             </div>
-            <div className="flex-1 h-px bg-[#1a1a1a]" />
-            <span className="font-display font-bold text-[#f5f5f5] text-sm">
+            <div className="flex-1 h-px bg-luxe-border" />
+            <span className="font-serif text-[#f2ede2] text-xl">
               {tokenBalance}{' '}
-              <span className="font-normal text-[#a3a3a3] text-[9px] tracking-[0.3em] uppercase">
+              <span className="font-body font-light text-[#9a9387] text-[10px] tracking-[0.3em] uppercase">
                 tokens
               </span>
             </span>
