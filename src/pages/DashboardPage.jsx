@@ -10,7 +10,7 @@ import OnboardingModal, { shouldShowOnboarding } from '../components/shared/Onbo
 // Editorial cover image — self-hosted in /public. Sits beneath a deep gradient
 // so the hero still reads as premium even before/if the image loads. The subject
 // is framed on the right, where the left-side gradient leaves it visible.
-const HERO_IMAGE = '/hero.jpg'
+const HERO_IMAGE = '/hero.webp'
 
 function useRevealOnScroll(keys) {
   const [visible, setVisible] = useState(() => Object.fromEntries(keys.map(k => [k, false])))
